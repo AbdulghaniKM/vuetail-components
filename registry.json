@@ -38,5 +38,27 @@
     "useSeo",
     "useTheme",
     "useToast"
-  ]
+  ],
+  "dependencies": {
+    "AppButton": ["AppIcon", "AppSpinner", "AppTooltip"],
+    "AppErrorBoundary": ["AppIcon"],
+    "AppIcon": [],
+    "AppImageModal": [],
+    "AppModal": ["AppIcon", "AppSpinner", "useKeyboard"],
+    "AppSpinner": [],
+    "AppTable": ["AppButton", "AppIcon", "AppModal", "AppSpinner", "AppTooltip", "useDebounce", "usePagination"],
+    "AppText": [],
+    "AppToast": ["AppIcon", "useToast"],
+    "AppTooltip": ["useBreakpoint"],
+    "ConfirmDangerModal": ["AppButton", "AppModal"],
+    "Fields/AppForm": ["Fields/DatePicker", "Fields/InputField", "Fields/PhoneInput", "Fields/Select", "Fields/Textarea", "useFormValidation"],
+    "Fields/DatePicker": ["AppButton", "AppIcon", "Fields/TimePickerClock", "useKeyboard"],
+    "Fields/FileDisplay": ["AppButton", "AppIcon"],
+    "Fields/FileInput": ["AppButton"],
+    "Fields/InputField": ["AppIcon"],
+    "Fields/PhoneInput": [],
+    "Fields/Select": ["AppIcon"],
+    "Fields/Textarea": [],
+    "Fields/TimePickerClock": ["AppIcon"]
+  }
 }
