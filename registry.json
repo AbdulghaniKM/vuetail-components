@@ -1,0 +1,42 @@
+{
+  "components": [
+    "AppButton",
+    "AppErrorBoundary",
+    "AppIcon",
+    "AppImageModal",
+    "AppModal",
+    "AppSpinner",
+    "AppTable",
+    "AppText",
+    "AppToast",
+    "AppTooltip",
+    "ConfirmDangerModal",
+    "Fields/AppForm",
+    "Fields/DatePicker",
+    "Fields/FileDisplay",
+    "Fields/FileInput",
+    "Fields/InputField",
+    "Fields/PhoneInput",
+    "Fields/Select",
+    "Fields/Textarea",
+    "Fields/TimePickerClock"
+  ],
+  "composables": [
+    "useAppConfig",
+    "useAuth",
+    "useBreakpoint",
+    "useClipboard",
+    "useColorCustomizer",
+    "useConfirm",
+    "useDateFormat",
+    "useDebounce",
+    "useFormValidation",
+    "useInfiniteScroll",
+    "useKeyboard",
+    "useLocalStorage",
+    "usePagination",
+    "useSeo",
+    "useTheme",
+    "useToast"
+  ]
+}
