@@ -5,20 +5,42 @@ import {
   getColorValue,
   type ColorPalette,
 } from '../utils/theme';
-import { useLocalStorage } from './useLocalStorage';
 import { appConfig } from '../config/app.config';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
-// Persisted theme mode via useLocalStorage
-const storedMode = useLocalStorage<ThemeMode | null>('app-theme', null);
+// Persisted theme mode — stored as a raw string ('light' | 'dark') so the
+// template's initializeConfig() can read it synchronously on first paint
+// without parsing JSON. Using useLocalStorage here would JSON-stringify the
+// value (writing '"dark"' with quotes), which the pre-boot reader doesn't
+// accept and would cause a FOUC flash of the default theme.
+const STORAGE_KEY = 'app-theme';
+const readStored = (): ThemeMode | null => {
+  if (typeof localStorage === 'undefined') return null;
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw === 'light' || raw === 'dark') return raw;
+  // Tolerate legacy JSON-encoded values written by earlier versions.
+  if (raw && raw.startsWith('"')) {
+    const unquoted = raw.slice(1, -1);
+    if (unquoted === 'light' || unquoted === 'dark') return unquoted;
+  }
+  return null;
+};
+const writeStored = (value: ThemeMode | null): void => {
+  if (typeof localStorage === 'undefined') return;
+  if (value === null || value === 'system') {
+    localStorage.removeItem(STORAGE_KEY);
+  } else {
+    localStorage.setItem(STORAGE_KEY, value);
+  }
+};
 
 const resolveTheme = (mode: ThemeMode | null): 'light' | 'dark' => {
   if (mode === 'light' || mode === 'dark') return mode;
   return getSystemTheme();
 };
 
-const defaultMode: ThemeMode = storedMode.value ?? appConfig.theme.defaultTheme ?? 'system';
+const defaultMode: ThemeMode = readStored() ?? appConfig.theme.defaultTheme ?? 'system';
 const currentTheme = ref<'light' | 'dark'>(resolveTheme(defaultMode));
 const themeMode = ref<ThemeMode>(defaultMode);
 
@@ -37,10 +59,10 @@ export const useTheme = () => {
 
     if (theme === 'system') {
       currentTheme.value = getSystemTheme();
-      storedMode.value = null; // remove from storage
+      writeStored(null);
     } else {
       currentTheme.value = theme;
-      storedMode.value = theme; // persist to storage
+      writeStored(theme);
     }
 
     applyThemeToDOM(theme);

@@ -1,4 +1,5 @@
 import { computed, ref } from 'vue';
+import api, { setAuthProvider } from '../plugins/axios';
 
 export interface AuthUser {
   id: string | number;
@@ -11,20 +12,17 @@ export interface AuthUser {
 const TOKEN_KEY = 'auth-token';
 const REFRESH_TOKEN_KEY = 'auth-refresh-token';
 
-// ÔöÇÔöÇ Module-level state (shared across all callers) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 const token = ref<string | null>(readToken());
 const user = ref<AuthUser | null>(null);
 const loading = ref(false);
 
 function readToken(): string | null {
-  try {
-    return localStorage.getItem(TOKEN_KEY);
-  } catch {
-    return null;
-  }
+  if (typeof localStorage === 'undefined') return null;
+  try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
 }
 
 function persistToken(t: string | null) {
+  if (typeof localStorage === 'undefined') return;
   try {
     if (t) localStorage.setItem(TOKEN_KEY, t);
     else localStorage.removeItem(TOKEN_KEY);
@@ -32,19 +30,17 @@ function persistToken(t: string | null) {
 }
 
 function persistRefreshToken(t: string | null) {
+  if (typeof localStorage === 'undefined') return;
   try {
     if (t) localStorage.setItem(REFRESH_TOKEN_KEY, t);
     else localStorage.removeItem(REFRESH_TOKEN_KEY);
   } catch { /* storage unavailable */ }
 }
 
-// ÔöÇÔöÇ Exported helpers for axios interceptor (non-reactive) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
-/** Read the current token value ÔÇö used by axios request interceptor */
 export function getAuthToken(): string | null {
   return token.value;
 }
 
-/** Clear session ÔÇö used by axios 401 response interceptor */
 export function clearAuthSession() {
   token.value = null;
   user.value = null;
@@ -52,7 +48,30 @@ export function clearAuthSession() {
   persistRefreshToken(null);
 }
 
-// ÔöÇÔöÇ Composable ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// Register with the axios plugin so the request interceptor can read the
+// token and the response interceptor can refresh / clear on 401.
+setAuthProvider({
+  getToken: () => token.value,
+  onUnauthorized: () => clearAuthSession(),
+  refreshToken: async () => {
+    const stored =
+      typeof localStorage !== 'undefined' ? localStorage.getItem(REFRESH_TOKEN_KEY) : null;
+    if (!stored) { clearAuthSession(); return null; }
+    try {
+      const res = await api.post('/auth/refresh', { refreshToken: stored });
+      const newToken = res.data?.token ?? null;
+      if (!newToken) { clearAuthSession(); return null; }
+      token.value = newToken;
+      persistToken(newToken);
+      if (res.data?.refreshToken) persistRefreshToken(res.data.refreshToken);
+      return newToken;
+    } catch {
+      clearAuthSession();
+      return null;
+    }
+  },
+});
+
 export const useAuth = () => {
   const isAuthenticated = computed(() => !!token.value);
 
@@ -63,13 +82,7 @@ export const useAuth = () => {
     if (userData) user.value = userData;
   };
 
-  /**
-   * Login with credentials.
-   * Adapt the endpoint and response shape to your API.
-   */
   const login = async (credentials: { email: string; password: string }) => {
-    // Import api lazily to avoid circular dependency (axios.ts imports from this file)
-    const { default: api } = await import('../plugins/axios');
     loading.value = true;
     try {
       const res = await api.post('/auth/login', credentials);
@@ -80,10 +93,8 @@ export const useAuth = () => {
     }
   };
 
-  /** Fetch the current user profile using the stored token */
   const fetchUser = async () => {
     if (!token.value) return null;
-    const { default: api } = await import('../plugins/axios');
     loading.value = true;
     try {
       const res = await api.get('/auth/me');
@@ -97,12 +108,13 @@ export const useAuth = () => {
     }
   };
 
-  /** Attempt to refresh the access token */
   const refreshToken = async () => {
-    const stored = localStorage.getItem(REFRESH_TOKEN_KEY);
+    // Axios interceptor performs single-flight refresh via the provider
+    // registered above. Kept as a public method for callers that need to
+    // force a refresh outside an intercepted 401.
+    const stored =
+      typeof localStorage !== 'undefined' ? localStorage.getItem(REFRESH_TOKEN_KEY) : null;
     if (!stored) { clearAuthSession(); return false; }
-
-    const { default: api } = await import('../plugins/axios');
     try {
       const res = await api.post('/auth/refresh', { refreshToken: stored });
       setSession(res.data.token, res.data.refreshToken);
