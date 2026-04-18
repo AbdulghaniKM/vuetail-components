@@ -1,5 +1,5 @@
 import { computed, type Ref } from 'vue';
-import { formatDate, formatDateRange, type DateFormatOptions, type DateFormatPreset } from '../utils/date';
+import { formatDate, formatDateRange, type DateFormatOptions, type DateFormatPreset } from '@/utils/date';
 
 export const useDateFormat = (date: Ref<Date | string | number> | Date | string | number) => {
   const dateRef = typeof date === 'object' && 'value' in date ? date : computed(() => date);

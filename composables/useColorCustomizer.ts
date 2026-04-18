@@ -1,7 +1,7 @@
 import { ref, watch, computed } from 'vue';
-import { appConfig } from '../config/app.config';
-import { applyTheme } from '../utils/theme';
-import type { ColorPalette, ThemeConfig } from '../config/types';
+import { appConfig } from '@/config/app.config';
+import { applyTheme } from '@/utils/theme';
+import type { ColorPalette, ThemeConfig } from '@/config/types';
 import { useTheme } from './useTheme';
 
 // Initialize with a deep copy of the config theme
@@ -13,6 +13,7 @@ const getInitialTheme = (): ThemeConfig => {
   };
 };
 
+// NOTE: Module-scope ref() state. SPA-only — not safe under SSR (state leaks across requests).
 const customColors = ref<ThemeConfig>(getInitialTheme());
 
 export const useColorCustomizer = () => {

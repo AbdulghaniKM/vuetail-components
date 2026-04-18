@@ -1,7 +1,7 @@
-import { ref, onUnmounted, type Ref } from 'vue';
+import { ref, watch, onUnmounted, type Ref } from 'vue';
 
 interface UseInfiniteScrollOptions<T> {
-  /** Fetch function ÔÇö receives the page number (1-based), returns an array of items */
+  /** Fetch function — receives the page number (1-based), returns an array of items */
   fetch: (page: number) => Promise<T[]>;
   /** Number of items per page (used to detect "no more data") */
   pageSize?: number;
@@ -36,11 +36,22 @@ export function useInfiniteScroll<T>(options: UseInfiniteScrollOptions<T>) {
       if (result.length < pageSize) {
         done.value = true;
       }
-    } catch (e: any) {
-      error.value = e?.message || 'Failed to load more items';
+    } catch (e) {
+      error.value = (e as { message?: string })?.message || 'Failed to load more items';
       currentPage--;
     } finally {
       loading.value = false;
+    }
+  };
+
+  const teardown = () => {
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+    }
+    if (sentinel) {
+      sentinel.remove();
+      sentinel = null;
     }
   };
 
@@ -53,7 +64,7 @@ export function useInfiniteScroll<T>(options: UseInfiniteScrollOptions<T>) {
   };
 
   const observe = (el: HTMLElement) => {
-    if (observer) observer.disconnect();
+    teardown();
 
     sentinel = document.createElement('div');
     sentinel.style.height = '1px';
@@ -69,25 +80,20 @@ export function useInfiniteScroll<T>(options: UseInfiniteScrollOptions<T>) {
     observer.observe(sentinel);
   };
 
-  // Auto-observe when containerRef is set
-  const stopWatch = ref(false);
-  const checkContainer = () => {
-    if (containerRef.value && !stopWatch.value) {
-      observe(containerRef.value);
+  // React to containerRef being attached by the consumer's template.
+  // `flush: 'post'` ensures the DOM node is mounted before we observe.
+  watch(
+    containerRef,
+    (el) => {
+      teardown();
+      if (!el) return;
+      observe(el);
       loadMore();
-      stopWatch.value = true;
-    }
-  };
+    },
+    { immediate: true, flush: 'post' },
+  );
 
-  // Poll once on next tick (composable can't use watch on template ref reliably)
-  const interval = setInterval(checkContainer, 100);
-  setTimeout(() => clearInterval(interval), 5000);
-
-  onUnmounted(() => {
-    clearInterval(interval);
-    if (observer) observer.disconnect();
-    if (sentinel) sentinel.remove();
-  });
+  onUnmounted(teardown);
 
   return { items, loading, done, error, containerRef, reset, loadMore };
 }

@@ -1,8 +1,8 @@
 <template>
   <div ref="rootRef" class="flex w-full flex-col gap-1.5">
-    <span v-if="label" class="text-sm font-medium text-text">
+    <label v-if="label" :id="labelId" :for="inputId" class="text-sm font-medium text-text">
       {{ label }}
-    </span>
+    </label>
 
     <div class="relative">
     <!-- Trigger -->
@@ -65,6 +65,7 @@
         <ul
           ref="listRef"
           role="listbox"
+          :aria-labelledby="label ? labelId : undefined"
           :aria-activedescendant="highlightedIndex >= 0 ? `${inputId}-opt-${highlightedIndex}` : undefined"
           class="max-h-52 overflow-y-auto overscroll-contain p-1 scrollbar-thin"
           @keydown="onListKeydown"
@@ -117,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount, useId } from 'vue'
 import AppIcon from '../AppIcon.vue'
 
 export interface SelectItem {
@@ -146,7 +147,8 @@ const emit = defineEmits<{
   'update:modelValue': [value: string | number]
 }>()
 
-const inputId = computed(() => `select-${Math.random().toString(36).slice(2, 11)}`)
+const inputId = useId()
+const labelId = `${inputId}-label`
 
 const isOpen = ref(false)
 const searchQuery = ref('')
@@ -260,7 +262,7 @@ function onListKeydown(e: KeyboardEvent) {
 
 function scrollToHighlighted() {
   nextTick(() => {
-    const el = listRef.value?.querySelector(`#${inputId.value}-opt-${highlightedIndex.value}`) as HTMLElement | null
+    const el = listRef.value?.querySelector(`#${inputId}-opt-${highlightedIndex.value}`) as HTMLElement | null
     el?.scrollIntoView({ block: 'nearest' })
   })
 }

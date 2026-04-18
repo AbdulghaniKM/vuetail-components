@@ -8,5 +8,5 @@ export { default as TimePickerClock } from './TimePickerClock.vue';
 export { default as FileInput } from './FileInput.vue';
 export { default as FileDisplay } from './FileDisplay.vue';
 
-export type { FormField, FormFieldRow } from '../../../types/form';
+export type { FormField, FormFieldRow } from '@/types/form';
 export type { SelectItem } from './Select.vue';

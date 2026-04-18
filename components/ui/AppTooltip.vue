@@ -1,6 +1,7 @@
 <template>
   <div
     class="group relative inline-flex"
+    :aria-describedby="content && show ? tipId : undefined"
     @mouseenter="onEnter"
     @mouseleave="onLeave"
     @focusin="onEnter"
@@ -17,6 +18,7 @@
     >
       <span
         v-if="content && show"
+        :id="tipId"
         role="tooltip"
         class="pointer-events-none absolute z-[9990] max-w-xs whitespace-normal rounded-lg px-3 py-1.5 text-xs font-medium leading-snug shadow-lg"
         :class="[themeClass, placementClass]"
@@ -30,8 +32,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useBreakpoint } from '../../composables/useBreakpoint'
+import { computed, ref, useId } from 'vue'
+import { useBreakpoint } from '@/composables/useBreakpoint'
 
 const props = withDefaults(
   defineProps<{
@@ -50,6 +52,7 @@ const props = withDefaults(
 
 const { isMobile: disableOnMobile } = useBreakpoint()
 const show = ref(false)
+const tipId = useId()
 let timeoutId: ReturnType<typeof setTimeout> | null = null
 
 function onEnter() {
@@ -64,13 +67,13 @@ function onLeave() {
 
 const themeClass = computed(() =>
   props.dark
-    ? 'bg-[#1e293b] text-white ring-1 ring-white/10'
+    ? 'bg-text text-surface ring-1 ring-surface/10'
     : 'bg-surface text-text border border-border shadow-md'
 )
 
 const arrowClass = computed(() =>
   props.dark
-    ? 'bg-[#1e293b]'
+    ? 'bg-text'
     : 'bg-surface border border-border'
 )
 

@@ -1,33 +1,33 @@
 <template>
   <div v-if="hasError" class="p-8 text-center">
     <div class="max-w-md mx-auto">
-      <AppIcon name="mdi:alert-circle" size="xl" class="text-red-500 mb-4 mx-auto" />
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h2>
-      <p class="text-gray-600 mb-4">{{ errorMessage }}</p>
+      <AppIcon name="icon-[mdi--alert-circle]" size="xl" class="text-error mb-4 mx-auto" />
+      <h2 class="text-2xl font-bold text-text mb-2">Something went wrong</h2>
+      <p class="text-text-secondary mb-4">{{ errorMessage }}</p>
       <div class="flex gap-2 justify-center">
         <button
           @click="handleReset"
-          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
         >
           Try Again
         </button>
         <button
           v-if="showDetails"
           @click="showDetails = false"
-          class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          class="px-4 py-2 border border-border rounded-lg text-text hover:bg-muted transition-colors"
         >
           Hide Details
         </button>
         <button
           v-else
           @click="showDetails = true"
-          class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          class="px-4 py-2 border border-border rounded-lg text-text hover:bg-muted transition-colors"
         >
           Show Details
         </button>
       </div>
-      <div v-if="showDetails && error" class="mt-4 p-4 bg-gray-100 rounded-lg text-left">
-        <pre class="text-xs text-gray-700 whitespace-pre-wrap break-words">{{ error.stack || error.message }}</pre>
+      <div v-if="showDetails && error" class="mt-4 p-4 bg-muted rounded-lg text-left">
+        <pre class="text-xs text-text-secondary whitespace-pre-wrap break-words">{{ error.stack || error.message }}</pre>
       </div>
     </div>
   </div>
@@ -68,6 +68,6 @@ onErrorCaptured((err: Error) => {
     props.onError(err);
   }
 
-  return false; // Prevent error from propagating
+  return false;
 });
 </script>

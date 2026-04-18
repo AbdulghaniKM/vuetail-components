@@ -24,7 +24,7 @@
 import { computed } from 'vue'
 import AppIcon from '../AppIcon.vue'
 import AppButton from '../AppButton.vue'
-import { display } from '../../../utils/display'
+import { display } from '@/utils/display'
 
 const props = withDefaults(
   defineProps<{

@@ -1,16 +1,21 @@
 {
+  "schemaVersion": 1,
   "components": [
     "AppButton",
+    "AppEmptyState",
     "AppErrorBoundary",
     "AppIcon",
     "AppImageModal",
     "AppModal",
+    "AppPageLoader",
+    "AppSkeleton",
     "AppSpinner",
     "AppTable",
     "AppText",
     "AppToast",
     "AppTooltip",
     "ConfirmDangerModal",
+    "ThemeToggle",
     "Fields/AppForm",
     "Fields/DatePicker",
     "Fields/FileDisplay",
@@ -36,21 +41,26 @@
     "useLocalStorage",
     "usePagination",
     "useSeo",
+    "useSidebar",
     "useTheme",
     "useToast"
   ],
   "dependencies": {
     "AppButton": ["AppIcon", "AppSpinner", "AppTooltip"],
+    "AppEmptyState": ["AppIcon"],
     "AppErrorBoundary": ["AppIcon"],
     "AppIcon": [],
     "AppImageModal": [],
     "AppModal": ["AppIcon", "AppSpinner", "useKeyboard"],
+    "AppPageLoader": [],
+    "AppSkeleton": [],
     "AppSpinner": [],
     "AppTable": ["AppButton", "AppIcon", "AppModal", "AppSpinner", "AppTooltip", "useDebounce", "usePagination"],
     "AppText": [],
     "AppToast": ["AppIcon", "useToast"],
     "AppTooltip": ["useBreakpoint"],
     "ConfirmDangerModal": ["AppButton", "AppModal"],
+    "ThemeToggle": ["AppIcon", "useTheme"],
     "Fields/AppForm": ["Fields/DatePicker", "Fields/InputField", "Fields/PhoneInput", "Fields/Select", "Fields/Textarea", "useFormValidation"],
     "Fields/DatePicker": ["AppButton", "AppIcon", "Fields/TimePickerClock", "useKeyboard"],
     "Fields/FileDisplay": ["AppButton", "AppIcon"],
@@ -60,5 +70,37 @@
     "Fields/Select": ["AppIcon"],
     "Fields/Textarea": [],
     "Fields/TimePickerClock": ["AppIcon"]
+  },
+  "requires": {
+    "useAuth": {
+      "files": ["src/plugins/axios.ts"]
+    },
+    "useTheme": {
+      "files": ["src/utils/theme.ts", "src/config/app.config.ts", "src/config/types.ts"]
+    },
+    "useAppConfig": {
+      "files": ["src/config/app.config.ts", "src/config/types.ts"]
+    },
+    "useColorCustomizer": {
+      "files": ["src/utils/theme.ts", "src/config/app.config.ts", "src/config/types.ts"]
+    },
+    "useDateFormat": {
+      "files": ["src/utils/date.ts"]
+    },
+    "useSeo": {
+      "files": ["src/utils/seo.ts"]
+    },
+    "AppTable": {
+      "files": ["src/utils/display.ts"]
+    },
+    "Fields/AppForm": {
+      "files": ["src/types/form.ts"]
+    },
+    "Fields/DatePicker": {
+      "files": ["src/utils/datepicker.ts"]
+    },
+    "Fields/FileDisplay": {
+      "files": ["src/utils/display.ts"]
+    }
   }
 }

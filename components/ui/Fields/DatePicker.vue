@@ -162,12 +162,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, nextTick, onBeforeUnmount, useId } from 'vue'
 import { onClickOutside } from '@vueuse/core'
 import AppIcon from '../AppIcon.vue'
 import AppButton from '../AppButton.vue'
 import TimePickerClock from './TimePickerClock.vue'
-import { useKeyboard } from '../../../composables/useKeyboard'
+import { useKeyboard } from '@/composables/useKeyboard'
 import {
   toDisplayValue,
   buildModelValue,
@@ -177,11 +177,9 @@ import {
   addMonth,
   subMonth,
   type DatePickerMode,
-} from '../../../utils/datepicker'
+} from '@/utils/datepicker'
 
 export type { DatePickerMode }
-
-let idCounter = 0
 
 interface Props {
   modelValue: string
@@ -211,7 +209,8 @@ const localMinutes = ref(0)
 const containerRef = ref<HTMLElement | null>(null)
 const dropdownRef = ref<HTMLElement | null>(null)
 
-const inputId = computed(() => props.id ?? `datepicker-${++idCounter}`)
+const autoId = useId()
+const inputId = computed(() => props.id ?? autoId)
 const displayValue = computed(() => toDisplayValue(props.modelValue, props.mode))
 const selectedDate = computed(() => parseModelValue(props.modelValue))
 const weekdayLabels = getWeekdayLabels()

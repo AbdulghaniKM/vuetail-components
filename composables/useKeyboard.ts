@@ -1,6 +1,6 @@
 import { onMounted, onUnmounted, watch, type Ref } from 'vue';
 
-type ShortcutHandler = (e: KeyboardEvent) => void;
+type ShortcutHandler = (e: KeyboardEvent) => void | boolean;
 type ShortcutMap = Record<string, ShortcutHandler>;
 
 function normalizeKey(combo: string): string {
@@ -45,10 +45,11 @@ export function useKeyboard(shortcuts: ShortcutMap, enabled?: Ref<boolean>) {
   const handleKeydown = (e: KeyboardEvent) => {
     const pressed = eventToKey(e);
     const handler = normalizedMap.get(pressed);
-    if (handler) {
-      e.preventDefault();
-      handler(e);
-    }
+    if (!handler) return;
+    // Handler opts in to preventDefault by returning true.
+    // Default: don't swallow the event (Enter-in-input inside modals stays intact).
+    const shouldPrevent = handler(e) === true;
+    if (shouldPrevent) e.preventDefault();
   };
 
   const bind = () => document.addEventListener('keydown', handleKeydown);

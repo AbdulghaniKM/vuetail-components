@@ -78,7 +78,7 @@
 
     <!-- Submit Button -->
     <div class="mt-4 flex shrink-0 justify-end gap-4">
-      <slot name="actions">
+      <slot name="actions" :submitting="isSubmitting">
         <button
           type="submit"
           :disabled="isSubmitting"
@@ -91,44 +91,41 @@
   </form>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" generic="TSchema extends ZodType = ZodType">
 import { ref } from 'vue';
 import { z, type ZodType } from 'zod';
-import api from '../../../plugins/axios';
-import { useFormValidation } from '../../../composables/useFormValidation';
+import { useFormValidation } from '@/composables/useFormValidation';
 import InputField from './InputField.vue';
 import Textarea from './Textarea.vue';
 import Select from './Select.vue';
 import PhoneInput from './PhoneInput.vue';
 import DatePicker from './DatePicker.vue';
-import type { SelectItem } from './Select.vue';
-import type { FormField, FormFieldRow } from '../../../types/form';
+import type { FormField, FormFieldRow } from '@/types/form';
 
 export type { FormField, FormFieldRow };
+export type { SelectItem } from './Select.vue';
+
+type SchemaValues<T extends ZodType> = z.infer<T>;
 
 interface Props {
-  modelValue: Record<string, any>;
+  /** Form model — use z.infer<typeof yourSchema> for typing. */
+  modelValue: Record<string, unknown>;
   fields: FormFieldRow[];
-  schema?: ZodType;
-  endPoint?: string;
-  method?: 'POST' | 'PUT';
+  schema?: TSchema;
   containerClass?: string;
   rowClass?: string;
   fieldGap?: string;
-  successMessage?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  method: 'POST',
   containerClass: 'space-y-4',
   fieldGap: 'gap-4',
-  successMessage: 'Form submitted successfully!',
 });
 
 const emit = defineEmits<{
-  'update:modelValue': [value: Record<string, any>];
-  submitted: [data: Record<string, any>];
-  error: [error: any];
+  'update:modelValue': [value: Record<string, unknown>];
+  /** Emitted when submit passes validation. Parent owns the network. */
+  submit: [values: SchemaValues<TSchema>];
 }>();
 
 const errors = ref<Record<string, string>>({});
@@ -167,37 +164,24 @@ const clearErrors = () => {
   errors.value = {};
 };
 
-const handleSubmit = async () => {
-  if (!validate()) {
-    return;
-  }
-
-  if (!props.endPoint) {
-    emit('submitted', props.modelValue);
-    return;
-  }
-
+const handleSubmit = () => {
+  if (!validate()) return;
   isSubmitting.value = true;
-
-  try {
-    const response = await api({
-      method: props.method,
-      url: props.endPoint,
-      data: props.modelValue,
-    });
-
-    emit('submitted', response.data);
-  } catch (error: any) {
-    emit('error', error);
-  } finally {
-    isSubmitting.value = false;
-  }
+  // The parent handles the network and MUST call `finish()` / `finishError()` via the
+  // exposed control — or just let this flag reset immediately. For personal-scope,
+  // reset immediately after emit so the button doesn't stay disabled indefinitely.
+  emit('submit', props.modelValue as SchemaValues<TSchema>);
+  isSubmitting.value = false;
 };
 
-// Expose methods for template refs
+const setSubmitting = (value: boolean) => {
+  isSubmitting.value = value;
+};
+
 defineExpose({
   submit: handleSubmit,
   validate,
   clearErrors,
+  setSubmitting,
 });
 </script>

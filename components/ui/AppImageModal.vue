@@ -10,45 +10,50 @@
     >
       <div
         v-if="isOpen"
+        ref="rootRef"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="alt || 'Image viewer'"
+        tabindex="-1"
         class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm"
         @click.self="handleClose"
-        @keydown.esc="handleClose"
       >
         <div class="relative w-full h-full flex items-center justify-center p-4">
           <!-- Close Button -->
           <button
-            class="absolute top-4 right-4 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors backdrop-blur-sm"
+            class="absolute top-4 end-4 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors backdrop-blur-sm"
             @click="handleClose"
             aria-label="Close modal"
           >
-            <span class="icon-[mdi--close] text-2xl"></span>
+            <span class="icon-[mdi--close] text-2xl" aria-hidden="true"></span>
           </button>
 
           <!-- Navigation Buttons -->
           <button
-            v-if="images.length > 1"
-            class="absolute left-4 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors backdrop-blur-sm"
+            v-if="imagesArray.length > 1"
+            class="absolute start-4 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors backdrop-blur-sm"
             @click="previousImage"
             aria-label="Previous image"
           >
-            <span class="icon-[mdi--chevron-left] text-2xl"></span>
+            <span class="icon-[mdi--chevron-left] text-2xl" aria-hidden="true"></span>
           </button>
 
           <button
-            v-if="images.length > 1"
-            class="absolute right-4 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors backdrop-blur-sm"
+            v-if="imagesArray.length > 1"
+            class="absolute end-4 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors backdrop-blur-sm"
             @click="nextImage"
             aria-label="Next image"
           >
-            <span class="icon-[mdi--chevron-right] text-2xl"></span>
+            <span class="icon-[mdi--chevron-right] text-2xl" aria-hidden="true"></span>
           </button>
 
           <!-- Image Counter -->
           <div
-            v-if="images.length > 1"
+            v-if="imagesArray.length > 1"
             class="absolute top-4 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-full bg-white/10 text-white text-sm backdrop-blur-sm"
+            aria-live="polite"
           >
-            {{ currentIndex + 1 }} / {{ images.length }}
+            {{ currentIndex + 1 }} / {{ imagesArray.length }}
           </div>
 
           <!-- Image Container -->
@@ -89,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
+import { computed, ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
 
 interface Props {
   images: string | string[];
@@ -112,12 +117,15 @@ const imagesArray = computed(() => {
   return Array.isArray(props.images) ? props.images : [props.images];
 });
 
+const rootRef = ref<HTMLElement | null>(null);
 const currentIndex = ref(props.initialIndex);
 const zoom = ref(1);
 const zoomTransition = ref(false);
 const isDragging = ref(false);
 const dragStart = ref({ x: 0, y: 0 });
 const imagePosition = ref({ x: 0, y: 0 });
+
+let previouslyFocused: HTMLElement | null = null;
 
 const currentImage = computed(() => {
   return imagesArray.value[currentIndex.value] || '';
@@ -189,13 +197,23 @@ const handleKeyDown = (event: KeyboardEvent) => {
 
   switch (event.key) {
     case 'Escape':
+      event.preventDefault();
       handleClose();
       break;
     case 'ArrowLeft':
+      event.preventDefault();
       previousImage();
       break;
     case 'ArrowRight':
+      event.preventDefault();
       nextImage();
+      break;
+    case 'Tab':
+      // Minimal focus trap: keep focus inside the root element.
+      if (rootRef.value && !rootRef.value.contains(document.activeElement)) {
+        event.preventDefault();
+        rootRef.value.focus();
+      }
       break;
   }
 };
@@ -214,10 +232,14 @@ watch(
   () => props.isOpen,
   (isOpen) => {
     if (isOpen) {
+      previouslyFocused = (document.activeElement as HTMLElement) ?? null;
       document.body.style.overflow = 'hidden';
       resetZoom();
+      nextTick(() => rootRef.value?.focus());
     } else {
       document.body.style.overflow = '';
+      previouslyFocused?.focus?.();
+      previouslyFocused = null;
     }
   }
 );

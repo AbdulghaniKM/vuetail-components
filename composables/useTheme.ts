@@ -4,8 +4,8 @@ import {
   getSystemTheme,
   getColorValue,
   type ColorPalette,
-} from '../utils/theme';
-import { appConfig } from '../config/app.config';
+} from '@/utils/theme';
+import { appConfig } from '@/config/app.config';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -41,6 +41,7 @@ const resolveTheme = (mode: ThemeMode | null): 'light' | 'dark' => {
 };
 
 const defaultMode: ThemeMode = readStored() ?? appConfig.theme.defaultTheme ?? 'system';
+// NOTE: Module-scope ref() state. SPA-only — not safe under SSR (state leaks across requests).
 const currentTheme = ref<'light' | 'dark'>(resolveTheme(defaultMode));
 const themeMode = ref<ThemeMode>(defaultMode);
 

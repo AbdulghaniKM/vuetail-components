@@ -1,8 +1,8 @@
 <template>
   <div class="flex min-w-0 flex-col gap-1.5 w-full">
-    <span v-if="label" class="text-sm font-medium text-text">
+    <label v-if="label" :for="fieldId" class="text-sm font-medium text-text">
       {{ label }}
-    </span>
+    </label>
     <div
       class="relative flex min-w-0 items-stretch rounded-lg border bg-surface transition-all"
       :class="[
@@ -15,13 +15,15 @@
       ]"
     >
       <input
-        :id="id"
+        :id="fieldId"
         ref="inputRef"
         type="tel"
         :value="phoneNumber"
         :placeholder="placeholder"
         :readonly="readonly"
         :disabled="readonly"
+        :aria-invalid="error ? 'true' : undefined"
+        :aria-describedby="error ? errorId : undefined"
         dir="ltr"
         class="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-text placeholder:text-text/40 focus:outline-none disabled:cursor-not-allowed text-sm overflow-x-auto"
         :class="customClass"
@@ -87,12 +89,18 @@
         </Transition>
       </template>
     </div>
-    <span class="block min-h-[1.25rem] text-sm text-error" :class="{ invisible: !error }">{{ error }}</span>
+    <span
+      :id="errorId"
+      role="alert"
+      aria-live="polite"
+      class="block min-h-[1.25rem] text-sm text-error"
+      :class="{ invisible: !error }"
+    >{{ error }}</span>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch, useId } from 'vue';
 
 interface CountryCode {
   code: string;
@@ -123,7 +131,8 @@ const emit = defineEmits<{
   'update:modelValue': [value: string];
 }>();
 
-const id = computed(() => `phone-${Math.random().toString(36).substr(2, 9)}`);
+const fieldId = useId();
+const errorId = `${fieldId}-error`;
 
 const countryCodes: CountryCode[] = [
   { code: '+1', flag: '\u{1F1FA}\u{1F1F8}', name: 'United States' },

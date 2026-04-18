@@ -1,6 +1,6 @@
 <template>
   <div
-    class="inline-block animate-spin rounded-full border-2 border-current border-t-transparent"
+    class="app-spinner inline-block rounded-full border-2 border-current border-t-transparent"
     :class="sizeClass"
     :style="customStyle"
     role="status"
@@ -16,7 +16,6 @@ import { computed } from 'vue';
 interface Props {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | number | string;
   color?: string;
-  class?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -62,3 +61,19 @@ const customStyle = computed(() => {
   return Object.keys(style).length > 0 ? style : undefined;
 });
 </script>
+
+<style scoped>
+.app-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-spinner {
+    animation-duration: 3s;
+  }
+}
+</style>

@@ -26,8 +26,8 @@
           key="modal-panel"
           role="dialog"
           aria-modal="true"
-          :aria-labelledby="title ? 'modal-title' : undefined"
-          :aria-describedby="description ? 'modal-desc' : undefined"
+          :aria-labelledby="title ? titleId : undefined"
+          :aria-describedby="description ? descId : undefined"
           class="relative mx-auto flex w-full flex-col overflow-hidden rounded-2xl bg-surface text-text shadow-xl ring-1 ring-border/50"
           :class="[
             maxWidthClass,
@@ -72,8 +72,8 @@
                   <AppIcon :name="icon" :size="1.25" :class="iconColorClass" />
                 </div>
                 <div class="min-w-0">
-                  <h3 id="modal-title" class="text-text text-base font-semibold leading-snug">{{ title }}</h3>
-                  <p v-if="description" id="modal-desc" class="text-text-secondary mt-1 text-sm leading-relaxed">{{ description }}</p>
+                  <h3 :id="titleId" class="text-text text-base font-semibold leading-snug">{{ title }}</h3>
+                  <p v-if="description" :id="descId" class="text-text-secondary mt-1 text-sm leading-relaxed">{{ description }}</p>
                 </div>
               </div>
             </slot>
@@ -107,11 +107,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch, onUnmounted, ref, toRef } from 'vue'
+import { computed, watch, onUnmounted, ref, toRef, useId, nextTick } from 'vue'
 import { motion, AnimatePresence } from 'motion-v'
 import AppIcon from './AppIcon.vue'
 import AppSpinner from './AppSpinner.vue'
-import { useKeyboard } from '../../composables/useKeyboard'
+import { useKeyboard } from '@/composables/useKeyboard'
+
+// Per-instance IDs for aria-labelledby / aria-describedby. Avoids collision
+// when two modals render on the same page.
+const uid = useId()
+const titleId = `modal-title-${uid}`
+const descId = `modal-desc-${uid}`
 
 const props = withDefaults(
   defineProps<{
@@ -179,17 +185,67 @@ useKeyboard(
   toRef(props, 'isOpen'),
 )
 
-// Body scroll lock
+// Body scroll lock + focus management
+let previouslyFocused: HTMLElement | null = null
+
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled]):not([type="hidden"])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',')
+
+function getFocusable(): HTMLElement[] {
+  if (!panelRef.value) return []
+  return Array.from(panelRef.value.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
+    .filter((el) => !el.hasAttribute('disabled') && el.offsetParent !== null)
+}
+
+function handleTrap(e: KeyboardEvent) {
+  if (e.key !== 'Tab') return
+  const focusables = getFocusable()
+  if (focusables.length === 0) {
+    e.preventDefault()
+    return
+  }
+  const first = focusables[0]
+  const last = focusables[focusables.length - 1]
+  const active = document.activeElement as HTMLElement | null
+  if (e.shiftKey && active === first) {
+    e.preventDefault()
+    last.focus()
+  } else if (!e.shiftKey && active === last) {
+    e.preventDefault()
+    first.focus()
+  }
+}
+
 watch(
   () => props.isOpen,
   (open) => {
     document.body.style.overflow = open ? 'hidden' : ''
+    if (open) {
+      previouslyFocused = (document.activeElement as HTMLElement) ?? null
+      document.addEventListener('keydown', handleTrap)
+      nextTick(() => {
+        const focusables = getFocusable()
+        // Prefer first focusable inside the panel; fall back to the panel itself.
+        ;(focusables[0] ?? panelRef.value)?.focus()
+      })
+    } else {
+      document.removeEventListener('keydown', handleTrap)
+      previouslyFocused?.focus?.()
+      previouslyFocused = null
+    }
   },
   { immediate: true },
 )
 
 onUnmounted(() => {
   document.body.style.overflow = ''
+  document.removeEventListener('keydown', handleTrap)
 })
 
 const maxWidthClass = computed(() => {

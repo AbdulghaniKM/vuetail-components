@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue';
-import api, { setAuthProvider } from '../plugins/axios';
+import api, { setAuthProvider } from '@/plugins/axios';
 
 export interface AuthUser {
   id: string | number;
@@ -12,6 +12,7 @@ export interface AuthUser {
 const TOKEN_KEY = 'auth-token';
 const REFRESH_TOKEN_KEY = 'auth-refresh-token';
 
+// NOTE: Module-scope ref() state. SPA-only — not safe under SSR (state leaks across requests).
 const token = ref<string | null>(readToken());
 const user = ref<AuthUser | null>(null);
 const loading = ref(false);

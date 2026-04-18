@@ -49,6 +49,7 @@
                   column.key === 'actions' ? 'sticky-actions-th w-px' : '',
                   'text-text-secondary',
                 ]"
+                :aria-sort="getAriaSort(column)"
               >
                 <button
                   v-if="isColumnSortable(column)"
@@ -312,15 +313,15 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { onClickOutside } from '@vueuse/core'
-import { usePagination } from '../../composables/usePagination'
-import { useDebounce } from '../../composables/useDebounce'
+import { usePagination } from '@/composables/usePagination'
+import { useDebounce } from '@/composables/useDebounce'
 
 import AppSpinner from './AppSpinner.vue'
 import AppButton from './AppButton.vue'
 import AppIcon from './AppIcon.vue'
 import AppTooltip from './AppTooltip.vue'
 import AppModal from './AppModal.vue'
-import { display } from '../../utils/display'
+import { display } from '@/utils/display'
 
 export interface TableColumn {
   key: string
@@ -490,6 +491,12 @@ function resetColumnVisibility() {
 
 // ÔöÇÔöÇ Sort ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 const isColumnSortable = (column: TableColumn): boolean => column.sortable === true
+
+const getAriaSort = (column: TableColumn): 'ascending' | 'descending' | 'none' | undefined => {
+  if (!isColumnSortable(column)) return undefined
+  if (sortKey.value !== column.key) return 'none'
+  return sortOrder.value === 'asc' ? 'ascending' : 'descending'
+}
 
 const handleSort = (key: string) => {
   if (sortKey.value === key) {

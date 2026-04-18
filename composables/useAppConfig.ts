@@ -1,6 +1,6 @@
 import { computed } from 'vue';
-import { appConfig } from '../config/app.config';
-import type { AppConfig } from '../config/types';
+import { appConfig } from '@/config/app.config';
+import type { AppConfig } from '@/config/types';
 
 export const useAppConfig = () => {
   const config = computed(() => appConfig);

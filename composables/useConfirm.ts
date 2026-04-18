@@ -1,5 +1,5 @@
 import { ref, createApp, h, type App } from 'vue';
-import ConfirmDangerModal from '../components/global/ConfirmDangerModal.vue';
+import ConfirmDangerModal from '@/components/ui/ConfirmDangerModal.vue';
 
 interface ConfirmOptions {
   title?: string;

@@ -17,6 +17,10 @@
           :animate="{ opacity: 1, y: 0, scale: 1 }"
           :exit="{ opacity: 0, y: -8, scale: 0.95 }"
           :transition="{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }"
+          @mouseenter="emit('pause', toast.id)"
+          @mouseleave="emit('resume', toast.id)"
+          @focusin="emit('pause', toast.id)"
+          @focusout="emit('resume', toast.id)"
         >
           <div class="flex items-start gap-3 px-4 py-3">
             <!-- Icon -->
@@ -56,12 +60,16 @@
 
 <script setup lang="ts">
 import { AnimatePresence, motion } from 'motion-v'
-import type { Toast } from '../../composables/useToast'
+import type { Toast } from '@/composables/useToast'
 import AppIcon from './AppIcon.vue'
 
 defineProps<{ toasts: Toast[] }>()
 
-const emit = defineEmits<{ remove: [id: string] }>()
+const emit = defineEmits<{
+  remove: [id: string]
+  pause: [id: string]
+  resume: [id: string]
+}>()
 const removeToast = (id: string) => emit('remove', id)
 
 const containerClass = (type: Toast['type']) => ({
