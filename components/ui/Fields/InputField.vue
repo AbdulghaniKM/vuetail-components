@@ -1,46 +1,46 @@
 <template>
-  <div class="flex flex-col gap-1.5 w-full">
-    <label v-if="label" :for="fieldId" class="text-sm font-medium text-text">
-      {{ label }}
-    </label>
-    <div class="relative w-full">
-      <input
-        :id="fieldId"
-        :type="type === 'password' ? (showPassword ? 'text' : 'password') : type"
-        :value="type === 'datetime-local' && modelValue ? datetimeLocalValue : modelValue"
-        :placeholder="placeholder"
-        :readonly="readonly"
-        :disabled="readonly"
-        :aria-invalid="error ? 'true' : undefined"
-        :aria-describedby="error ? errorId : undefined"
-        @input="handleInput"
-        class="w-full rounded-lg border border-border bg-surface py-2.5 text-text placeholder:text-text/50 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
-        :class="[customClass, type === 'password' ? 'ps-4 pe-10' : 'px-4', { 'border-error focus:border-error focus:ring-error/20': error }]"
-      />
-      <button
-        v-if="type === 'password'"
-        type="button"
-        tabindex="-1"
-        :aria-label="showPassword ? 'Hide password' : 'Show password'"
-        :aria-pressed="showPassword"
-        class="absolute end-0 top-1/2 -translate-y-1/2 flex items-center justify-center px-3 text-text/40 hover:text-text/70 transition-colors"
-        @click="showPassword = !showPassword"
-      >
-        <AppIcon
-          :name="showPassword ? 'icon-[solar--eye-closed-linear]' : 'icon-[solar--eye-linear]'"
-          :size="1.125"
-          aria-hidden="true"
-        />
-      </button>
-    </div>
-    <span
-      :id="errorId"
-      role="alert"
-      aria-live="polite"
-      class="block min-h-[1.25rem] text-sm text-error"
-      :class="{ invisible: !error }"
-    >{{ error }}</span>
-  </div>
+ <div class="flex flex-col gap-1.5 w-full">
+ <label v-if="label" :for="fieldId" class="text-sm font-medium text-text">
+ {{ label }}
+ </label>
+ <div class="relative w-full">
+ <input
+ :id="fieldId"
+ :type="type === 'password' ? (showPassword ? 'text' : 'password') : type"
+ :value="type === 'datetime-local' && modelValue ? datetimeLocalValue : modelValue"
+ :placeholder="placeholder"
+ :readonly="readonly"
+ :disabled="readonly"
+ :aria-invalid="error ? 'true' : undefined"
+ :aria-describedby="error ? errorId : undefined"
+ @input="handleInput"
+ class="w-full rounded-lg border border-border bg-surface py-2.5 text-text placeholder:text-text/50 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+ :class="[customClass, type === 'password' ? 'ps-4 pe-10' : 'px-4', { 'border-error focus:border-error focus:ring-error/20': error }]"
+ />
+ <button
+ v-if="type === 'password'"
+ type="button"
+ tabindex="-1"
+ :aria-label="showPassword ? 'Hide password' : 'Show password'"
+ :aria-pressed="showPassword"
+ class="absolute end-0 top-1/2 -translate-y-1/2 flex items-center justify-center px-3 text-text/40 hover:text-text/70 transition-colors"
+ @click="showPassword = !showPassword"
+ >
+ <AppIcon
+ :name="showPassword ? 'icon-[solar--eye-closed-linear]' : 'icon-[solar--eye-linear]'"
+ :size="1.125"
+ aria-hidden="true"
+ />
+ </button>
+ </div>
+ <span
+ :id="errorId"
+ role="alert"
+ aria-live="polite"
+ class="block min-h-[1.25rem] text-sm text-error"
+ :class="{ invisible: !error }"
+ >{{ error }}</span>
+ </div>
 </template>
 
 <script setup lang="ts">
@@ -48,23 +48,23 @@ import { computed, ref, useId } from 'vue';
 import AppIcon from '../AppIcon.vue';
 
 interface Props {
-  modelValue: string | number;
-  label?: string;
-  type?: 'text' | 'password' | 'email' | 'number' | 'datetime-local';
-  placeholder?: string;
-  readonly?: boolean;
-  error?: string;
-  customClass?: string;
+ modelValue: string | number;
+ label?: string;
+ type?: 'text' | 'password' | 'email' | 'number' | 'datetime-local';
+ placeholder?: string;
+ readonly?: boolean;
+ error?: string;
+ customClass?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  type: 'text',
-  placeholder: '',
-  readonly: false,
+ type: 'text',
+ placeholder: '',
+ readonly: false,
 });
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string | number];
+ 'update:modelValue': [value: string | number];
 }>();
 
 // Use Vue 3.5 useId for SSR-stable, hydration-safe IDs.
@@ -74,20 +74,20 @@ const showPassword = ref(false);
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const datetimeLocalValue = computed(() => {
-  if (props.type !== 'datetime-local' || !props.modelValue) return '';
-  const d = new Date(String(props.modelValue));
-  return isNaN(d.getTime()) ? '' : `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+ if (props.type !== 'datetime-local' || !props.modelValue) return '';
+ const d = new Date(String(props.modelValue));
+ return isNaN(d.getTime()) ? '' : `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 });
 
 const handleInput = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  if (props.type === 'number') {
-    emit('update:modelValue', Number(target.value));
-  } else if (props.type === 'datetime-local') {
-    const val = target.value;
-    emit('update:modelValue', val ? new Date(val).toISOString() : '');
-  } else {
-    emit('update:modelValue', target.value);
-  }
+ const target = event.target as HTMLInputElement;
+ if (props.type === 'number') {
+ emit('update:modelValue', Number(target.value));
+ } else if (props.type === 'datetime-local') {
+ const val = target.value;
+ emit('update:modelValue', val ? new Date(val).toISOString() : '');
+ } else {
+ emit('update:modelValue', target.value);
+ }
 };
 </script>
