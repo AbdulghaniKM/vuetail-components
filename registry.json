@@ -30,6 +30,7 @@
   ],
   "composables": [
     "useAppConfig",
+    "useAppUi",
     "useAuth",
     "useBreakpoint",
     "useClipboard",
@@ -57,7 +58,7 @@
     "AppPageLoader": [],
     "AppSkeleton": [],
     "AppSpinner": [],
-    "AppTable": ["AppButton", "AppIcon", "AppModal", "AppSpinner", "AppTooltip", "useDebounce", "usePagination"],
+    "AppTable": ["AppButton", "AppIcon", "AppModal", "AppTooltip", "useDebounce", "useLocalStorage", "usePagination"],
     "AppText": [],
     "AppToast": ["AppIcon", "useToast"],
     "AppTooltip": ["useBreakpoint"],
@@ -73,7 +74,8 @@
     "Fields/PhoneInput": [],
     "Fields/Select": ["AppIcon"],
     "Fields/Textarea": [],
-    "Fields/TimePickerClock": ["AppIcon"]
+    "Fields/TimePickerClock": ["AppIcon"],
+    "useColorCustomizer": ["useTheme"]
   },
   "requires": {
     "useAuth": {
@@ -83,8 +85,11 @@
     "useTheme": {
       "files": ["src/utils/theme.ts", "src/config/app.config.ts", "src/config/types.ts", "src/lib/ThemePersistence.ts"]
     },
+    "useAppUi": {
+      "files": ["src/theme.ts"]
+    },
     "useAppConfig": {
-      "files": ["src/config/app.config.ts", "src/config/types.ts"]
+      "files": ["src/config/app.config.ts", "src/config/types.ts", "src/config/index.ts"]
     },
     "useColorCustomizer": {
       "files": ["src/utils/theme.ts", "src/config/app.config.ts", "src/config/types.ts"]
@@ -98,10 +103,10 @@
     },
     "AppTable": {
       "files": ["src/utils/display.ts"],
-      "packages": ["@vueuse/core"]
+      "packages": ["@vueuse/core", "zod"]
     },
     "CreateUpdateModal": {
-      "files": ["src/plugins/axios.ts"],
+      "files": ["src/plugins/axios.ts", "src/lib/FormModel.ts"],
       "packages": ["zod"]
     },
     "DeleteModal": {
@@ -111,7 +116,7 @@
       "files": ["src/lib/ThemePersistence.ts"]
     },
     "Fields/AppForm": {
-      "files": ["src/types/form.types.ts"],
+      "files": ["src/types/form.types.ts", "src/lib/FormModel.ts"],
       "packages": ["zod"]
     },
     "Fields/DatePicker": {

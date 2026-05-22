@@ -232,6 +232,8 @@ const calendarDays = computed(() => getCalendarDays(viewMonth.value, selectedDat
 // ÔöÇÔöÇ Dropdown positioning ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 const dropdownStyle = ref<Record<string, string>>({})
 
+const toRem = (px: number) => `${px / 16}rem`
+
 function updatePosition() {
  if (!containerRef.value) return
  const rect = containerRef.value.getBoundingClientRect()
@@ -240,13 +242,13 @@ function updatePosition() {
 
  if (spaceBelow >= dropdownHeight || spaceBelow > rect.top) {
  dropdownStyle.value = {
- top: `${rect.bottom + 4}px`,
- left: `${rect.left}px`,
+ top: toRem(rect.bottom + 4),
+ left: toRem(rect.left),
  }
  } else {
  dropdownStyle.value = {
- bottom: `${window.innerHeight - rect.top + 4}px`,
- left: `${rect.left}px`,
+ bottom: toRem(window.innerHeight - rect.top + 4),
+ left: toRem(rect.left),
  }
  }
 }

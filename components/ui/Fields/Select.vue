@@ -165,26 +165,28 @@ const searchRef = ref<HTMLInputElement | null>(null)
 const listRef = ref<HTMLElement | null>(null)
 const listContainerRef = ref<HTMLElement | null>(null)
 
+const toRem = (px: number) => `${px / 16}rem`
+
 function updatePosition() {
  if (!triggerRef.value) return
  const rect = triggerRef.value.getBoundingClientRect()
  const spaceBelow = window.innerHeight - rect.bottom
- const dropdownHeight = 240 // max-h-52 is ~208px + search bar
+ const dropdownHeight = 240
 
  if (spaceBelow >= dropdownHeight || spaceBelow > rect.top) {
  dropAbove.value = false
  dropdownStyle.value = {
- top: `${rect.bottom + 4}px`,
- left: `${rect.left}px`,
- width: `${rect.width}px`,
+ top: toRem(rect.bottom + 4),
+ left: toRem(rect.left),
+ width: toRem(rect.width),
  transformOrigin: 'top',
  }
  } else {
  dropAbove.value = true
  dropdownStyle.value = {
- bottom: `${window.innerHeight - rect.top + 4}px`,
- left: `${rect.left}px`,
- width: `${rect.width}px`,
+ bottom: toRem(window.innerHeight - rect.top + 4),
+ left: toRem(rect.left),
+ width: toRem(rect.width),
  transformOrigin: 'bottom',
  }
  }

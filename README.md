@@ -12,8 +12,10 @@ Components and composables are fetched on demand via the CLI built into the temp
     AppButton.vue
     AppModal.vue
     AppToast.vue
-    ... (all components)
+    ThemeToggle.vue
+    ... (all UI components)
     /Fields
+      AppForm.vue
       InputField.vue
       Select.vue
       DatePicker.vue
@@ -21,6 +23,7 @@ Components and composables are fetched on demand via the CLI built into the temp
 /composables
   useToast.ts
   useTheme.ts
+  useAppUi.ts
   ... (all composables)
 registry.json   ← index for the `list` command
 ```
@@ -37,6 +40,7 @@ pnpm add-component AppModal
 # Add a composable
 pnpm add-composable useToast
 pnpm add-composable useTheme
+pnpm add-composable useAppUi
 
 # See what's available
 pnpm add-component list
@@ -44,3 +48,5 @@ pnpm add-composable list
 ```
 
 Files are dropped directly into `src/components/ui/` or `src/composables/` — you own the code from that point on.
+
+Some components depend on template libs (`FormModel`, `ThemePersistence`, config/utils). Check `registry.json` → `requires` before fetching.

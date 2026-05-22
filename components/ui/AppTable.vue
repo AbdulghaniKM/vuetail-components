@@ -310,11 +310,12 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { z } from 'zod'
 import { onClickOutside } from '@vueuse/core'
 import { usePagination } from '@/composables/usePagination'
 import { useDebounce } from '@/composables/useDebounce'
+import { useLocalStorage } from '@/composables/useLocalStorage'
 
-import AppSpinner from './AppSpinner.vue'
 import AppButton from './AppButton.vue'
 import AppIcon from './AppIcon.vue'
 import AppTooltip from './AppTooltip.vue'
@@ -414,32 +415,16 @@ const skeletonRows = computed(() => Math.min(props.itemsPerPage, 5))
 
 // ÔöÇÔöÇ Column visibility ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 const STORAGE_PREFIX = 'app-table-columns-'
-
-function loadColumnVisibility(): Record<string, boolean> {
- if (!props.columnsVisibilityKey) return {}
- try {
- const raw = localStorage.getItem(STORAGE_PREFIX + props.columnsVisibilityKey)
- if (!raw) return {}
- const parsed = JSON.parse(raw)
- if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
- const safe: Record<string, boolean> = Object.create(null)
- for (const [key, value] of Object.entries(parsed)) {
- if (typeof value === 'boolean') safe[key] = value
- }
- return safe
- } catch {
- return {}
- }
-}
-
-function saveColumnVisibility(visibility: Record<string, boolean>) {
- if (!props.columnsVisibilityKey) return
- try {
- localStorage.setItem(STORAGE_PREFIX + props.columnsVisibilityKey, JSON.stringify(visibility))
- } catch { /* ignore */ }
-}
-
-const columnVisibility = ref<Record<string, boolean>>(loadColumnVisibility())
+const columnVisibilitySchema = z.record(z.string(), z.boolean())
+const fallbackColumnVisibility = ref<Record<string, boolean>>({})
+const storedColumnVisibility = props.columnsVisibilityKey
+  ? useLocalStorage(
+      STORAGE_PREFIX + props.columnsVisibilityKey,
+      {},
+      columnVisibilitySchema,
+    )
+  : null
+const columnVisibility = storedColumnVisibility ?? fallbackColumnVisibility
 const columnSavedHint = ref(false)
 let savedHintTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -485,15 +470,11 @@ function toggleColumn(key: string) {
  if (currentlyVisible && visibleColumnsSet.value.size <= 1) return
  const nextVisibility = { ...columnVisibility.value, [key]: !currentlyVisible }
  columnVisibility.value = nextVisibility
- saveColumnVisibility(nextVisibility)
  showSavedHint()
 }
 
 function resetColumnVisibility() {
  columnVisibility.value = {}
- if (props.columnsVisibilityKey) {
- try { localStorage.removeItem(STORAGE_PREFIX + props.columnsVisibilityKey) } catch { /* ignore */ }
- }
  showSavedHint()
 }
 

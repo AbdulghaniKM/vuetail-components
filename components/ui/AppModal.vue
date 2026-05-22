@@ -48,7 +48,7 @@
  >
  <div
  v-if="loading"
- class="absolute inset-0 z-20 flex items-center justify-center bg-surface/80 backdrop-blur-[1px]"
+ class="absolute inset-0 z-20 flex items-center justify-center bg-surface/80 backdrop-blur-sm"
  >
  <div class="flex flex-col items-center gap-3">
  <AppSpinner size="lg" />

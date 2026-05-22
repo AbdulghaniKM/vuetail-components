@@ -162,24 +162,27 @@ const triggerRef = ref<HTMLButtonElement | null>(null);
 const inputRef = ref<HTMLInputElement | null>(null);
 const dropdownStyle = ref<Record<string, string>>({});
 
+const toRem = (px: number) => `${px / 16}rem`;
+const DROPDOWN_WIDTH_REM = '12rem';
+
 function updatePosition() {
  if (!triggerRef.value) return;
  const rect = triggerRef.value.getBoundingClientRect();
  const spaceBelow = window.innerHeight - rect.bottom;
- const dropdownHeight = 220; // max-h-52 is 208px
+ const dropdownHeight = 220;
 
  if (spaceBelow >= dropdownHeight || spaceBelow > rect.top) {
  dropdownStyle.value = {
- top: `${rect.bottom + 4}px`,
- left: `${rect.right - 192}px`, // 192px is min-w-48
- width: '192px',
+ top: toRem(rect.bottom + 4),
+ left: toRem(rect.right - 192),
+ width: DROPDOWN_WIDTH_REM,
  transformOrigin: 'top right',
  };
  } else {
  dropdownStyle.value = {
- bottom: `${window.innerHeight - rect.top + 4}px`,
- left: `${rect.right - 192}px`,
- width: '192px',
+ bottom: toRem(window.innerHeight - rect.top + 4),
+ left: toRem(rect.right - 192),
+ width: DROPDOWN_WIDTH_REM,
  transformOrigin: 'bottom right',
  };
  }
