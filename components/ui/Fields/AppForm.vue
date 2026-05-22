@@ -113,7 +113,7 @@ import Select from './Select.vue';
 import PhoneInput from './PhoneInput.vue';
 import DatePicker from './DatePicker.vue';
 import FileInput from './FileInput.vue';
-import type { FormField, FormFieldRow } from '@/types/form';
+import type { FormField, FormFieldRow } from '@/types/form.types';
 
 type SchemaValues<T extends ZodType> = z.infer<T>;
 
