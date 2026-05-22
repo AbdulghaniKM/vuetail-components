@@ -77,10 +77,11 @@
   },
   "requires": {
     "useAuth": {
-      "files": ["src/plugins/axios.ts"]
+      "files": ["src/plugins/axios.ts"],
+      "packages": ["axios"]
     },
     "useTheme": {
-      "files": ["src/utils/theme.ts", "src/config/app.config.ts", "src/config/types.ts"]
+      "files": ["src/utils/theme.ts", "src/config/app.config.ts", "src/config/types.ts", "src/lib/ThemePersistence.ts"]
     },
     "useAppConfig": {
       "files": ["src/config/app.config.ts", "src/config/types.ts"]
@@ -89,28 +90,51 @@
       "files": ["src/utils/theme.ts", "src/config/app.config.ts", "src/config/types.ts"]
     },
     "useDateFormat": {
-      "files": ["src/utils/date.ts"]
+      "files": ["src/utils/date.ts"],
+      "packages": ["date-fns"]
     },
     "useSeo": {
       "files": ["src/utils/seo.ts"]
     },
     "AppTable": {
-      "files": ["src/utils/display.ts"]
+      "files": ["src/utils/display.ts"],
+      "packages": ["@vueuse/core"]
     },
     "CreateUpdateModal": {
-      "files": ["src/plugins/axios.ts"]
+      "files": ["src/plugins/axios.ts"],
+      "packages": ["zod"]
     },
     "DeleteModal": {
       "files": ["src/plugins/axios.ts"]
     },
+    "ThemeToggle": {
+      "files": ["src/lib/ThemePersistence.ts"]
+    },
     "Fields/AppForm": {
-      "files": ["src/types/form.types.ts"]
+      "files": ["src/types/form.types.ts"],
+      "packages": ["zod"]
     },
     "Fields/DatePicker": {
-      "files": ["src/utils/datepicker.ts"]
+      "files": ["src/utils/datepicker.ts"],
+      "packages": ["@vueuse/core"]
     },
     "Fields/FileDisplay": {
       "files": ["src/utils/display.ts"]
+    },
+    "useLocalStorage": {
+      "packages": ["zod"]
+    },
+    "useFormValidation": {
+      "packages": ["zod"]
+    },
+    "useBreakpoint": {
+      "packages": ["@vueuse/core"]
+    },
+    "AppToast": {
+      "packages": ["motion-v"]
+    },
+    "AppModal": {
+      "packages": ["motion-v"]
     }
   }
 }

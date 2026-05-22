@@ -28,7 +28,7 @@
 import { ref } from 'vue';
 import AppIcon from './AppIcon.vue';
 import { useTheme } from '@/composables/useTheme';
-import { type ThemeMode } from '@/theme';
+import { type ThemeMode } from '@/lib/ThemePersistence';
 
 const { mode, setTheme } = useTheme();
 
