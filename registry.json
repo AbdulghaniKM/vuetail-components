@@ -1,16 +1,20 @@
 {
   "schemaVersion": 1,
   "components": [
+    "AppBadge",
     "AppButton",
+    "AppCheckbox",
     "AppEmptyState",
     "AppErrorBoundary",
     "AppIcon",
     "AppImageModal",
     "AppModal",
     "AppPageLoader",
+    "AppPopover",
     "AppSkeleton",
     "AppSpinner",
     "AppTable",
+    "AppTableFilters",
     "AppText",
     "AppToast",
     "AppTooltip",
@@ -49,16 +53,20 @@
     "useToast"
   ],
   "dependencies": {
+    "AppBadge": [],
     "AppButton": ["AppIcon", "AppSpinner", "AppTooltip"],
+    "AppCheckbox": ["AppIcon"],
     "AppEmptyState": ["AppIcon"],
     "AppErrorBoundary": ["AppIcon"],
     "AppIcon": [],
     "AppImageModal": [],
     "AppModal": ["AppIcon", "AppSpinner", "useKeyboard"],
     "AppPageLoader": [],
+    "AppPopover": [],
     "AppSkeleton": [],
     "AppSpinner": [],
-    "AppTable": ["AppButton", "AppIcon", "AppModal", "AppTooltip", "useDebounce", "useLocalStorage", "usePagination"],
+    "AppTable": ["AppButton", "AppIcon", "AppModal", "AppPopover", "AppTooltip", "AppCheckbox", "AppBadge", "AppTableFilters", "Fields/Select", "Fields/DatePicker", "Fields/InputField", "useConfirm", "useDebounce", "useLocalStorage", "usePagination"],
+    "AppTableFilters": ["AppButton", "AppIcon", "AppPopover", "AppCheckbox", "AppBadge", "Fields/Select", "Fields/DatePicker", "Fields/InputField"],
     "AppText": [],
     "AppToast": ["AppIcon", "useToast"],
     "AppTooltip": ["useBreakpoint"],
@@ -75,7 +83,8 @@
     "Fields/Select": ["AppIcon"],
     "Fields/Textarea": [],
     "Fields/TimePickerClock": ["AppIcon"],
-    "useColorCustomizer": ["useTheme"]
+    "useColorCustomizer": ["useTheme"],
+    "useConfirm": ["ConfirmDangerModal"]
   },
   "requires": {
     "useAuth": {
