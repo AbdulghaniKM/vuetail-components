@@ -103,100 +103,96 @@ pnpm add-component AppCheckbox
 
 ---
 
-### AppTableFilters
+### AppFilterPanel
 
-A single combined filter panel (one "Filters" trigger, badge-counted) instead of one popover per filter. Edits inside the panel are a draft — nothing is applied until **Apply** is pressed, and **Reset** clears everything immediately. The Reset/Apply footer is pinned to the bottom of the panel so it never shifts as filter content above it grows or shrinks. Every currently-applied filter renders as a removable chip next to the trigger, visible whether the panel is open or closed. Supports six filter types.
+The single, schema-driven filtering component — a standalone collapsible card that owns **all** filtering logic (UI, value shapes, and the client-side predicate engine). It reuses AppForm's `FormFieldRow[]` schema and extends it with filter-only field types, so the same field definitions can drive a form and a filter bar. The parent binds `v-model`, passes the schema, and reacts to `@apply`; nothing fetches per keystroke. `AppTable` embeds it via its `filterFields` config, and it also works standalone.
 
 ```bash
-pnpm add-component AppTableFilters
+pnpm add-component AppFilterPanel
 ```
+
+Field types: `text`, `email`, `number`, `select`, `phone`, `date`, `datetime` (scalar) **plus** `multiselect`, `boolean`, `dateRange`, `numberRange` (array/object value shapes ported from the old built-in table filter). Rows auto-compute a responsive grid from field count (a 3-field row → `grid-cols-1 sm:grid-cols-3`). A badge counts fields differing from `defaultValues`, and removable chips summarize each active filter.
 
 #### Props
 
-| Prop | Type | Required | Description |
+| Prop | Type | Default | Description |
 |---|---|---|---|
-| `modelValue` | `ActiveFilters` | yes | Current active filters (v-model) |
-| `filters` | `FilterDef[]` | yes | Filter definitions — one chip per entry |
+| `modelValue` | `FilterState` | yes | Live filter state (v-model) |
+| `fields` | `FilterFieldRow[]` | `[]` | Row/field schema — superset of `AppForm`'s `FormFieldRow[]` |
+| `defaultValues` | `FilterState` | `{}` | Baseline that **Clear** resets to and the badge/chips diff against |
+| `title` | `string` | `'Filter Panel'` | Title shown in the block header, beside the funnel icon |
+| `subtitle` | `string` | `'No filters applied'` | Sub-line under the title when no filters are active |
+| `loading` | `boolean` | `false` | Disables controls and shows a spinner on Apply |
+| `defaultOpen` | `boolean` | `false` | Start with the panel expanded |
+| `chips` | `boolean` | `true` | Show removable active-filter chips inside the block |
+| `showLabel` / `hideLabel` | `string` | `'Show'` / `'Hide'` | Header toggle-button labels for collapsed / expanded |
+| `applyLabel` / `clearLabel` / `clearAllLabel` / `anyLabel` | `string` | `'Apply'` / `'Clear'` / `'Clear all'` / `'Any'` | Localizable labels |
+| `rowClass` | `string` | `''` | Override the auto-computed grid class for every row |
+
+Each `FilterField` extends `FormField` with: `type` (adds `multiselect`/`boolean`/`dateRange`/`numberRange`), `options` (multiselect items, alias of `items`), `min`/`max` (numberRange hints or date bounds), and `trueLabel`/`falseLabel` (boolean toggle labels).
 
 #### Emits
 
 | Event | Payload | Description |
 |---|---|---|
-| `update:modelValue` | `ActiveFilters` | Fired when **Apply** or **Reset** is pressed inside the panel, or when an applied filter chip is removed. Not fired on every keystroke/selection — those only update the in-panel draft. |
+| `update:modelValue` | `FilterState` | Fired live as fields change, and on Clear |
+| `apply` | `FilterState` | User pressed **Apply** (or **Clear**, or removed a chip) — fetch now |
+| `clear` | `FilterState` | Fields were reset to `defaultValues` |
 
-#### Exported types
+#### Exported helper — `filterRows`
+
+The panel is the single home of all filtering logic. Its predicate engine is exported as a pure function so any parent (and `AppTable`) can filter an array client-side:
 
 ```ts
-type FilterType = 'text' | 'number' | 'select' | 'multiselect' | 'dateRange' | 'boolean'
+import { filterRows, type FilterFieldRow } from '@/components/ui/AppFilterPanel.vue'
 
-interface FilterDef {
-  key: string           // maps to a row field (dot-notation supported)
-  type: FilterType
-  label: string         // chip label
-  options?: SelectItem[] | string[]   // for select / multiselect
-  placeholder?: string  // for text filter
-  min?: number          // hint for number filter
-  max?: number          // hint for number filter
-}
-
-type FilterValue =
-  | string | number | boolean | null
-  | (string | number)[]                          // multiselect
-  | { from: string | null; to: string | null }   // dateRange
-  | { min: number | null; max: number | null }   // number range
-
-type ActiveFilters = Record<string, FilterValue>
+const visible = filterRows(rows, fields, filterState)
 ```
 
-#### Filter types
-
-| Type | Input UI | Active value shape |
-|---|---|---|
-| `text` | Text input, substring match | `string` |
-| `number` | Min + Max inputs | `{ min, max }` |
-| `select` | Clickable option list (single) | `string \| number` |
-| `multiselect` | AppCheckbox list | `(string \| number)[]` |
-| `dateRange` | Two DatePicker inputs | `{ from, to }` |
-| `boolean` | Yes / No toggle buttons | `boolean \| null` |
+Value shapes handled: scalar (substring/equality), `(string|number)[]` (multiselect), `boolean` (tri-state), `{ from, to }` (dateRange), `{ min, max }` (numberRange). Dot-notation keys are supported.
 
 #### Examples
 
 ```vue
 <script setup lang="ts">
-import type { FilterDef, ActiveFilters } from '@/components/ui/AppTableFilters.vue'
+import { filterRows, type FilterFieldRow } from '@/components/ui/AppFilterPanel.vue'
 
-const filters: FilterDef[] = [
-  { key: 'name',       type: 'text',        label: 'Name' },
-  { key: 'status',     type: 'select',      label: 'Status',
-    options: ['Active', 'Inactive', 'Pending'] },
-  { key: 'tags',       type: 'multiselect', label: 'Tags',
-    options: [{ label: 'VIP', value: 'vip' }, { label: 'New', value: 'new' }] },
-  { key: 'amount',     type: 'number',      label: 'Amount', min: 0 },
-  { key: 'createdAt',  type: 'dateRange',   label: 'Created' },
-  { key: 'isVerified', type: 'boolean',     label: 'Verified' },
+const schema: FilterFieldRow[] = [
+  [
+    { key: 'name',   type: 'text',   label: 'Name' },
+    { key: 'dept',   type: 'select', label: 'Department',
+      items: ['Engineering', 'Design', 'Sales'] },
+    { key: 'skills', type: 'multiselect', label: 'Skills',
+      options: ['Vue', 'TypeScript', 'SQL'] },
+  ],
+  [
+    { key: 'remote',    type: 'boolean',     label: 'Remote' },
+    { key: 'years',     type: 'numberRange', label: 'Experience' },
+    { key: 'joinedAt',  type: 'dateRange',   label: 'Joined' },
+  ],
 ]
 
-const activeFilters = ref<ActiveFilters>({})
+const defaults = { name: '', dept: '', skills: [], remote: null, years: { min: null, max: null }, joinedAt: { from: null, to: null } }
+const filterState = ref({ ...defaults })
+const rows = ref([/* … */])
+
+// client-side: derive visible rows from the panel state
+const visible = computed(() => filterRows(rows.value, schema, filterState.value))
 </script>
 
 <template>
-  <AppTableFilters v-model="activeFilters" :filters="filters" />
+  <AppFilterPanel v-model="filterState" :fields="schema" :default-values="defaults" @apply="() => {}" />
+  <AppTable :data="visible" :columns="columns" />
 </template>
 ```
 
-Standalone usage (outside AppTable):
-
-```vue
-<!-- activeFilters only updates once the user presses Apply (or Reset, or removes a chip) -->
-<AppTableFilters v-model="activeFilters" :filters="filters" />
-<pre>{{ activeFilters }}</pre>
-```
+For the common case, skip the manual wiring and let `AppTable` render the panel and filter itself — see **AppTable → Filtering** below.
 
 ---
 
 ### AppTable — new features
 
-The table now supports declarative filters, row actions, row selection, and bulk actions. All new props are optional — existing usage is unchanged.
+Row actions, selection, bulk actions, inline-editable cells, styled Excel export, and **filtering via `AppFilterPanel`**. All new props are optional — existing usage is unchanged.
 
 ```bash
 pnpm add-component AppTable
@@ -206,8 +202,10 @@ pnpm add-component AppTable
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `filters` | `FilterDef[]` | `[]` | Filter definitions rendered in the toolbar |
-| `filtersInToolbar` | `boolean` | `true` | Mount filters inside the search toolbar. Set `false` to place them via `#filter-bar` slot |
+| `filterFields` | `FilterFieldRow[]` | `[]` | Filter schema. When set, the table renders an `AppFilterPanel` above itself and filters via the panel's `filterRows` (no filtering logic lives in the table) |
+| `filters` | `FilterState` | `{}` | Filter state (`v-model:filters`) |
+| `filterDefaults` | `FilterState` | `{}` | Baseline the panel's **Clear** resets to |
+| `filterTitle` | `string` | `'Filters'` | Panel trigger label |
 | `actions` | `RowAction[]` | `[]` | Declarative per-row actions |
 | `maxInlineActions` | `number` | `2` | How many actions render as buttons before collapsing into a kebab menu |
 | `actionsLabel` | `string` | `''` | Header label for the auto-added actions column |
@@ -217,20 +215,28 @@ pnpm add-component AppTable
 | `bulkActions` | `BulkAction[]` | `[]` | Actions shown in the bulk bar when rows are selected |
 | `columns[].editable` | `EditableCellConfig` | — | Renders the cell as a clickable status badge. Clicking opens a popover to change its value; selecting a value calls `onChange(row, value)` |
 | `columns[].truncate` | `boolean` | `false` | Truncates long text with a hover tooltip (desktop) and a tap-to-expand modal (touch) |
+| `exportable` | `boolean` | `false` | Show a styled-Excel export button in the toolbar (`xlsx-js-style`) |
+| `exportFileName` | `string` | `'export'` | File name (without extension) for the download |
+| `exportLabel` | `string` | `'Export'` | Label on the export button |
+| `exportMappers` | `Record<string, Record<string\|number, string>>` | `{}` | Per-column value→label maps so coded fields export as human text |
+| `exportRtl` | `boolean` | doc `dir` | Force RTL sheet direction (defaults to the document direction at export time) |
+
+> **Export scope:** exports the currently *filtered & sorted* dataset (all pages, not just the visible one) using only the visible data columns — booleans become `Yes`/`No`, and `exportMappers` translate coded values. The sheet gets a bold header band, zebra striping, thin borders, and auto-fitted column widths. Also exposed as a `exportToExcel()` method via template ref. Requires the `xlsx-js-style` package. Toolbar, empty state, and pagination footer now animate in with `motion-v` springs (requires `motion-v`).
 
 #### New emits
 
 | Event | Payload | Description |
 |---|---|---|
 | `update:selected` | `(string\|number)[]` | v-model for selected keys |
-| `filterChange` | `ActiveFilters` | Fires on every filter change (client AND server) |
+| `update:filters` | `FilterState` | v-model for the panel's live filter state |
+| `filterApply` | `FilterState` | Fires when the panel's **Apply**/**Clear** commits — use it to refetch in server mode |
 | `selectionChange` | `{ keys, rows }` | Fires whenever the selection set changes |
 
 #### New / changed slots
 
 | Slot | Props | Description |
 |---|---|---|
-| `#filter-bar` | — | Override the entire filter area (default renders `AppTableFilters`) |
+| `#filter-bar` | `{ apply }` | Override the entire filter area (default renders `AppFilterPanel` from `filterFields`) |
 | `#cell-actions` | `{ row }` | Override the actions cell — wins over declarative `actions` prop |
 | `#bulk-actions` | `{ selectedKeys, selectedRows, clear }` | Override the bulk bar content |
 
@@ -284,13 +290,15 @@ interface EditableCellConfig {
 
 ---
 
-#### Examples
+#### Filtering
 
-##### Filters — client-side (all six types)
+Pass a `filterFields` schema and the table renders an `AppFilterPanel` above itself, filtering client-side via the panel's `filterRows` (all filtering logic lives in the panel).
+
+##### Client-side (all field types)
 
 ```vue
 <script setup lang="ts">
-import type { FilterDef } from '@/components/ui/AppTable.vue'
+import type { FilterFieldRow, FilterState } from '@/components/ui/AppTable.vue'
 
 const columns = [
   { key: 'name',      label: 'Name',    sortable: true },
@@ -300,33 +308,42 @@ const columns = [
   { key: 'verified',  label: 'Verified' },
 ]
 
-const filters: FilterDef[] = [
-  { key: 'name',      type: 'text',        label: 'Name' },
-  { key: 'status',    type: 'select',      label: 'Status',
-    options: ['Active', 'Inactive', 'Pending'] },
-  { key: 'tags',      type: 'multiselect', label: 'Tags',
-    options: ['vip', 'new', 'churned'] },
-  { key: 'amount',    type: 'number',      label: 'Amount', min: 0 },
-  { key: 'createdAt', type: 'dateRange',   label: 'Created' },
-  { key: 'verified',  type: 'boolean',     label: 'Verified' },
+const filterFields: FilterFieldRow[] = [
+  [
+    { key: 'name',   type: 'text',        label: 'Name' },
+    { key: 'status', type: 'select',      label: 'Status', items: ['Active', 'Inactive', 'Pending'] },
+    { key: 'tags',   type: 'multiselect', label: 'Tags',   options: ['vip', 'new', 'churned'] },
+  ],
+  [
+    { key: 'amount',    type: 'numberRange', label: 'Amount' },
+    { key: 'createdAt', type: 'dateRange',   label: 'Created' },
+    { key: 'verified',  type: 'boolean',     label: 'Verified' },
+  ],
 ]
 
-const data = ref([...])
+const filters = ref<FilterState>({})
+const data = ref([/* … */])
 </script>
 
 <template>
-  <AppTable :columns="columns" :data="data" :filters="filters" searchable />
+  <AppTable
+    :columns="columns"
+    :data="data"
+    :filter-fields="filterFields"
+    v-model:filters="filters"
+    searchable
+  />
 </template>
 ```
 
-##### Filters — server-side (emit only, no client filtering)
+##### Server-side (emit only, no client filtering)
 
 ```vue
 <script setup lang="ts">
-import type { ActiveFilters } from '@/components/ui/AppTable.vue'
+import type { FilterState } from '@/components/ui/AppTable.vue'
 
 const page = ref(1)
-const filters = ref<ActiveFilters>({})
+const filters = ref<FilterState>({})
 
 async function load() {
   const res = await api.getUsers({ page: page.value, filters: filters.value })
@@ -334,10 +351,9 @@ async function load() {
   total.value = res.total
 }
 
-function onFilterChange(f: ActiveFilters) {
-  filters.value = f
+function onFilterApply(f: FilterState) {
   page.value = 1
-  load()
+  load()   // filters.value already synced via v-model:filters
 }
 </script>
 
@@ -345,12 +361,13 @@ function onFilterChange(f: ActiveFilters) {
   <AppTable
     :columns="columns"
     :data="data"
-    :filters="filterDefs"
+    :filter-fields="filterFields"
+    v-model:filters="filters"
     server-paginated
     :page-number="page"
     :total-count="total"
     :total-pages="totalPages"
-    @filter-change="onFilterChange"
+    @filter-apply="onFilterApply"
     @page-change="({ pageNumber }) => { page = pageNumber; load() }"
   />
 </template>
@@ -503,7 +520,7 @@ function onSelectionChange({ keys, rows }) {
     v-model:selected="selected"
     :columns="columns"
     :data="data"
-    :filters="filters"
+    :filter-fields="filterFields"
     selectable
     selection-mode="all"
     paginated
@@ -579,21 +596,15 @@ const bulkActions: BulkAction[] = [
 </template>
 ```
 
-##### Filters outside the toolbar
+##### Custom filter area via slot
 
 ```vue
-<!-- filtersInToolbar=false exposes #filter-bar for manual placement -->
+<!-- #filter-bar overrides the default AppFilterPanel entirely -->
 <template>
-  <AppTable
-    :columns="columns"
-    :data="data"
-    :filters="filters"
-    :filters-in-toolbar="false"
-  >
-    <template #filter-bar>
-      <!-- Render your own filter UI or place AppTableFilters wherever you want -->
+  <AppTable :columns="columns" :data="data">
+    <template #filter-bar="{ apply }">
       <div class="my-4 rounded-xl border border-border p-3">
-        <AppTableFilters v-model="activeFilters" :filters="filters" />
+        <AppFilterPanel v-model="filters" :fields="filterFields" @apply="apply" />
       </div>
     </template>
   </AppTable>
@@ -604,7 +615,7 @@ const bulkActions: BulkAction[] = [
 
 ```vue
 <script setup lang="ts">
-import type { FilterDef, RowAction, BulkAction } from '@/components/ui/AppTable.vue'
+import type { FilterFieldRow, RowAction, BulkAction } from '@/components/ui/AppTable.vue'
 
 const columns = [
   { key: 'name',   label: 'Name',   sortable: true },
@@ -613,12 +624,12 @@ const columns = [
   { key: 'status', label: 'Status' },
 ]
 
-const filters: FilterDef[] = [
-  { key: 'role',   type: 'select',  label: 'Role',
-    options: ['admin', 'editor', 'viewer'] },
-  { key: 'status', type: 'select',  label: 'Status',
-    options: ['active', 'inactive'] },
-  { key: 'name',   type: 'text',    label: 'Name' },
+const filterFields: FilterFieldRow[] = [
+  [
+    { key: 'role',   type: 'select', label: 'Role',   items: ['admin', 'editor', 'viewer'] },
+    { key: 'status', type: 'select', label: 'Status', items: ['active', 'inactive'] },
+    { key: 'name',   type: 'text',   label: 'Name' },
+  ],
 ]
 
 const actions: RowAction[] = [
@@ -645,15 +656,17 @@ const bulkActions: BulkAction[] = [
 ]
 
 const selected = ref<(string | number)[]>([])
+const filters = ref({})
 const { data, refresh } = await useUsers()
 </script>
 
 <template>
   <AppTable
     v-model:selected="selected"
+    v-model:filters="filters"
     :columns="columns"
     :data="data"
-    :filters="filters"
+    :filter-fields="filterFields"
     :actions="actions"
     :bulk-actions="bulkActions"
     :max-inline-actions="1"
@@ -676,7 +689,7 @@ All new props default to values that produce zero behavior change:
 
 | Condition | Result |
 |---|---|
-| No `filters` prop | Filter bar hidden, filter pipeline is a no-op |
+| No `filterFields` prop | Filter panel hidden, filter pipeline is a no-op |
 | No `actions` prop, no `#cell-actions` slot | Actions column not added |
 | No `selectable` prop | No checkbox column, no bulk bar |
 | No `bulkActions` prop | Bulk bar still shows row count + "Clear" when `selectable` is true |

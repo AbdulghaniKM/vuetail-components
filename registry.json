@@ -6,6 +6,7 @@
     "AppCheckbox",
     "AppEmptyState",
     "AppErrorBoundary",
+    "AppFilterPanel",
     "AppIcon",
     "AppImageModal",
     "AppModal",
@@ -14,7 +15,6 @@
     "AppSkeleton",
     "AppSpinner",
     "AppTable",
-    "AppTableFilters",
     "AppText",
     "AppToast",
     "AppTooltip",
@@ -58,6 +58,7 @@
     "AppCheckbox": ["AppIcon"],
     "AppEmptyState": ["AppIcon"],
     "AppErrorBoundary": ["AppIcon"],
+    "AppFilterPanel": ["AppButton", "AppIcon", "AppPopover", "AppCheckbox", "AppBadge", "Fields/InputField", "Fields/Select", "Fields/PhoneInput", "Fields/DatePicker"],
     "AppIcon": [],
     "AppImageModal": [],
     "AppModal": ["AppIcon", "AppSpinner", "useKeyboard"],
@@ -65,8 +66,7 @@
     "AppPopover": [],
     "AppSkeleton": [],
     "AppSpinner": [],
-    "AppTable": ["AppButton", "AppIcon", "AppModal", "AppPopover", "AppTooltip", "AppCheckbox", "AppBadge", "AppTableFilters", "Fields/Select", "Fields/DatePicker", "Fields/InputField", "useConfirm", "useDebounce", "useLocalStorage", "usePagination"],
-    "AppTableFilters": ["AppButton", "AppIcon", "AppPopover", "AppCheckbox", "AppBadge", "Fields/Select", "Fields/DatePicker", "Fields/InputField"],
+    "AppTable": ["AppButton", "AppIcon", "AppModal", "AppPopover", "AppTooltip", "AppCheckbox", "AppBadge", "AppFilterPanel", "Fields/Select", "Fields/DatePicker", "Fields/InputField", "useConfirm", "useDebounce", "useLocalStorage", "usePagination"],
     "AppText": [],
     "AppToast": ["AppIcon", "useToast"],
     "AppTooltip": ["useBreakpoint"],
@@ -112,7 +112,10 @@
     },
     "AppTable": {
       "files": ["src/utils/display.ts"],
-      "packages": ["@vueuse/core", "zod"]
+      "packages": ["@vueuse/core", "zod", "motion-v", "xlsx-js-style"]
+    },
+    "AppFilterPanel": {
+      "files": ["src/types/form.types.ts"]
     },
     "CreateUpdateModal": {
       "files": ["src/plugins/axios.ts", "src/lib/FormModel.ts"],

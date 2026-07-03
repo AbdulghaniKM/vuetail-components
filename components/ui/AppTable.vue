@@ -1,9 +1,29 @@
 <template>
   <div class="w-full">
+    <!-- Filtering (decoupled) — AppTable holds no filtering logic; the panel
+         owns the schema + predicate engine and the table just delegates to it. -->
+    <div v-if="filterFields.length || $slots['filter-bar']" class="mb-3">
+      <slot name="filter-bar" :apply="onFilterApply">
+        <AppFilterPanel
+          :model-value="filterModel"
+          :fields="filterFields"
+          :default-values="filterDefaults"
+          :title="filterTitle"
+          :loading="loading"
+          @update:model-value="updateFilterModel"
+          @apply="onFilterApply"
+          @clear="onFilterApply"
+        />
+      </slot>
+    </div>
+
     <!-- Toolbar -->
-    <div
-      v-if="searchable || (filters.length && filtersInToolbar) || $slots['toolbar-end']"
+    <motion.div
+      v-if="searchable || exportable || $slots['toolbar-end']"
       class="mb-3 flex w-full min-w-0 flex-wrap items-center gap-2"
+      :initial="{ opacity: 0, y: -6 }"
+      :animate="{ opacity: 1, y: 0 }"
+      :transition="{ type: 'spring', stiffness: 420, damping: 32 }"
     >
       <div v-if="searchable" class="relative min-w-0 flex-1 sm:max-w-sm">
         <AppIcon
@@ -29,29 +49,21 @@
         </button>
       </div>
 
-      <!-- filter-bar slot (override) or built-in AppTableFilters -->
-      <slot name="filter-bar">
-        <AppTableFilters
-          v-if="filters.length && filtersInToolbar"
-          v-model="activeFilters"
-          :filters="filters"
-        />
-      </slot>
-
       <div class="flex items-center gap-2">
         <slot name="toolbar-end" />
+        <AppButton
+          v-if="exportable"
+          :label="exportLabel"
+          icon="icon-[heroicons-outline--arrow-down-tray]"
+          variant="outline"
+          size="sm"
+          :loading="isExporting"
+          :disabled="exportRowCount === 0"
+          :tooltip="exportRowCount === 0 ? 'Nothing to export' : undefined"
+          @click="exportToExcel"
+        />
       </div>
-    </div>
-
-    <!-- filter-bar when toolbar is not shown -->
-    <div
-      v-else-if="filters.length && !filtersInToolbar"
-      class="mb-3"
-    >
-      <slot name="filter-bar">
-        <AppTableFilters v-model="activeFilters" :filters="filters" />
-      </slot>
-    </div>
+    </motion.div>
 
     <!-- Bulk action bar -->
     <Transition
@@ -249,7 +261,12 @@
 
             <tr v-else-if="displayData.length === 0">
               <td :colspan="effectiveColumns.length" class="py-16 text-center">
-                <div class="flex flex-col items-center gap-3">
+                <motion.div
+                  class="flex flex-col items-center gap-3"
+                  :initial="{ opacity: 0, scale: 0.94, y: 8 }"
+                  :animate="{ opacity: 1, scale: 1, y: 0 }"
+                  :transition="{ type: 'spring', stiffness: 380, damping: 26 }"
+                >
                   <div class="bg-muted flex size-14 items-center justify-center rounded-xl">
                     <AppIcon
                       name="icon-[heroicons-outline--inbox-stack]"
@@ -259,11 +276,11 @@
                   </div>
                   <div>
                     <p class="text-text mb-0.5 text-sm font-medium">{{ emptyMessage }}</p>
-                    <p v-if="searchQuery || hasActiveFilters" class="text-text-muted text-xs">
+                    <p v-if="searchQuery || hasAppliedFilters" class="text-text-muted text-xs">
                       Try adjusting your search or filters
                     </p>
                   </div>
-                  <div v-if="searchQuery || hasActiveFilters" class="flex items-center gap-2">
+                  <div v-if="searchQuery || hasAppliedFilters" class="flex items-center gap-2">
                     <AppButton
                       v-if="searchQuery"
                       variant="ghost"
@@ -273,15 +290,15 @@
                       @click="searchQuery = ''"
                     />
                     <AppButton
-                      v-if="hasActiveFilters"
+                      v-if="hasAppliedFilters"
                       variant="ghost"
                       label="Clear filters"
                       icon="icon-[heroicons-outline--funnel]"
                       size="sm"
-                      @click="activeFilters = {}"
+                      @click="clearFilters"
                     />
                   </div>
-                </div>
+                </motion.div>
               </td>
             </tr>
 
@@ -482,9 +499,12 @@
     </div>
 
     <!-- Footer -->
-    <div
+    <motion.div
       v-if="showPagination || showColumnToggle"
       class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      :initial="{ opacity: 0, y: 6 }"
+      :animate="{ opacity: 1, y: 0 }"
+      :transition="{ type: 'spring', stiffness: 420, damping: 32 }"
     >
       <div class="flex flex-wrap items-center gap-2">
         <span v-if="showPagination" class="text-text-muted text-sm tabular-nums">
@@ -653,7 +673,7 @@
           @click="goToNext"
         />
       </div>
-    </div>
+    </motion.div>
 
     <!-- Truncate expand modal -->
     <AppModal
@@ -671,6 +691,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch, useSlots, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { motion } from 'motion-v';
 import { z } from 'zod';
 import { onClickOutside } from '@vueuse/core';
 import { usePagination } from '@/composables/usePagination';
@@ -686,12 +707,13 @@ import AppPopover from './AppPopover.vue';
 import AppCheckbox from './AppCheckbox.vue';
 import AppBadge from './AppBadge.vue';
 import AppSpinner from './AppSpinner.vue';
-import AppTableFilters from './AppTableFilters.vue';
+import AppFilterPanel, { filterRows, isEmptyFilterValue } from './AppFilterPanel.vue';
 import { display } from '@/utils/display';
-import type { FilterDef, FilterValue, ActiveFilters } from './AppTableFilters.vue';
+import type { FilterFieldRow, FilterState } from './AppFilterPanel.vue';
 
-export type { FilterDef, FilterValue, ActiveFilters };
-export type { FilterType } from './AppTableFilters.vue';
+// Re-export the panel's filter types so consumers can type schemas from a single
+// import. The runtime `filterRows` helper is imported from AppFilterPanel directly.
+export type { FilterField, FilterFieldRow, FilterFieldType, FilterState } from './AppFilterPanel.vue';
 
 type AppButtonVariant =
   | 'primary'
@@ -785,7 +807,14 @@ interface Props {
   showColumnToggle?: boolean;
   columnsVisibilityKey?: string;
   pageSizeOptions?: number[];
-  filters?: FilterDef[];
+  // Filtering (delegated to AppFilterPanel — config only, no logic here)
+  /** Filter schema. When set, the table renders an AppFilterPanel above itself. */
+  filterFields?: FilterFieldRow[];
+  /** Filter state (v-model:filters). */
+  filters?: FilterState;
+  /** Baseline the panel's Clear resets to. */
+  filterDefaults?: FilterState;
+  filterTitle?: string;
   actions?: RowAction[];
   maxInlineActions?: number;
   actionsLabel?: string;
@@ -793,7 +822,14 @@ interface Props {
   selected?: (string | number)[];
   bulkActions?: BulkAction[];
   selectionMode?: 'page' | 'all';
-  filtersInToolbar?: boolean;
+  // Export (styled xlsx-js-style)
+  exportable?: boolean;
+  exportFileName?: string;
+  exportLabel?: string;
+  /** Per-column value → label maps, e.g. { status: { 1: 'Active', 0: 'Inactive' } }. */
+  exportMappers?: Record<string, Record<string | number, string>>;
+  /** Force RTL sheet direction. Defaults to the document's `dir` at export time. */
+  exportRtl?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -817,7 +853,10 @@ const props = withDefaults(defineProps<Props>(), {
   showColumnToggle: false,
   columnsVisibilityKey: '',
   pageSizeOptions: () => [10, 15, 25, 50],
-  filters: () => [],
+  filterFields: () => [],
+  filters: () => ({}),
+  filterDefaults: () => ({}),
+  filterTitle: 'Filter Panel',
   actions: () => [],
   maxInlineActions: 2,
   actionsLabel: '',
@@ -825,14 +864,20 @@ const props = withDefaults(defineProps<Props>(), {
   selected: undefined,
   bulkActions: () => [],
   selectionMode: 'page',
-  filtersInToolbar: true,
+  exportable: false,
+  exportFileName: 'export',
+  exportLabel: 'Export',
+  exportMappers: () => ({}),
+  exportRtl: undefined,
 });
 
 const emit = defineEmits<{
   pageChange: [payload: { pageNumber: number; pageSize: number }];
   search: [query: string];
   'update:selected': [keys: (string | number)[]];
-  filterChange: [filters: ActiveFilters];
+  'update:filters': [filters: FilterState];
+  /** Fires when the panel's Apply/Clear commits — use it to refetch in server mode. */
+  filterApply: [filters: FilterState];
   selectionChange: [payload: { keys: (string | number)[]; rows: any[] }];
 }>();
 
@@ -884,26 +929,45 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', updateScrollEdges);
 });
 
-// ── Filters ───────────────────────────────────────────────────────────────────
-const activeFilters = ref<ActiveFilters>({});
-
-const hasActiveFilters = computed(() =>
-  Object.values(activeFilters.value).some((v) => {
-    if (v === null || v === undefined || v === '') return false;
-    if (Array.isArray(v)) return v.length > 0;
-    if (typeof v === 'object') return Object.values(v).some((x) => x !== null && x !== '');
-    return true;
-  }),
-);
+// ── Filters (state only — all filtering LOGIC lives in AppFilterPanel) ─────────
+// `filterModel` is the panel's live v-model; `appliedFilters` is the snapshot
+// committed on Apply/Clear that actually drives the displayed rows, so the table
+// filters on Apply (not per keystroke), matching the panel's explicit model.
+const filterModel = ref<FilterState>({ ...props.filters });
+const appliedFilters = ref<FilterState>({ ...props.filters });
 
 watch(
-  activeFilters,
+  () => props.filters,
   (val) => {
-    clientPag.first();
-    emit('filterChange', { ...val });
+    filterModel.value = { ...val };
+    appliedFilters.value = { ...val };
   },
   { deep: true },
 );
+
+function updateFilterModel(val: FilterState) {
+  filterModel.value = val;
+  emit('update:filters', val);
+}
+
+function onFilterApply(state: FilterState) {
+  appliedFilters.value = { ...state };
+  clientPag.first();
+  emit('filterApply', { ...state });
+}
+
+const hasAppliedFilters = computed(() =>
+  Object.values(appliedFilters.value).some((v) => !isEmptyFilterValue(v)),
+);
+
+function clearFilters() {
+  const reset: FilterState = {};
+  filterModel.value = reset;
+  appliedFilters.value = reset;
+  emit('update:filters', reset);
+  emit('filterApply', reset);
+  clientPag.first();
+}
 
 // ── Selection ─────────────────────────────────────────────────────────────────
 const selectedSet = ref<Set<string | number>>(new Set(props.selected ?? []));
@@ -1240,64 +1304,15 @@ const parseSortValue = (val: any): string | number => {
   return String(val).toLowerCase();
 };
 
-// ── Filter predicates ─────────────────────────────────────────────────────────
-function passesFilters(row: any): boolean {
-  for (const filter of props.filters) {
-    const val = activeFilters.value[filter.key] as FilterValue;
-    if (val === null || val === undefined || val === '') continue;
-    if (Array.isArray(val) && val.length === 0) continue;
-    if (typeof val === 'object' && !Array.isArray(val)) {
-      if (Object.values(val).every((v) => v === null || v === '')) continue;
-    }
-
-    const raw = getValue(row, filter.key);
-
-    switch (filter.type) {
-      case 'text':
-        if (typeof val === 'string' && !String(raw).toLowerCase().includes(val.toLowerCase()))
-          return false;
-        break;
-      case 'number': {
-        const { min, max } = val as { min: number | null; max: number | null };
-        const num = Number(raw);
-        if (min !== null && num < min) return false;
-        if (max !== null && num > max) return false;
-        break;
-      }
-      case 'select':
-        if (val !== '' && String(raw) !== String(val)) return false;
-        break;
-      case 'multiselect': {
-        const arr = val as (string | number)[];
-        if (arr.length > 0 && !arr.map(String).includes(String(raw))) return false;
-        break;
-      }
-      case 'boolean':
-        if (typeof val === 'boolean' && Boolean(raw) !== val) return false;
-        break;
-      case 'dateRange': {
-        const { from, to } = val as { from: string | null; to: string | null };
-        const rowTime = new Date(raw).getTime();
-        if (from && rowTime < new Date(from).getTime()) return false;
-        if (to) {
-          const toDate = new Date(to);
-          toDate.setHours(23, 59, 59, 999);
-          if (rowTime > toDate.getTime()) return false;
-        }
-        break;
-      }
-    }
-  }
-  return true;
-}
-
 // ── Data pipeline ─────────────────────────────────────────────────────────────
 const filteredData = computed(() => {
   if (!Array.isArray(props.data)) return [];
   let result = [...props.data];
 
   if (!props.serverPaginated) {
-    if (props.filters.length > 0) result = result.filter(passesFilters);
+    // Filtering is delegated wholesale to the panel's pure predicate engine.
+    if (props.filterFields.length > 0)
+      result = filterRows(result, props.filterFields, appliedFilters.value);
 
     if (props.searchable && searchQuery.value) {
       const q = searchQuery.value.toLowerCase();
@@ -1406,6 +1421,104 @@ const debouncedSearch = useDebounce(searchQuery, 500);
 watch(debouncedSearch, (q) => {
   if (props.serverPaginated) emit('search', q ?? '');
 });
+
+// ── Styled Excel export (xlsx-js-style) ─────────────────────────────────────
+// Exports the *currently filtered & sorted* dataset (not just the visible page),
+// using only the visible data columns. Values pass through `exportMappers` so
+// coded fields (status ids, booleans) render as human labels. RTL, auto-fitted
+// columns, a bold header band, and zebra striping match the project's export.
+const isExporting = ref(false);
+
+const exportColumns = computed(() =>
+  effectiveColumns.value.filter((c) => c.key !== '__select__' && c.key !== 'actions'),
+);
+
+const exportRowCount = computed(() =>
+  props.serverPaginated ? props.data.length : filteredData.value.length,
+);
+
+function exportCellValue(row: any, key: string): string | number {
+  const raw = getValue(row, key);
+  const mapper = props.exportMappers[key];
+  if (mapper) {
+    const mapped = mapper[raw as string | number];
+    if (mapped !== undefined) return mapped;
+  }
+  if (typeof raw === 'boolean') return raw ? 'Yes' : 'No';
+  if (raw === null || raw === undefined) return '';
+  if (typeof raw === 'object') return JSON.stringify(raw);
+  return raw as string | number;
+}
+
+async function exportToExcel() {
+  if (isExporting.value) return;
+  const rows = props.serverPaginated ? props.data : filteredData.value;
+  if (!rows.length || !exportColumns.value.length) return;
+
+  isExporting.value = true;
+  try {
+    const mod = await import('xlsx-js-style');
+    // interop: some bundlers surface SheetJS' CJS exports under `.default`
+    const XLSX: any = (mod as any).default ?? mod;
+    const cols = exportColumns.value;
+    const rtl = props.exportRtl ?? (typeof document !== 'undefined' && document.dir === 'rtl');
+
+    const header = cols.map((c) => c.label);
+    const body = rows.map((row) => cols.map((c) => exportCellValue(row, c.key)));
+    const aoa = [header, ...body];
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+    const border = { style: 'thin', color: { rgb: 'FFE5E7EB' } } as const;
+    const allBorders = { top: border, bottom: border, left: border, right: border };
+
+    const range = XLSX.utils.decode_range(ws['!ref'] as string);
+    for (let r = range.s.r; r <= range.e.r; r++) {
+      for (let c = range.s.c; c <= range.e.c; c++) {
+        const cell = ws[XLSX.utils.encode_cell({ r, c })];
+        if (!cell) continue;
+        const isHeader = r === 0;
+        cell.s = {
+          font: {
+            bold: isHeader,
+            color: { rgb: isHeader ? 'FFFFFFFF' : 'FF111827' },
+            sz: isHeader ? 12 : 11,
+          },
+          fill: {
+            patternType: 'solid',
+            fgColor: { rgb: isHeader ? 'FF4F46E5' : r % 2 === 0 ? 'FFF9FAFB' : 'FFFFFFFF' },
+          },
+          alignment: {
+            horizontal: rtl ? 'right' : 'left',
+            vertical: 'center',
+            readingOrder: rtl ? 2 : 1,
+            wrapText: false,
+          },
+          border: allBorders,
+        };
+      }
+    }
+
+    // auto-fit column widths from the longest cell in each column
+    ws['!cols'] = cols.map((c, i) => {
+      const longest = aoa.reduce((max, row) => {
+        const len = String(row[i] ?? '').length;
+        return len > max ? len : max;
+      }, String(c.label).length);
+      return { wch: Math.min(Math.max(longest + 2, 10), 60) };
+    });
+    ws['!rows'] = aoa.map((_, i) => ({ hpt: i === 0 ? 24 : 20 }));
+
+    const wb = XLSX.utils.book_new();
+    if (rtl) wb.Workbook = { Views: [{ RTL: true }] };
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    XLSX.writeFile(wb, `${props.exportFileName || 'export'}.xlsx`);
+  } finally {
+    isExporting.value = false;
+  }
+}
+
+defineExpose({ exportToExcel });
 </script>
 
 <style scoped>
