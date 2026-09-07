@@ -163,12 +163,78 @@
       wordColor?: string;
       /** Set false for a purely decorative field that ignores the pointer. */
       interactive?: boolean;
+
+      /** Drift and twist multiplier. `0` freezes the motion but keeps drawing. */
+      speed?: number;
+      /**
+       * Holds the current frame and stops the render loop entirely — cheaper than
+       * `speed: 0`, and the phase is kept, so resuming carries on rather than
+       * snapping back to the start.
+       */
+      paused?: boolean;
+      /**
+       * Seconds of drift to begin with, so two fields on one page are not in
+       * lockstep. Applied once; changing it later does not re-seed.
+       */
+      phase?: number;
+
+      /** Crossings across the field. Defaults to 1.35, or 1 below 480px. */
+      waves?: number;
+      /** Scales how far the ribbons swing from the centre line. */
+      amplitude?: number;
+      /** Scales the band's height. */
+      thickness?: number;
+
+      /**
+       * Translucency of the word, clamped below 1. At 1 it erases the half of the
+       * strip behind it, so the ribbon reaches a letter and stops instead of
+       * passing behind it.
+       */
+      wordAlpha?: number;
+      /** Weight the word is set in. */
+      wordWeight?: number | string;
+      /** Font stack for the word. Defaults to the `--font-primary` token. */
+      wordFont?: string;
+
+      /** How hard the pointer pulls the ribbon toward it. */
+      pull?: number;
+      /** How far along the ribbon the pull reaches, as a fraction of the width. */
+      pullReach?: number;
+
+      /**
+       * Quad density. `'auto'` is roughly one per 6px of width; `'low'` and
+       * `'high'` pin it to the ends of the range for a weak or a showcase device.
+       */
+      quality?: 'auto' | 'low' | 'high';
     }>(),
-    { interactive: true },
+    {
+      interactive: true,
+      speed: 1,
+      paused: false,
+      phase: 0,
+      amplitude: 1,
+      thickness: 1,
+      wordAlpha: WORD_ALPHA,
+      wordWeight: 800,
+      pull: PULL,
+      quality: 'auto',
+    },
   );
 
   const canvasRef = ref<HTMLCanvasElement | null>(null);
   const reduced = useReducedMotion();
+
+  /**
+   * Phase is accumulated rather than derived from the frame timestamp, and it
+   * lives out here rather than inside the effect. Both matter: integrating
+   * `dt * speed` means changing the speed bends the motion instead of jumping it,
+   * and keeping it in setup scope means a prop change — which tears the effect
+   * down and builds it again — resumes where it left off rather than snapping
+   * back to the beginning.
+   */
+  let driftPhase = -props.phase * 0.22;
+  let twistPhase = props.phase * 0.34;
+  let lastFrame = 0;
 
   // Metrics are measured from the real display face, so nothing can be sized
   // until it has actually loaded.
@@ -189,6 +255,18 @@
       const customRamps = props.ramps;
       const wordColor = props.wordColor;
       const interactive = props.interactive;
+      const speed = props.speed;
+      const paused = props.paused;
+      const wavesProp = props.waves;
+      const amplitude = props.amplitude;
+      const thickness = props.thickness;
+      // Clamped: at 1 the word cuts the ribbon instead of veiling it.
+      const wordAlpha = Math.min(0.95, Math.max(0, props.wordAlpha));
+      const wordWeight = props.wordWeight;
+      const wordFontProp = props.wordFont;
+      const pull = props.pull;
+      const pullReach = props.pullReach;
+      const quality = props.quality;
 
       const canvas = canvasRef.value;
       const ctx = canvas?.getContext('2d');
@@ -210,7 +288,7 @@
         const root = getComputedStyle(document.documentElement);
         const token = (name: string) => root.getPropertyValue(name).trim();
 
-        wordFace = token('--font-primary') || token('--font-sans') || 'sans-serif';
+        wordFace = wordFontProp || token('--font-primary') || token('--font-sans') || 'sans-serif';
         wordFill = normalizeColor(ctx, wordColor || token('--color-text'), FALLBACK_WORD);
 
         if (customRamps?.length) {
@@ -257,7 +335,7 @@
       const measureWord = () => {
         wordSize = 0;
         if (!word || !ready || !width || !height) return;
-        ctx.font = `800 100px ${wordFace}`;
+        ctx.font = `${wordWeight} 100px ${wordFace}`;
         const m = ctx.measureText(word);
         const ascent = m.actualBoundingBoxAscent || 72;
         const descent = m.actualBoundingBoxDescent || 20;
@@ -286,7 +364,13 @@
       };
 
       const draw = (time: number) => {
-        const t = time / 1000;
+        // Clamped: a tab that was backgrounded for a minute would otherwise come
+        // back to a single enormous step and the ribbons would jump.
+        const dt = lastFrame ? Math.min(0.05, (time - lastFrame) / 1000) : 0;
+        lastFrame = time;
+        driftPhase -= dt * 0.22 * speed;
+        twistPhase += dt * 0.34 * speed;
+
         ctx.clearRect(0, 0, width, height);
 
         const mid = height * 0.5;
@@ -297,21 +381,23 @@
         // ribbons inside a very wide box, but on a narrow one it collapses them to
         // a thread down the middle — so it cannot pull them below a floor set by
         // the height that is actually available.
-        const amp = Math.min(height * 0.22, Math.max(width * 0.09, height * 0.14));
-        const band = Math.min(height * 0.15, Math.max(width * 0.055, height * 0.085));
+        const amp = Math.min(height * 0.22, Math.max(width * 0.09, height * 0.14)) * amplitude;
+        const band = Math.min(height * 0.15, Math.max(width * 0.055, height * 0.085)) * thickness;
 
         // Fewer waves in a narrow field. At 1.35 the crossings land within a
         // thumb's width of each other on a phone and the weave stops being
         // readable as a weave — which is the one thing this component is for.
-        const waves = narrow ? 1 : 1.35;
+        const waves = wavesProp ?? (narrow ? 1 : 1.35);
         const omega = TAU * waves;
 
         // Roughly one quad per SEGMENT_PX of width rather than a flat 150.
-        const segments = Math.max(
-          MIN_SEGMENTS,
-          Math.min(MAX_SEGMENTS, Math.round(width / SEGMENT_PX)),
-        );
-        const phase = -t * 0.22;
+        const segments =
+          quality === 'low'
+            ? MIN_SEGMENTS
+            : quality === 'high'
+              ? MAX_SEGMENTS
+              : Math.max(MIN_SEGMENTS, Math.min(MAX_SEGMENTS, Math.round(width / SEGMENT_PX)));
+        const phase = driftPhase;
 
         eased.x += (pointer.x - eased.x) * 0.13;
         eased.y += (pointer.y - eased.y) * 0.13;
@@ -338,7 +424,7 @@
           const ramp = rampRgb[i] ?? rampRgb[0];
           // Offsetting the twist per ribbon keeps them from turning edge-on at the
           // same moment, which would read as one object rather than two.
-          const twistPhase = t * 0.34 + (i * Math.PI) / 2;
+          const twist = twistPhase + (i * Math.PI) / 2;
 
           let prev: {
             top: [number, number];
@@ -360,15 +446,15 @@
             if (eased.strength > 0.001) {
               const px = eased.x * width;
               const py = eased.y * height;
-              const reach = narrow ? PULL_REACH_NARROW : PULL_REACH;
+              const reach = pullReach ?? (narrow ? PULL_REACH_NARROW : PULL_REACH);
               const falloff = Math.exp(-(((x - px) / (width * reach)) ** 2));
-              y += (py - y) * PULL * falloff * eased.strength;
+              y += (py - y) * pull * falloff * eased.strength;
             }
 
             // The twist is height and light together. Modulating only one reads as
             // a fat wavy line; modulating both is what makes it read as a band
             // turning edge-on.
-            const theta = TAU * 1.15 * u + twistPhase;
+            const theta = TAU * 1.15 * u + twist;
             const face = Math.abs(Math.cos(theta));
             // Never fully zero: a ribbon that vanishes at every quarter turn reads
             // as a rendering fault rather than as foreshortening.
@@ -435,10 +521,10 @@
           // strip behind it — half of it — so the ribbon arrives at a letter and
           // simply stops. At 0.82 the strip stays continuous and reads as passing
           // behind glass. Depth by attenuation, not deletion.
-          ctx.font = `800 ${wordSize}px ${wordFace}`;
+          ctx.font = `${wordWeight} ${wordSize}px ${wordFace}`;
           ctx.textAlign = 'center';
           ctx.fillStyle = wordFill;
-          ctx.globalAlpha = WORD_ALPHA;
+          ctx.globalAlpha = wordAlpha;
           ctx.fillText(word, width / 2, mid + wordBaseline);
           ctx.globalAlpha = 1;
         }
@@ -460,7 +546,7 @@
           ctx.globalAlpha = 1;
         }
 
-        if (running && !isReduced) raf = requestAnimationFrame(draw);
+        if (running && !isReduced && !paused) raf = requestAnimationFrame(draw);
       };
 
       const track = (e: PointerEvent) => {
@@ -494,8 +580,9 @@
       const onLostCapture = onPointerUp;
 
       const start = () => {
-        if (running || isReduced) return;
+        if (running || isReduced || paused) return;
         running = true;
+        lastFrame = 0;
         raf = requestAnimationFrame(draw);
       };
       const stop = () => {
@@ -505,7 +592,7 @@
 
       const resizeObserver = new ResizeObserver(() => {
         resize();
-        if (isReduced) draw(0);
+        if (isReduced || paused) draw(0);
       });
       resizeObserver.observe(canvas);
 
@@ -527,7 +614,7 @@
       const onThemeChange = () => {
         readTheme();
         measureWord();
-        if (isReduced) draw(0);
+        if (isReduced || paused) draw(0);
       };
 
       const themeAttr = new MutationObserver(onThemeChange);
@@ -548,8 +635,11 @@
       readTheme();
       resize();
 
-      if (isReduced) {
-        // One frame, held. Content is never withheld pending animation.
+      lastFrame = 0;
+
+      if (isReduced || paused) {
+        // One frame, held. Content is never withheld pending animation, and a
+        // paused field still shows the ribbons rather than an empty canvas.
         running = false;
         draw(0);
       } else {

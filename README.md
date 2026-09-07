@@ -718,6 +718,49 @@ Pulls in `useReducedMotion`, which needs `@vueuse/core`.
 | `wordColor` | `string` | `var(--color-text)` | Fill for the word. Any CSS color |
 | `interactive` | `boolean` | `true` | Set `false` for a decorative field that ignores the pointer — no grab cursor, no listeners bound |
 
+**Motion**
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `speed` | `number` | `1` | Scales drift and twist together. `0` freezes the motion but keeps drawing |
+| `paused` | `boolean` | `false` | Holds the current frame and stops the loop — cheaper than `speed: 0`, and the phase is kept |
+| `phase` | `number` | `0` | Seconds of drift to begin with, so two fields on a page are not in lockstep. Applied once |
+
+**Composition**
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `waves` | `number` | `1.35` / `1` narrow | Crossings across the field |
+| `amplitude` | `number` | `1` | Scales how far the ribbons swing from the centre line |
+| `thickness` | `number` | `1` | Scales the band's height |
+
+**Typography**
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `wordAlpha` | `number` | `0.82` | Translucency of the word, **clamped to 0.95** — see below |
+| `wordWeight` | `number \| string` | `800` | Weight the word is set in |
+| `wordFont` | `string` | `var(--font-primary)` | Font stack for the word |
+
+**Interaction and cost**
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `pull` | `number` | `0.8` | How hard the pointer pulls the ribbon toward it |
+| `pullReach` | `number` | `0.17` / `0.28` narrow | How far along the ribbon the pull reaches, as a fraction of width |
+| `quality` | `'auto' \| 'low' \| 'high'` | `'auto'` | Quad density. `auto` is ~1 per 6px of width; `low` pins 64, `high` pins 150 |
+
+`wordAlpha` is clamped below 1 rather than trusted, because 1 is not a stylistic
+choice — an opaque word erases the half of the strip behind it, so the ribbon
+reaches a letter and stops instead of passing behind it. The clamp is the
+component refusing to render its own defining feature away.
+
+`speed` and `paused` are not the same knob. `speed: 0` still schedules a frame
+every tick and redraws an unchanging picture; `paused` stops the loop. Phase is
+accumulated rather than derived from the frame clock and lives outside the render
+effect, so changing speed bends the motion instead of jumping it, and pausing then
+resuming carries on from where it stopped.
+
 The component renders a single `<canvas>`, so any `class` you pass lands on it. It is `size-full`, meaning **the height comes from the parent** — a container with no height renders nothing.
 
 #### Colors
@@ -739,7 +782,7 @@ Everything scales off the container, and below 480px wide the field is treated a
 | Word fit | 96% of width | 86%, so it isn't wedged against both edges |
 | Grab radius | 17% of width | 28% — a fingertip is blunter than a cursor |
 
-Quad count follows width (~1 per 6px, clamped to 64–150) rather than a flat 150, which roughly halves the per-frame fill on a phone with no visible difference. Drawing also stops entirely while the field is scrolled out of view or the tab is hidden, and `prefers-reduced-motion` renders one held frame instead of animating.
+Quad count follows width (~1 per 6px, clamped to 64–150) rather than a flat 150, which roughly halves the per-frame fill on a phone with no visible difference — `quality` overrides it either way. Drawing also stops entirely while the field is scrolled out of view or the tab is hidden, and `prefers-reduced-motion` renders one held frame instead of animating.
 
 #### Touch
 
