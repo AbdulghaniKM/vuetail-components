@@ -792,3 +792,172 @@ Quad count follows width (~1 per 6px, clamped to 64–150) rather than a flat 15
 | Leave `seal` on in the front pass | A stroke laid over its own fill at partial alpha blends twice along every seam — ~300 of those read as vertical banding across the word |
 | Raise `WORD_ALPHA` to 1 | An opaque word erases the half of the strip behind it, so the ribbon reaches a letter and stops instead of passing behind it |
 | Remove the injected crossing samples | The over/under boundary can then only land on a uniform sample, so it steps along in visible jumps instead of sliding |
+
+---
+
+### AppDock
+
+A floating macOS-style dock — a glass navigation pill pinned to any edge of the viewport (**bottom**, **left**, **right** or **top**). Tiles are colour-tagged route links; the bar drags between edges with a live ghost preview and FLIPs into its new place with a sampled spring.
+
+```bash
+pnpm add-component AppDock
+```
+
+Pulls in `AppIcon`, `useDockPosition`, `useDockDrag`, `useDockFlight` and `useKeyboard`. Needs `@vueuse/core` and `vue-router` — the first registry component that requires the router.
+
+#### Props
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `items` | `DockItem[] \| DockSection[]` | — | **Required.** Flat, or grouped into sections that render with a separator between them |
+| `role` | `string \| null` | `null` | Filters items carrying `roles`. An item with no `roles` is always visible |
+| `ariaLabel` | `string` | `'Main'` | Accessible name for the underlying `<nav>` |
+| `scope` | `'viewport' \| 'container'` | `'viewport'` | What the dock is pinned to — see below. Read once at setup |
+| `position` | `DockPosition` | — | Optional `v-model:position`. Leave it off and the dock owns its edge |
+| `edges` | `DockPosition[]` | all four | Edges the dock may occupy. A single edge also hides the grip |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Tile scale — 2.25 / 2.75 / 3.25rem. The grip and icons follow |
+| `lift` | `number` | `0.375` | Hover lift in rem. `0` disables it; neighbours get a third |
+| `storageKey` | `string` | `'app-dock-position'` | Where a viewport dock persists its edge. Ignored when contained |
+
+```ts
+interface DockItem {
+  label: string;                    // tile aria-label + hover label
+  to?: string;                      // RouterLink target; also the key, so it must be unique
+  icon: string;                     // Iconify name — see the warning below
+  hue?: DockHue;                    // defaults to 'primary'
+  roles?: readonly string[];        // omit = visible to everyone
+  onClick?: (item) => void;         // an item with no `to` is a button, not a link
+  badge?: number | string;          // corner badge; 0 and '' render nothing, >99 becomes '99+'
+  exact?: boolean;                  // match this route exactly, not everything beneath it
+  disabled?: boolean;               // dimmed, unfocusable, inert
+}
+
+type DockPosition = 'bottom' | 'left' | 'top' | 'right';   // also the grip's cycle order
+type DockHue = 'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'error' | 'info';
+```
+
+An item with a `to` renders as a `RouterLink`; an item with only `onClick` renders as a
+`<button>` and keys off its label, so the dock can carry actions — search, compose, a command
+palette — alongside navigation.
+
+#### Slots
+
+| Slot | Scope | For |
+|---|---|---|
+| `icon` | `{ item, active, index }` | Replaces a tile's icon — an avatar, a custom SVG, a status ring |
+| `leading` | — | Pinned inside the pill before the tile strip, so it never scrolls away |
+| `trailing` | — | Pinned after the strip — a settings button, a theme toggle |
+
+```vue
+<AppDock :items="items">
+  <template #trailing>
+    <ThemeToggle />
+  </template>
+</AppDock>
+```
+
+#### ⚠️ Write icons as `icon-[solar--home-2-linear]`, not `solar:home-2-linear`
+
+`AppIcon` accepts both, but only the bracket form survives a production build. Tailwind's iconify plugin emits a class only when it can find it spelled out in scanned source, and the colon form never matches because `AppIcon` converts it at runtime — long after Tailwind has run. The colon form appears to work in dev whenever some *other* file in the project happens to use the same icon, which makes this fail late and look random.
+
+#### Colors
+
+The pill is deliberately dark in both themes — it floats over the page as system furniture rather than a surface belonging to it — and ships self-contained in the component's `<style>` block, so there is nothing to paste into `style.css`.
+
+The **tiles** are the part that follows the theme: `hue` names your own semantic tokens, so a light/dark swap or a `useColorCustomizer` change carries the dock with it. An active tile is a 25% tint of its hue with the hue as ink and a glow beneath, rather than the solid fill the design was first drawn with — a solid fill needs ink picked per colour to stay legible, and these hues are whatever the app's tokens happen to be.
+
+#### Mounting it
+
+The dock is `position: fixed` and renders outside the content flow, so it belongs in a layout, not a page. The layout also has to reserve room on the same edge — bind `CONTENT_CLEARANCE` to the **preview** position, not the committed one, and the whole page previews the move while a drag is in flight.
+
+```vue
+<script setup lang="ts">
+  import { computed } from 'vue';
+  import AppDock, { CONTENT_CLEARANCE, type DockItem } from '@/components/ui/AppDock.vue';
+  import { useDockPosition } from '@/composables/useDockPosition';
+  import { useDockDragState } from '@/composables/useDockDrag';
+
+  const items: DockItem[] = [
+    { label: 'Home',     to: '/',         icon: 'icon-[solar--home-2-linear]',   hue: 'primary' },
+    { label: 'Orders',   to: '/orders',   icon: 'icon-[solar--bag-linear]',      hue: 'success' },
+    { label: 'Settings', to: '/settings', icon: 'icon-[solar--settings-linear]', hue: 'accent' },
+  ];
+
+  const { dockPosition } = useDockPosition();
+  const { previewPosition } = useDockDragState();
+  const previewDockPosition = computed(() => previewPosition.value ?? dockPosition.value);
+</script>
+
+<template>
+  <div class="flex h-screen overflow-hidden bg-background">
+    <AppDock :items="items" />
+
+    <div
+      class="mx-auto flex min-h-0 w-full min-w-0 flex-1 flex-col transition-[padding] duration-300 ease-out"
+      :class="CONTENT_CLEARANCE[previewDockPosition]"
+    >
+      <slot />
+    </div>
+  </div>
+</template>
+```
+
+Z-index budget: the dock is `z-40`, its drag ghost `z-30`, hover labels `z-10` inside the pill. Keep modals and overlays above `z-40`.
+
+#### Scope — viewport or container
+
+`scope="viewport"` (the default) is the real thing: `position: fixed`, edges measured against the window, and the edge itself shared through a module-scope singleton and persisted to `localStorage`. That singleton is deliberate — the page layout has to reflow toward the edge being hovered, so the dock and the layout have to read one value. It also means **only one viewport dock may be mounted at a time**.
+
+`scope="container"` pins the dock to its nearest positioned ancestor with `position: absolute` instead, measures the drag edges against that box, and keeps its edge private to the instance. Several can coexist, each minding its own container, and none of them touch `localStorage`. Give the container `position: relative` and `overflow: hidden`.
+
+```vue
+<div class="relative h-80 overflow-hidden rounded-xl border border-border">
+  <YourScreenContent />
+  <AppDock v-model:position="edge" scope="container" :items="items" />
+</div>
+```
+
+Use it for an embedded app frame, a settings preview, or a demo — anywhere a dock should belong to a box rather than the screen. The drag, the ghost preview, the flight and the grip all behave identically; only what counts as an "edge" changes.
+
+`v-model:position` is a mirror, not a second source of truth: the dock still owns the edge, and a bound value is pushed in and echoed back out. Bind it when something outside has to follow along — a contained dock's edge is otherwise invisible to its container, which still has to reserve space on the right side.
+
+#### Behaviour
+
+| | |
+|---|---|
+| Edge | `bottom` / `left` / `right`, persisted to `localStorage['app-dock-position']` |
+| Drag | Grip handle, pointer-captured, 4px threshold, ghost preview on the target edge |
+| Click the grip | No drag → cycles `bottom → left → right → bottom` |
+| Escape | Cancels an in-flight drag and glides the bar home |
+| Flight | FLIP + a spring sampled into `linear()` (420ms), bezier fallback |
+| Hover | Hovered tile lifts `0.375rem`, neighbours `0.125rem` — never a scale, so the dock cannot reflow |
+| Overflow | The tile strip scrolls when crowded; the grip never scrolls away, and labels still escape the pill |
+| Active tile | Most-specific match wins, on a `/` boundary — `/orders-archive` does not light up `/orders` |
+| Below 768px | A **viewport** dock locks to `bottom` and hides its grip, whatever is stored — a floating side rail eats a phone screen. A contained dock is sized by its box, not the device, so it is left alone |
+| Badges | `0` and `''` render nothing; numbers above 99 become `99+` |
+| A11y | `aria-current="page"`, per-tile `aria-label`, focus rings drawn against the pill, `prefers-reduced-motion`, `prefers-reduced-transparency`, and opaque fallbacks where `backdrop-filter` is unsupported |
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Give `DOCK_SCROLLER` a plain `overflow-x-auto` without its negative margin and matching padding | Setting overflow on one axis computes the other from `visible` to `auto`, which clips hover labels and lifted tiles against the pill's inner edge. The padding is the clip region; the negative margin cancels its contribution to layout |
+| Drop `pointer-events-none` from the scroller | That transparent overhang is large, and it would swallow every click aimed at the page behind the dock |
+| Turn the hover lift into a scale | A tile that grows resizes its slot, which shoves the row around and reads as loud at any amplitude worth seeing |
+| Re-dock the bar mid-drag | The ghost plus the page reflowing behind it already show where it lands; hopping between edges under the cursor is unreadable |
+| Commit the new edge after dropping the lift | The flight's pre-flush pass has to measure the bar where the cursor left it, lift included, or it flies from the wrong place |
+| Build the class maps from a template string | Tailwind only ships classes it can find as literal strings, so every position variant is spelled out |
+| Compare raw pixel distances in `nearestEdge` | Distances are normalised against the box's own width and height first. In a wide box the top and bottom are nearer in pixels almost everywhere, so the side edges become unreachable |
+
+#### Theming the chrome
+
+Every colour in the pill is a custom property on `.dock-root`, so an app that wants a different dock overrides them from a parent rather than editing the component:
+
+```css
+.my-layout {
+  --dock-chrome: #1a1523;
+  --dock-glass: rgb(26 21 35 / 0.9);
+  --dock-accent: #c084fc;
+  --dock-badge: #f43f5e;
+}
+```

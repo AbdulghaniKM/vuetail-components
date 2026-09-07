@@ -4,6 +4,7 @@
     "AppBadge",
     "AppButton",
     "AppCheckbox",
+    "AppDock",
     "AppEmptyState",
     "AppErrorBoundary",
     "AppFilterPanel",
@@ -43,6 +44,9 @@
     "useConfirm",
     "useDateFormat",
     "useDebounce",
+    "useDockDrag",
+    "useDockFlight",
+    "useDockPosition",
     "useFormValidation",
     "useInfiniteScroll",
     "useKeyboard",
@@ -87,7 +91,10 @@
     "Fields/TimePickerClock": ["AppIcon"],
     "useColorCustomizer": ["useTheme"],
     "useConfirm": ["ConfirmDangerModal"],
-    "RibbonField": ["useReducedMotion"]
+    "RibbonField": ["useReducedMotion"],
+    "AppDock": ["AppIcon", "useDockPosition", "useDockDrag", "useDockFlight", "useKeyboard"],
+    "useDockDrag": ["useDockPosition", "useDockFlight", "useKeyboard"],
+    "useDockFlight": ["useDockPosition"]
   },
   "requires": {
     "useAuth": {
@@ -157,6 +164,15 @@
       "packages": ["motion-v"]
     },
     "useReducedMotion": {
+      "packages": ["@vueuse/core"]
+    },
+    "AppDock": {
+      "packages": ["@vueuse/core", "vue-router"]
+    },
+    "useDockDrag": {
+      "packages": ["@vueuse/core"]
+    },
+    "useDockFlight": {
       "packages": ["@vueuse/core"]
     }
   }
