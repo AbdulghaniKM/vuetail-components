@@ -1004,3 +1004,99 @@ Every colour in the pill is a custom property on `.dock-root`, so an app that wa
   --dock-badge: #f43f5e;
 }
 ```
+
+---
+
+### AppNavbar
+
+A floating nav capsule that contracts past the hero. Labels fold shut without unmounting, and a single pill travels between links instead of fading in under each one.
+
+```bash
+pnpm add-component AppNavbar
+```
+
+Pulls in `AppIcon` and `useReducedMotion`. Needs `@vueuse/core`, `vue-router` and `motion-v`.
+
+#### Props
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `items` | `NavItem[]` | `[]` | The centred nav links |
+| `actions` | `NavAction[]` | `[]` | Trailing controls — a CTA, a theme toggle, a language switch |
+| `tone` | `'dark' \| 'surface'` | `'dark'` | A self-contained capsule, or one that follows the theme |
+| `floating` | `boolean` | `true` | Inset capsule, or a flush full-width bar |
+| `position` | `'top' \| 'bottom'` | `'top'` | Which edge it pins to. The panel opens away from it |
+| `width` | `NavWidth` | `'xl'` | Measure at rest — match your content column |
+| `compactWidth` | `NavWidth` | `'md'` | Measure once contracted |
+| `contract` | `boolean` | `true` | Set `false` to pin it at its resting size |
+| `contractAt` | `number` | 80% of viewport | Scroll offset, in px, at which it contracts |
+| `scrollTarget` | `HTMLElement \| null` | `window` | What it measures scroll against — see below |
+| `pill` | `boolean` | `true` | The travelling pill |
+| `breakpoint` | `'md' \| 'lg' \| 'xl'` | `'lg'` | Below this, links collapse into the menu button |
+| `blur` | `boolean` | `true` | Backdrop blur behind the capsule |
+
+```ts
+type NavWidth = 'sm' | 'md' | 'lg' | 'xl' | 'full';   // max-w-xl … max-w-full
+
+interface NavItem {
+  label: string;
+  to: string;          // also the key, so it must be unique
+  exact?: boolean;     // match this route exactly, not everything beneath it
+  disabled?: boolean;
+}
+
+interface NavAction {
+  label: string;
+  icon?: string;                    // the icon-[ph--translate] form — see AppDock's warning
+  to?: string;                      // a link; omit and pass onClick for a button
+  onClick?: (action) => void;
+  variant?: 'ghost' | 'solid';      // 'solid' is the bar's one filled element
+  exact?: boolean;
+  keepLabel?: boolean;              // opt this label out of folding
+}
+```
+
+#### Slots
+
+| Slot | Scope | For |
+|---|---|---|
+| `brand` | `{ compact }` | The lockup. `compact` is what lets it clip back to a mark as the bar contracts |
+| `actions` | `{ compact }` | Replaces the rendered `actions` entirely |
+| `menu` | `{ close }` | Extra rows at the foot of the open panel |
+
+#### Why it floats
+
+A full-width bar with a hairline under it, pinned to the top of the viewport, reads as a lid over whatever is behind it: if the page opens on an image, a rule straight across the top of it cuts the frame in half. Hiding the bar until you scrolled treats the symptom and costs the site its navigation on first paint, which is the worse trade. Inset on all sides instead — the graphic runs full bleed underneath and past it, and the bar reads as an object sitting on the page rather than a frame around it. `floating: false` is there for apps that want the flush bar anyway.
+
+#### Why `tone="dark"` is the default
+
+The bar crosses whatever the page is made of — a hero image, the light body, a dark footer. A bar that restyles per surface has to know where it is. One dark capsule works over all three, and it means a lockup inside it can stay on its dark artwork everywhere instead of swapping mid-scroll. `tone="surface"` is there for apps whose header sits on ordinary page background.
+
+#### Scrolling inside an app shell
+
+The bar listens to `window` by default. When the page scrolls inside a container instead of the document, hand it that container — otherwise it reads the document's offset, which never moves, and it stays at its resting size forever.
+
+```vue
+<template>
+  <div class="h-screen overflow-hidden">
+    <AppNavbar :items="items" :scroll-target="scroller" />
+    <main ref="scroller" class="h-full overflow-y-auto"><slot /></main>
+  </div>
+</template>
+
+<script setup lang="ts">
+  import { ref } from 'vue';
+  const scroller = ref<HTMLElement | null>(null);
+</script>
+```
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Unmount a label instead of folding it | It strips the control's accessible name the moment the bar contracts, leaving a screen reader with an icon and nothing else. Each label stays in the DOM at `max-width: 0` |
+| Put the label's padding on the collapsing span | Under `border-box` a padded box cannot be narrower than its own padding, so `max-w-0` on a `ps-2` span still measures 8px — which pushes the icon off centre by exactly that much. The padding goes on an inner span, where the parent's `overflow-hidden` clips it |
+| Animate `width` instead of `max-width` | Width is laid out; the page under a fixed bar would relayout on every scroll frame of the contract |
+| Write the scroll handler without rAF | A fast scroll queues a state write per scroll event. The handler coalesces to one read per frame |
+| Give two navbars the same pill `layoutId` | Motion would animate one pill between the two bars. The id is minted per instance from `useId()` |
+| Read `compact` from a `scroll` listener on `document` when the page scrolls in a shell | The document's offset never changes, so the bar never contracts. That is what `scrollTarget` is for |

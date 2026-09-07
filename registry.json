@@ -11,6 +11,7 @@
     "AppIcon",
     "AppImageModal",
     "AppModal",
+    "AppNavbar",
     "AppPageLoader",
     "AppPopover",
     "AppSkeleton",
@@ -93,6 +94,7 @@
     "useConfirm": ["ConfirmDangerModal"],
     "RibbonField": ["useReducedMotion"],
     "AppDock": ["AppIcon", "useDockPosition", "useDockDrag", "useDockFlight", "useKeyboard"],
+    "AppNavbar": ["AppIcon", "useReducedMotion"],
     "useDockDrag": ["useDockPosition", "useDockFlight", "useKeyboard"],
     "useDockFlight": ["useDockPosition"]
   },
@@ -168,6 +170,9 @@
     },
     "AppDock": {
       "packages": ["@vueuse/core", "vue-router"]
+    },
+    "AppNavbar": {
+      "packages": ["@vueuse/core", "vue-router", "motion-v"]
     },
     "useDockDrag": {
       "packages": ["@vueuse/core"]
