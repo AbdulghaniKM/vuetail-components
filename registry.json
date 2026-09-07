@@ -21,6 +21,7 @@
     "ConfirmDangerModal",
     "CreateUpdateModal",
     "DeleteModal",
+    "RibbonField",
     "ThemeToggle",
     "Fields/AppForm",
     "Fields/DatePicker",
@@ -47,6 +48,7 @@
     "useKeyboard",
     "useLocalStorage",
     "usePagination",
+    "useReducedMotion",
     "useSeo",
     "useSidebar",
     "useTheme",
@@ -84,7 +86,8 @@
     "Fields/Textarea": [],
     "Fields/TimePickerClock": ["AppIcon"],
     "useColorCustomizer": ["useTheme"],
-    "useConfirm": ["ConfirmDangerModal"]
+    "useConfirm": ["ConfirmDangerModal"],
+    "RibbonField": ["useReducedMotion"]
   },
   "requires": {
     "useAuth": {
@@ -152,6 +155,9 @@
     },
     "AppModal": {
       "packages": ["motion-v"]
+    },
+    "useReducedMotion": {
+      "packages": ["@vueuse/core"]
     }
   }
 }

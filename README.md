@@ -694,3 +694,101 @@ All new props default to values that produce zero behavior change:
 | No `selectable` prop | No checkbox column, no bulk bar |
 | No `bulkActions` prop | Bulk bar still shows row count + "Clear" when `selectable` is true |
 | Existing `columns` array with a `key: 'actions'` entry | That column is used as-is; no synthetic actions column is appended |
+
+---
+
+### RibbonField
+
+An animated canvas field of two woven ribbons, with an optional word threaded through the weave. Decorative by default (`aria-hidden`), theme-aware, and built for use as a hero backdrop.
+
+The weave is **derived, not drawn**. Both centrelines are mirrored sinusoids, so they meet wherever `sin` is zero; giving each ribbon the depth `z = ±cos(ωu + φ)` forces them to opposite depth at every meeting, and which one is in front flips at each crossing. A painter's algorithm (`quads.sort((a, b) => a.z - b.z)`) resolves the whole thing — no mask, no clip, no crossing coordinates to solve for.
+
+```bash
+pnpm add-component RibbonField
+```
+
+Pulls in `useReducedMotion`, which needs `@vueuse/core`.
+
+#### Props
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `word` | `string` | — | Woven into the ribbons at z = 0. Pass it already cased — nothing is uppercased for you. Omit for bare ribbons |
+| `ramps` | `readonly (readonly string[])[]` | — | Two ramps of CSS colors, shadow → highlight, replacing the theme-derived ones. Any stop count works |
+| `wordColor` | `string` | `var(--color-text)` | Fill for the word. Any CSS color |
+| `interactive` | `boolean` | `true` | Set `false` for a decorative field that ignores the pointer — no grab cursor, no listeners bound |
+
+The component renders a single `<canvas>`, so any `class` you pass lands on it. It is `size-full`, meaning **the height comes from the parent** — a container with no height renders nothing.
+
+#### Colors
+
+With no `ramps`, each ribbon's 5-stop ramp is built at runtime from the theme tokens:
+
+- ribbon 0 ← `--color-primary`
+- ribbon 1 ← `--color-secondary`, or a drained `--color-primary` where the theme defines no distinct secondary
+
+The tokens are re-read on every route a theme can change through — the `data-theme` attribute, the injected `#app-theme-variables` stylesheet that `useColorCustomizer` rewrites, and the OS preference while the app follows the system — so the field tracks the app instead of drifting from it.
+
+#### Responsiveness
+
+Everything scales off the container, and below 480px wide the field is treated as a narrow column rather than a band:
+
+| | Wide | Narrow (< 480px) |
+|---|---|---|
+| Waves across the field | 1.35 | 1 — crossings otherwise land within a thumb's width of each other |
+| Word fit | 96% of width | 86%, so it isn't wedged against both edges |
+| Grab radius | 17% of width | 28% — a fingertip is blunter than a cursor |
+
+Quad count follows width (~1 per 6px, clamped to 64–150) rather than a flat 150, which roughly halves the per-frame fill on a phone with no visible difference. Drawing also stops entirely while the field is scrolled out of view or the tab is hidden, and `prefers-reduced-motion` renders one held frame instead of animating.
+
+#### Touch
+
+`touch-action: pan-y` is the whole touch story: vertical swipes are handed back to the browser so the page still scrolls past the field, while horizontal and diagonal drags arrive as pointer events and pull the ribbons. `touch-none` would make a full-height hero a scroll trap; the default (no `touch-action`) makes the field ungrabbable on a phone. One pointer owns the pull at a time, and a pointer the browser cancels — which is what a swipe-turned-scroll produces — releases it.
+
+#### Examples
+
+```vue
+<!-- Hero. The word is inside the canvas, which is what lets the ribbons thread
+     through the letters instead of lying flat across them. There is no text in
+     the section, so keep the page's real h1 in the section below. -->
+<template>
+  <section class="relative isolate h-dvh overflow-hidden bg-surface">
+    <RibbonField class="absolute inset-0" word="VUETAIL" />
+    <div
+      class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-background"
+      aria-hidden="true"
+    />
+  </section>
+</template>
+```
+
+```vue
+<!-- Explicit ramps, for a field that should not track the theme -->
+<RibbonField
+  word="VUETAIL"
+  :ramps="[
+    ['#0b5c34', '#0e7a45', '#1fa85c', '#2fd070', '#7cebae'],
+    ['#16281e', '#1f3a2c', '#3e6a52', '#9db3a6', '#e8e4da'],
+  ]"
+/>
+```
+
+```vue
+<!-- Decorative backdrop: no word, no pointer handling -->
+<div class="relative h-64 overflow-hidden rounded-xl">
+  <RibbonField class="absolute inset-0 opacity-40" :interactive="false" />
+  <div class="relative p-8">
+    <h2 class="text-2xl font-semibold text-text">Your content, over the field</h2>
+  </div>
+</div>
+```
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Drop `{ flush: 'post' }` on the `watchEffect` | The default `pre` flush runs before the DOM updates, so the canvas ref is `null` and the effect returns early — the field silently never renders |
+| Read `props.word` only inside `draw` | Vue tracks synchronous reads, so it would never be a dependency and changing the word would not restart the loop |
+| Leave `seal` on in the front pass | A stroke laid over its own fill at partial alpha blends twice along every seam — ~300 of those read as vertical banding across the word |
+| Raise `WORD_ALPHA` to 1 | An opaque word erases the half of the strip behind it, so the ribbon reaches a letter and stops instead of passing behind it |
+| Remove the injected crossing samples | The over/under boundary can then only land on a uniform sample, so it steps along in visible jumps instead of sliding |
