@@ -1100,3 +1100,243 @@ The bar listens to `window` by default. When the page scrolls inside a container
 | Write the scroll handler without rAF | A fast scroll queues a state write per scroll event. The handler coalesces to one read per frame |
 | Give two navbars the same pill `layoutId` | Motion would animate one pill between the two bars. The id is minted per instance from `useId()` |
 | Read `compact` from a `scroll` listener on `document` when the page scrolls in a shell | The document's offset never changes, so the bar never contracts. That is what `scrollTarget` is for |
+
+---
+
+### AdvancedAppTable
+
+A data table that also knows how to stop being a table. The same column config renders as
+pinned-header rows or as a grid of record cards, at two densities, and both switches are
+**app-wide** — flip one table's display menu and every `AdvancedAppTable` on the page follows,
+because the preference lives on `<html data-view>` / `<html data-density>` rather than in a prop.
+
+```bash
+pnpm add-component AdvancedAppTable
+```
+
+Pulls in `AppIcon`, `AppButton`, `AppCheckbox`, `AppPopover`, `useDebounce` and `useTableDisplay`.
+No extra packages — the sticky rails, the card reflow, the refresh sweep and the pager are plain CSS.
+
+This is a sibling of `AppTable`, not a replacement. Reach for **`AppTable`** when you want the
+batteries-included admin grid: `AppFilterPanel` schemas, inline editable cells, confirm dialogs,
+styled xlsx export. Reach for **`AdvancedAppTable`** when the list is the page — server-driven,
+long, scanned more than edited — and you want the card view, the density knob, per-table column
+memory, cross-page selection and a docked pager.
+
+#### Quick start
+
+```vue
+<template>
+  <AdvancedAppTable
+    id="users"
+    v-model:search="search"
+    v-model:sort="sort"
+    v-model:page="page"
+    v-model:selected="selected"
+    :columns="columns"
+    :rows="rows"
+    :total="total"
+    :loading="isLoading"
+    :refreshing="isFetching && !isLoading"
+    server-side
+    searchable
+    paginated
+    selectable
+    exportable
+    row-clickable
+    :actions="actions"
+    @row-click="({ row }) => router.push(`/users/${row.id}`)"
+  />
+</template>
+
+<script setup lang="ts">
+  import AdvancedAppTable, { type AdvancedTableColumn } from '@/components/ui/AdvancedAppTable.vue';
+
+  const columns: AdvancedTableColumn<UserRow>[] = [
+    {
+      key: 'user',
+      label: 'User',
+      sortable: true,
+      sortField: 'name',
+      type: 'identity',
+      copy: true,
+      identity: {
+        title: (u) => u.name,
+        subtitle: (u) => u.email,
+        image: (u) => u.avatarUrl,
+        seed: (u) => u.id,
+      },
+    },
+    { key: 'role', label: 'Role', type: 'badge', tones: { admin: '#7cb305', trainer: '#06b6d4' } },
+    { key: 'level', label: 'Level', type: 'chip', sortable: true },
+    { key: 'createdAt', label: 'Joined', type: 'date', mono: true, sortable: true },
+    { key: 'internalRef', label: 'Ref', defaultHidden: true },
+  ];
+</script>
+```
+
+#### Props
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `id` | `string` | — | **Required.** Scopes the persisted hidden-column list. Two tables sharing an id share their column preferences |
+| `columns` | `AdvancedTableColumn[]` | `[]` | **Required.** See below |
+| `rows` | `any[]` | `[]` | The current page's rows (or every row, in client mode) |
+| `rowKey` | `string \| (row) => string \| number` | `'id'` | Dot paths allowed. Selection identity depends on this |
+| `loading` | `boolean` | `false` | First load — skeleton rows |
+| `refreshing` | `boolean` | `false` | Background refetch — the sweep, with stale rows left readable |
+| `serverSide` | `boolean` | `false` | Search, sort and paging happen upstream; `rows` renders as given |
+| `total` | `number` | — | Row count behind the filters. **Required in `serverSide` mode** |
+| `searchable` / `searchPlaceholder` | `boolean` / `string` | `false` / `'Search…'` | Toolbar search box |
+| `search` | `string` | — | `v-model:search`. Emitted **debounced** — safe to send straight to an API |
+| `searchDebounce` | `number` | `300` | ms |
+| `sort` | `string` | — | `v-model:sort` — `field`, `field:desc`, or `''` |
+| `paginated` | `boolean` | `false` | Show the pager |
+| `page` / `limit` | `number` | — | `v-model:page` (1-based) / `v-model:limit` |
+| `pageSizes` | `number[]` | `[25, 50, 100]` | Options in the rows-per-page menu |
+| `showLimit` | `boolean` | `true` | Show that menu at all |
+| `stickyPagination` | `boolean` | `true` | Dock the pager to the bottom of the viewport |
+| `selectable` | `boolean` | `false` | Checkbox column + bulk bar |
+| `selected` | `(string \| number)[]` | — | `v-model:selected`. Survives page changes so a selection can accumulate |
+| `bulkActions` | `TableBulkAction[]` | `[]` | Buttons in the bulk bar |
+| `actions` | `TableRowAction[]` | `[]` | Buttons in the pinned last column |
+| `plainLastColumn` | `boolean` | `false` | Opt the last column out of the sticky action rail, for tables whose last column is data |
+| `rowClickable` | `boolean` | `false` | Emits `rowClick`; real controls inside the row keep working |
+| `rowClass` | `(row, index) => string \| undefined` | — | Extra classes per row |
+| `exportable` / `exportFileName` | `boolean` / `string` | `false` / `'export'` | CSV button. The file is `{name}-YYYY-MM-DD.csv`, UTF-8 with a BOM so Excel opens it correctly |
+| `exportRows` | `() => Promise<any[]>` | — | Fetch every matching row for the export instead of exporting the page you can see |
+| `view` / `density` | `TableView` / `TableDensity` | — | Pin **this** table to one layout/density and hide those rows from its menu |
+| `showDisplayMenu` | `boolean` | `true` | The layout / density / columns control |
+| `showCount` | `boolean` | `false` | Audience size in the toolbar — the filtered total, not the page |
+| `maxHeight` | `string` | `'70vh'` | Height of the scroll box in table view. Ignored in cards, which reflow to the page |
+| `skeletonRows` | `number` | `5` | |
+
+Every user-facing string is a prop: `emptyMessage`, `actionsLabel`, `columnsLabel`, `layoutLabel`,
+`densityLabel`, `showAllLabel`, `displayMenuTitle`, `selectedLabel`, `clearLabel`, `prevLabel`,
+`nextLabel`, `pageLabel`, `ofLabel`, `countLabel`, `exportLabel`, `copyLabel`, `copiedLabel`,
+`rowTitle`, `blankLabel`, `trueLabel`, `falseLabel`.
+
+#### Columns
+
+```ts
+interface AdvancedTableColumn<T = any> {
+  key: string;                  // reads row[key] (dot paths allowed) and keys the persisted hidden state
+  label: string;                // header text, menu entry, AND the field label in card mode
+  sortable?: boolean;
+  sortField?: string;           // the token emitted upstream; defaults to `key`
+  hideable?: boolean;           // default true — set false for a structural column
+  defaultHidden?: boolean;      // honoured only until this table's prefs are saved
+  align?: 'start' | 'center' | 'end';
+  width?: string;
+  class?: string;
+  headerClass?: string;
+  mono?: boolean;               // metadata (dates, counts, ids) — mono, never wraps
+  nowrap?: boolean;
+  truncate?: boolean;
+  type?: 'text' | 'number' | 'date' | 'boolean' | 'badge' | 'chip' | 'identity';
+  value?: (row: T) => unknown;  // custom accessor
+  format?: (value: unknown, row: T) => string;
+  tones?: Record<string, string>;          // type 'badge' — value → hex
+  hue?: TableHue | ((row: T) => TableHue); // type 'chip'
+  identity?: IdentityConfig<T>;            // type 'identity'
+  copy?: boolean | ((row: T) => string);   // copy button beside the value
+  title?: (row: T) => string | undefined;  // per-cell tooltip
+  noExport?: boolean;
+}
+```
+
+`type: 'badge'` colours a categorised value: known values come from `tones`, anything else falls
+back to `autoTone` — a stable hash into a fixed palette, so a free-form category keeps the same
+colour on every page and across sessions. `type: 'chip'` and `type: 'identity'` use the eight-hue
+palette the same way, so an avatar and a chip mix against the page identically.
+
+```ts
+type TableHue = 'lime' | 'mint' | 'aqua' | 'sky' | 'violet' | 'rose' | 'peach' | 'amber';
+
+interface IdentityConfig<T = any> {
+  title: (row: T) => string;                       // the name line
+  image?: (row: T) => string | null | undefined;   // falls back to an initial on a hue-tinted disc
+  subtitle?: (row: T) => string | null | undefined;// carries the copy button when `copy` is set
+  code?: (row: T) => string | null | undefined;    // third line, in mono
+  seed?: (row: T) => string;                       // what the stable hue hashes. Defaults to the row key
+}
+
+interface TableRowAction<T = any> {
+  key?: string; label: string; icon?: string; variant?: AppButtonVariant; danger?: boolean;
+  onClick: (row: T) => void | Promise<void>;
+  hidden?: (row: T) => boolean;
+  disabled?: (row: T) => boolean;
+}
+
+interface TableBulkAction<T = any> {
+  key?: string; label: string; icon?: string; variant?: AppButtonVariant; danger?: boolean;
+  onClick: (rows: T[], keys: (string | number)[]) => void | Promise<void>;
+  disabled?: (rows: T[]) => boolean;
+}
+```
+
+#### Slots
+
+| Slot | Scope | For |
+|---|---|---|
+| `cell-{key}` | `{ row, value, index, column }` | Replaces one column's cell entirely |
+| `header-{key}` | `{ column }` | Replaces a non-sortable header's content |
+| `actions` | `{ row, index }` | Replaces the whole action cell |
+| `bulk-actions` | `{ keys, rows, clear }` | Replaces the bulk bar's buttons |
+| `toolbar-start` / `toolbar-end` | — | Filters, segments, anything beside the search box |
+| `surface-bar` | — | Sits next to the display menu, above the table |
+| `empty` | — | Replaces the empty message |
+
+#### Emits
+
+| Event | Payload |
+|---|---|
+| `update:search` / `search` | `string` — debounced |
+| `update:sort` / `sortChange` | `string` |
+| `update:page` / `update:limit` | `number` |
+| `pageChange` | `{ page, limit, offset }` |
+| `update:selected` / `selectionChange` | `(string \| number)[]` / `{ keys, rows }` |
+| `rowClick` | `{ row, index, event }` |
+
+Exposed via `ref`: `clearSelection()`, `showAllColumns()`, `exportCsv()`, `selectedKeys`, `selectedRows`.
+
+The module also exports `hueFor(seed)`, `tone(hex)`, `autoTone(value)` and `TABLE_HUES`, so a custom
+`cell-{key}` slot can colour its own content out of the same palette the built-in cells use.
+
+#### Display state (`useTableDisplay`)
+
+```ts
+import { useTableDisplay } from '@/composables/useTableDisplay';
+
+const { view, density, setView, setDensity, reset } = useTableDisplay();
+```
+
+Module-level refs, persisted in `localStorage` and mirrored onto `<html>` as `data-view` and
+`data-density`, so your own CSS can react to the same switch. The default is stored as *absent*,
+so clearing a preference is one removal. `useHiddenColumns(tableId)` is the per-table half.
+
+#### Behaviour contracts
+
+These are not style preferences. Break one and the table quietly stops working.
+
+| Rule | Why |
+|---|---|
+| Every table needs a **unique, stable `id`** | It keys the persisted hidden-column list. Two tables sharing an id share their columns |
+| `refreshing` is `isFetching && !isLoading` | The first load shows skeletons; the sweep exists so stale rows stay readable rather than flashing away |
+| A column's `label` is user-visible **three times** | Header, display menu, and the field label in card mode. Give genuinely distinct columns distinct labels |
+| `total` is required in `serverSide` mode | The pager, the range and the count all read it. Without it they describe the current page instead of the result set |
+| `rowKey` must actually resolve | It is the selection identity. When it returns `undefined` the row falls back to its index, and a selection stops surviving a page change |
+| The last column is the pinned action rail | Pass `plainLastColumn` when your last column is real data, or it gets an opaque background and a seam shadow it does not want |
+| Selection persists across pages | That is the point — you can accumulate. Call `clearSelection()` after a bulk action lands |
+| Filter/search/sort changes reset to page 1 | Changing what you are looking at should not leave you on page 7 of a shorter list |
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Emit the search box's value directly | The input stays live but only the **debounced** value is emitted, so what a parent forwards to an API is never the half-typed string |
+| Let the selection checkbox toggle itself | The click handler `preventDefault()`s and owns the state outright. On a shift-range the DOM would otherwise drift out of step with the model |
+| Give the sweep to the scroll box as a `::before` | An absolutely positioned pseudo inside an `overflow: auto` box scrolls away with the content. It lives on an outer wrapper with its own clipping track |
+| Put `max-height` in CSS instead of an inline style | It is an inline style precisely so card view can drop it — a capped box would clip cards, which reflow to the page instead of scrolling |
+| Skip the `closest()` guard on row click | A click that landed on a button, a link or a checkbox is not a row click. The guard also bails when there is a text selection, so selecting text in a row does not navigate |
+| Swap the `defaultHidden` seed for a write on mount | Seeding by *writing* would mark a table as user-configured before the user configured anything, and its defaults could never change again |

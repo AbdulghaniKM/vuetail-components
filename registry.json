@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "components": [
+    "AdvancedAppTable",
     "AppBadge",
     "AppButton",
     "AppCheckbox",
@@ -56,10 +57,12 @@
     "useReducedMotion",
     "useSeo",
     "useSidebar",
+    "useTableDisplay",
     "useTheme",
     "useToast"
   ],
   "dependencies": {
+    "AdvancedAppTable": ["AppIcon", "AppButton", "AppCheckbox", "AppPopover", "useDebounce", "useTableDisplay"],
     "AppBadge": [],
     "AppButton": ["AppIcon", "AppSpinner", "AppTooltip"],
     "AppCheckbox": ["AppIcon"],
