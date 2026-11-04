@@ -40,7 +40,7 @@ export const presets = {
     light: {
       colors: {
         bg: '#EDEFF2', surface: '#F6F7F9', 'surface-raised': '#F9FAFB', muted: '#E3E6EB', overlay: 'rgb(12 16 20 / .42)',
-        border: '#D6DAE0', 'border-strong': '#A9AFBA',
+        border: '#D6DAE0', 'border-strong': '#848992',
         text: '#0E1014', 'text-muted': '#464B56', 'text-subtle': '#6A707C',
         accent: '#0E1014', 'accent-hover': '#2C3038', 'accent-fg': '#F6F7F9', 'accent-subtle': '#DFE4FA', 'accent-text': '#2440D2',
         ring: '#2440D2',
@@ -54,7 +54,7 @@ export const presets = {
     dark: {
       colors: {
         bg: '#0C0D10', surface: '#121418', 'surface-raised': '#16181D', muted: '#1A1D22', overlay: 'rgb(0 0 0 / .6)',
-        border: '#262A31', 'border-strong': '#434955',
+        border: '#262A31', 'border-strong': '#5D636D',
         text: '#F2F3F5', 'text-muted': '#A6ACB8', 'text-subtle': '#7A8190',
         accent: '#F2F3F5', 'accent-hover': '#D5D8DE', 'accent-fg': '#0C0D10', 'accent-subtle': '#1A2042', 'accent-text': '#8C9DFF',
         ring: '#8C9DFF',
@@ -78,7 +78,7 @@ export const presets = {
     light: {
       colors: {
         bg: '#F5F7F6', surface: '#FFFFFF', 'surface-raised': '#FFFFFF', muted: '#ECF0EE', overlay: 'rgb(12 20 16 / .42)',
-        border: '#DCE3E0', 'border-strong': '#C3CEC9',
+        border: '#DCE3E0', 'border-strong': '#86918C',
         text: '#14201C', 'text-muted': '#4E5D57', 'text-subtle': '#75837D',
         accent: '#1F6E5A', 'accent-hover': '#185A4A', 'accent-fg': '#FFFFFF', 'accent-subtle': '#E1F0EA', 'accent-text': '#1A6553',
         ring: '#2F8F75',
@@ -92,7 +92,7 @@ export const presets = {
     dark: {
       colors: {
         bg: '#0F1513', surface: '#151D1A', 'surface-raised': '#1A2420', muted: '#1D2723', overlay: 'rgb(0 0 0 / .6)',
-        border: '#26322D', 'border-strong': '#3A4842',
+        border: '#26322D', 'border-strong': '#5D6964',
         text: '#E8EFEC', 'text-muted': '#A3B2AC', 'text-subtle': '#7A8983',
         accent: '#4FBF98', 'accent-hover': '#6BD0AD', 'accent-fg': '#06140F', 'accent-subtle': '#17302A', 'accent-text': '#6FD3AE',
         ring: '#6FD3AE',
@@ -117,7 +117,7 @@ export const presets = {
     light: {
       colors: {
         bg: '#F4F5F8', surface: '#FFFFFF', 'surface-raised': '#FFFFFF', muted: '#ECEEF3', overlay: 'rgb(12 16 24 / .42)',
-        border: '#E0E3EA', 'border-strong': '#C3C9D5',
+        border: '#E0E3EA', 'border-strong': '#888D98',
         text: '#161A22', 'text-muted': '#4B5363', 'text-subtle': '#737C8D',
         accent: '#2A62E0', 'accent-hover': '#1F51C2', 'accent-fg': '#FFFFFF', 'accent-subtle': '#E6EDFD', 'accent-text': '#2456C9',
         ring: '#2A62E0',
@@ -131,7 +131,7 @@ export const presets = {
     dark: {
       colors: {
         bg: '#0F1218', surface: '#151922', 'surface-raised': '#1A1F29', muted: '#1D222D', overlay: 'rgb(0 0 0 / .6)',
-        border: '#262C38', 'border-strong': '#3A4253',
+        border: '#262C38', 'border-strong': '#5E6574',
         text: '#E6E9EF', 'text-muted': '#A0A8B8', 'text-subtle': '#778196',
         accent: '#5B8CFF', 'accent-hover': '#7AA2FF', 'accent-fg': '#08101F', 'accent-subtle': '#18233F', 'accent-text': '#86A8FF',
         ring: '#86A8FF',

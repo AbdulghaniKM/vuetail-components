@@ -8,7 +8,7 @@ colors:
   surface-raised: "#F9FAFB"
   muted: "#E3E6EB"
   border: "#D6DAE0"
-  border-strong: "#A9AFBA"
+  border-strong: "#848992"
   text: "#0E1014"
   text-muted: "#464B56"
   text-subtle: "#6A707C"
@@ -174,7 +174,7 @@ elevation reads without shadows.
 | `muted` | `#E3E6EB` | |
 | `overlay` | `rgb(12 16 20 / .42)` | |
 | `border` | `#D6DAE0` | |
-| `border-strong` | `#A9AFBA` | |
+| `border-strong` | `#848992` | 3.0:1 on `bg` and `surface` (WCAG 1.4.11) |
 | `text` | `#0E1014` | 16.5:1 on `bg` |
 | `text-muted` | `#464B56` | 7.6:1 on `bg`, 7.0:1 on `muted` |
 | `text-subtle` | `#6A707C` | 4.3:1 on `bg` |
@@ -193,14 +193,14 @@ elevation reads without shadows.
 | `muted` | `#1A1D22` | `accent` / `accent-hover` | `#F2F3F5` / `#D5D8DE` |
 | `overlay` | `rgb(0 0 0 / .6)` | `accent-fg` | `#0C0D10` |
 | `border` | `#262A31` | `accent-subtle` | `#1A2042` |
-| `border-strong` | `#434955` | `accent-text`, `ring` | `#8C9DFF` (7.8:1) |
+| `border-strong` | `#5D636D` | `accent-text`, `ring` | `#8C9DFF` (7.8:1) |
 
 ### Pine overrides
 
 | Token | Light | Dark |
 |---|---|---|
 | `bg` / `surface` / `surface-raised` / `muted` | `#F5F7F6` / `#FFFFFF` / `#FFFFFF` / `#ECF0EE` | `#0F1513` / `#151D1A` / `#1A2420` / `#1D2723` |
-| `border` / `border-strong` | `#DCE3E0` / `#C3CEC9` | `#26322D` / `#3A4842` |
+| `border` / `border-strong` | `#DCE3E0` / `#86918C` | `#26322D` / `#5D6964` |
 | `text` / `text-muted` / `text-subtle` | `#14201C` / `#4E5D57` / `#75837D` | `#E8EFEC` / `#A3B2AC` / `#7A8983` |
 | `accent` / `accent-hover` / `accent-fg` | `#1F6E5A` / `#185A4A` / `#FFFFFF` | `#4FBF98` / `#6BD0AD` / `#06140F` |
 | `accent-subtle` / `accent-text` / `ring` | `#E1F0EA` / `#1A6553` / `#2F8F75` | `#17302A` / `#6FD3AE` / `#6FD3AE` |
@@ -213,7 +213,7 @@ contrast is its character.
 | Token | Light | Dark |
 |---|---|---|
 | `bg` / `surface` / `surface-raised` / `muted` | `#F4F5F8` / `#FFFFFF` / `#FFFFFF` / `#ECEEF3` | `#0F1218` / `#151922` / `#1A1F29` / `#1D222D` |
-| `border` / `border-strong` | `#E0E3EA` / `#C3C9D5` | `#262C38` / `#3A4253` |
+| `border` / `border-strong` | `#E0E3EA` / `#888D98` | `#262C38` / `#5E6574` |
 | `text` / `text-muted` / `text-subtle` | `#161A22` / `#4B5363` / `#737C8D` | `#E6E9EF` / `#A0A8B8` / `#778196` |
 | `accent` / `accent-hover` / `accent-fg` | `#2A62E0` / `#1F51C2` / `#FFFFFF` | `#5B8CFF` / `#7AA2FF` / `#08101F` |
 | `accent-subtle` / `accent-text` / `ring` | `#E6EDFD` / `#2456C9` / `#2A62E0` | `#18233F` / `#86A8FF` / `#86A8FF` |

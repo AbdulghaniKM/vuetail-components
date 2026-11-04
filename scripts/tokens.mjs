@@ -133,11 +133,13 @@ const PAIRS = [
   ['accent-fg', 'accent', 4.5], ['accent-fg', 'accent-hover', 4.5],
   ['accent-text', 'bg', 4.5], ['accent-text', 'surface', 4.5], ['accent-text', 'accent-subtle', 4.5],
   ['ring', 'bg', 3], ['ring', 'surface', 3],
+  // WCAG 1.4.11: a control's edge needs 3:1 when it is what shows where the control is.
+  ['border-strong', 'bg', 3], ['border-strong', 'surface', 3],
   ['danger-fg', 'danger-hover', 4.5],
   ...STATUS.flatMap((s) => [[`${s}-fg`, s, 4.5], [`${s}-text`, 'bg', 4.5], [`${s}-text`, `${s}-subtle`, 4.5]]),
 ];
-// Advisory only: WCAG 1.4.11 asks 3:1 for a control's boundary when it is the only cue.
-const ADVISORY = [['border-strong', 'bg', 3], ['border-strong', 'surface', 3]];
+// Advisory pairs warn without failing. Empty for now; kept for pairs that are judgment calls.
+const ADVISORY = [];
 
 function resolved(preset, mode) {
   const ink = presets.ink;

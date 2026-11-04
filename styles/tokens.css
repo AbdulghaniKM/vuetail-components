@@ -16,7 +16,7 @@
   --color-muted: #E3E6EB;
   --color-overlay: rgb(12 16 20 / .42);
   --color-border: #D6DAE0;
-  --color-border-strong: #A9AFBA;
+  --color-border-strong: #848992;
   --color-text: #0E1014;
   --color-text-muted: #464B56;
   --color-text-subtle: #6A707C;
@@ -88,7 +88,7 @@
   --color-muted: #1A1D22;
   --color-overlay: rgb(0 0 0 / .6);
   --color-border: #262A31;
-  --color-border-strong: #434955;
+  --color-border-strong: #5D636D;
   --color-text: #F2F3F5;
   --color-text-muted: #A6ACB8;
   --color-text-subtle: #7A8190;
@@ -119,7 +119,7 @@
     --color-muted: #1A1D22;
     --color-overlay: rgb(0 0 0 / .6);
     --color-border: #262A31;
-    --color-border-strong: #434955;
+    --color-border-strong: #5D636D;
     --color-text: #F2F3F5;
     --color-text-muted: #A6ACB8;
     --color-text-subtle: #7A8190;
@@ -165,7 +165,7 @@
   --color-muted: #ECF0EE;
   --color-overlay: rgb(12 20 16 / .42);
   --color-border: #DCE3E0;
-  --color-border-strong: #C3CEC9;
+  --color-border-strong: #86918C;
   --color-text: #14201C;
   --color-text-muted: #4E5D57;
   --color-text-subtle: #75837D;
@@ -188,7 +188,7 @@
   --color-muted: #1D2723;
   --color-overlay: rgb(0 0 0 / .6);
   --color-border: #26322D;
-  --color-border-strong: #3A4842;
+  --color-border-strong: #5D6964;
   --color-text: #E8EFEC;
   --color-text-muted: #A3B2AC;
   --color-text-subtle: #7A8983;
@@ -211,7 +211,7 @@
     --color-muted: #1D2723;
     --color-overlay: rgb(0 0 0 / .6);
     --color-border: #26322D;
-    --color-border-strong: #3A4842;
+    --color-border-strong: #5D6964;
     --color-text: #E8EFEC;
     --color-text-muted: #A3B2AC;
     --color-text-subtle: #7A8983;
@@ -255,7 +255,7 @@
   --color-muted: #ECEEF3;
   --color-overlay: rgb(12 16 24 / .42);
   --color-border: #E0E3EA;
-  --color-border-strong: #C3C9D5;
+  --color-border-strong: #888D98;
   --color-text: #161A22;
   --color-text-muted: #4B5363;
   --color-text-subtle: #737C8D;
@@ -278,7 +278,7 @@
   --color-muted: #1D222D;
   --color-overlay: rgb(0 0 0 / .6);
   --color-border: #262C38;
-  --color-border-strong: #3A4253;
+  --color-border-strong: #5E6574;
   --color-text: #E6E9EF;
   --color-text-muted: #A0A8B8;
   --color-text-subtle: #778196;
@@ -301,7 +301,7 @@
     --color-muted: #1D222D;
     --color-overlay: rgb(0 0 0 / .6);
     --color-border: #262C38;
-    --color-border-strong: #3A4253;
+    --color-border-strong: #5E6574;
     --color-text: #E6E9EF;
     --color-text-muted: #A0A8B8;
     --color-text-subtle: #778196;
