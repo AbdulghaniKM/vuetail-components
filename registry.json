@@ -65,6 +65,7 @@
     "useTheme",
     "useToast"
   ],
+  "styles": ["tokens"],
   "dependencies": {
     "AdvancedAppTable": ["AppIcon", "AppButton", "AppCheckbox", "AppPopover", "useDebounce", "useTableDisplay"],
     "AppBadge": [],

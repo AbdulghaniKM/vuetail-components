@@ -60,7 +60,7 @@ spacing:
   control-sm: 32px
   control-md: 40px
   control-lg: 48px
-  control-px: 16px
+  control-pad: 16px
 components:
   button-primary:
     backgroundColor: "{colors.accent}"
@@ -125,7 +125,7 @@ A preset is a saved bundle of these. Each one can also be overridden on its own,
 | Accent | `accent`, `accent-hover`, `accent-fg`, `accent-subtle`, `accent-text`, `ring` | `#0E1014`, signal `#2440D2` | `#1F6E5A` | `#2A62E0` |
 | Neutral tint | `bg` through `text-subtle` | cool grey, hue 225 | green-grey, hue 160 | blue-slate, hue 220 |
 | Radius | `--radius-sm` through `--radius-2xl` | base 3px | base 8px | base 4px |
-| Density | `--vt-control-*`, `--vt-control-px`, `--vt-text-control` | 32 / 40 / 48px, 14px | 32 / 40 / 48px, 14px | 26 / 32 / 38px, 13px |
+| Density | `--spacing-control-*`, `--spacing-control-pad`, `--text-control` | 32 / 40 / 48px, 14px | 32 / 40 / 48px, 14px | 26 / 32 / 38px, 13px |
 | Font | `--font-sans`, `--font-display`, `--font-mono` | Schibsted Grotesk, Spline Sans Mono | Plus Jakarta Sans, JetBrains Mono | IBM Plex Sans, IBM Plex Mono |
 
 `accent-text` and `ring` stay separate from `accent` on purpose. Ink's accent is ink, which
@@ -251,7 +251,7 @@ sentence.
 
 ## Layout
 
-- 4px spacing unit. Control padding and gaps come from `--vt-control-*`, never from fixed
+- 4px spacing unit. Control heights and padding come from `h-control-*` and `px-control-pad`, never from fixed
   Tailwind sizes, so Console's density reaches every component.
 - Control heights: sm, md, lg = 32, 40, 48px (Console 26, 32, 38). Console is a desktop preset;
   its controls sit under the 44px touch minimum by design.
@@ -317,7 +317,7 @@ The five reference components. Each one's states are pinned in the look book.
   `text`); focus-visible draws a 2px `ring` outline at 2px offset; pressed applies the preset's
   press transform; disabled is 45% opacity with no hover and `cursor: not-allowed`; loading
   keeps the width, shows a spinner and sets `aria-busy`.
-- Sizes sm, md, lg follow `--vt-control-*`. Icon-only buttons are square and always carry an
+- Sizes sm, md, lg use `h-control-sm`, `h-control-md`, `h-control-lg`. Icon-only buttons are square and always carry an
   `aria-label`.
 
 ### Text field (`Fields/InputField`)
@@ -357,22 +357,51 @@ The five reference components. Each one's states are pinned in the look book.
 
 ## Tailwind CSS v4 wiring
 
-1. `tokens.css` becomes a registry item. It declares Ink in an `@theme` block, using the
-   `--color-*`, `--radius-*`, `--shadow-*` and `--font-*` namespaces, and the `--vt-*` tokens
-   that have no Tailwind namespace.
-2. Ink dark, the presets and the preset darks are plain CSS blocks that redefine the same
-   variables:
-   `[data-theme="dark"]`, `[data-vt-preset="pine"]`, `[data-vt-preset="pine"][data-theme="dark"]`,
-   and the same for console.
-3. Components use utilities (`bg-surface`, `text-text-muted`, `rounded-md`) and, where Tailwind
-   has no namespace, the variable shorthand (`h-(--vt-control-md)`, `px-(--vt-control-px)`).
-4. `theme.ts` brand presets (neutral, ocean, sunset, forest, mono) are replaced by `ink`,
-   `pine` and `console`. `useTheme` sets `data-vt-preset` and loads that preset's fonts on first
-   use.
+Source of truth: `styles/tokens.mjs`. `node scripts/tokens.mjs build` writes `styles/tokens.css`,
+the registry item (`"styles": ["tokens"]` in `registry.json`). Never edit the CSS by hand.
+`node scripts/tokens.mjs check` fails when the CSS is stale, when a preset sets a token Ink does
+not have, or when any of 29 foreground and background pairs drops below AA in any of the six
+combinations. `check --usage` lists every old token name, raw palette class and hex value left
+in `components/` and `composables/`; that list is the migration to-do.
 
-To verify in Phase 1: whether a named `--spacing-control-md` key yields `h-control-md`
-cleanly in Tailwind v4, and which Fontsource packages carry Schibsted Grotesk and Spline Sans
-Mono for self-hosting.
+How the CSS is built, and why (each point verified against Tailwind 4.2):
+
+1. Ink sits in `@theme static`. Plain `@theme` drops variables no utility uses, and presets plus
+   the runtime customizer need every variable to exist.
+2. Dark mode, Pine and Console are plain `:root[...]` blocks that redefine the same variables.
+   Each dark block appears twice: once for `data-theme="dark"`, once inside
+   `@media (prefers-color-scheme: dark)` for `:root:not([data-theme="light"])`, because system
+   mode removes the attribute.
+3. Colours, radii, spacing and font sizes reach utilities through `var()`, so every existing class
+   (`bg-surface`, `rounded-lg`, `bg-surface/80`) follows the preset with no rewrite.
+4. Shadow utilities copy the theme value into the class at build time, so `--shadow-*` point at
+   `--vt-shadow-1/2/3`, which the presets override. Mapping: `shadow`, `shadow-xs`, `shadow-sm` are
+   level 1; `shadow-md`, `shadow-lg` level 2; `shadow-xl`, `shadow-2xl` level 3.
+
+Utilities the tokens add:
+
+| Utility | Token | Ink |
+|---|---|---|
+| `h-control-sm`, `h-control-md`, `h-control-lg` | `--spacing-control-*` | 32, 40, 48px |
+| `px-control-pad` | `--spacing-control-pad` | 16px |
+| `text-control` | `--text-control` | 0.875rem |
+| `rounded-badge`, `rounded-switch` | `--radius-badge`, `--radius-switch` | 2px, 3px |
+| `font-display` | `--font-display` | Schibsted Grotesk |
+| `ease-standard`, `ease-exit` | `--ease-*` | see Motion |
+
+Motion values without a Tailwind namespace stay as `--vt-duration`, `--vt-duration-enter`,
+`--vt-duration-exit`, `--vt-press-y`, `--vt-press-scale` and `--vt-ease`, used as
+`duration-(--vt-duration)` or in `<style>` blocks.
+
+Fonts: every face is on Fontsource. Stacks name the variable family first, then the plain one,
+so self-hosting and Google Fonts both work. Ink ships `@fontsource-variable/schibsted-grotesk`
+and `@fontsource-variable/spline-sans-mono`; Pine adds `@fontsource-variable/plus-jakarta-sans`
+and `@fontsource-variable/jetbrains-mono`; Console adds `@fontsource-variable/ibm-plex-sans` and
+`@fontsource/ibm-plex-mono` (no variable build exists). `useTheme` loads a preset's faces on
+first use.
+
+`theme.ts` brand presets (neutral, ocean, sunset, forest, mono) are replaced by `ink`, `pine` and
+`console`; `useTheme` sets `data-vt-preset`.
 
 ## Migration from today's tokens
 
@@ -397,6 +426,7 @@ go away once the template and the docs both load `tokens.css`.
 
 - Do add a token here before any component uses it.
 - Do test every component in all six preset and theme combinations before it ships.
+- Do run `node scripts/tokens.mjs check` after touching `styles/tokens.mjs`.
 - Do keep focus visible on every interactive element.
 - Don't use plain white anywhere in Ink light. Surfaces step from `#EDEFF2` up to `#F9FAFB`.
 - Don't put the accent on text in Ink. Use `accent-text`.
