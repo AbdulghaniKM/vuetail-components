@@ -12,12 +12,11 @@
     <component :is="glass ? AppLiquidGlass : Passthrough" v-bind="glass ? glassBinding : {}">
       <button
         :type="type"
-        class="btn-base inline-flex cursor-pointer items-center justify-center font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50"
+        class="btn-base inline-flex cursor-pointer select-none items-center justify-center whitespace-nowrap rounded-md font-medium transition-[background-color,border-color,color,box-shadow,transform] duration-(--vt-duration) ease-standard focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:translate-y-(--vt-press-y) active:scale-(--vt-press-scale) disabled:pointer-events-none disabled:opacity-45"
         :class="[
           sizeClass,
           glass ? glassVariantClass : variantClass,
           gapClass,
-          roundedClass,
           fullWidth && 'w-full',
         ]"
         :disabled="disabled || loading"
@@ -113,17 +112,18 @@ const props = withDefaults(
 const sizeClass = computed(() => {
   if (props.iconOnly && !props.fullWidth) {
     return {
-      xs: "size-6 text-xs",
-      sm: "size-8 text-sm",
-      md: "size-10 text-sm",
-      lg: "size-12 text-base",
+      xs: "size-[calc(var(--spacing-control-sm)*0.8)] text-[0.75rem]",
+      sm: "size-control-sm text-[0.8125rem]",
+      md: "size-control-md text-control",
+      lg: "size-control-lg text-[0.9375rem]",
     }[props.size];
   }
+  // Heights and padding come from the density tokens, so the Console preset reaches every button.
   return {
-    xs: "h-7 px-2.5 text-xs",
-    sm: "h-8 px-3 text-sm",
-    md: "h-10 px-4 text-sm",
-    lg: "h-12 px-6 text-base",
+    xs: "h-[calc(var(--spacing-control-sm)*0.8)] px-2.5 text-[0.75rem]",
+    sm: "h-control-sm px-3 text-[0.8125rem]",
+    md: "h-control-md px-control-pad text-control",
+    lg: "h-control-lg px-6 text-[0.9375rem]",
   }[props.size];
 });
 
@@ -132,32 +132,20 @@ const gapClass = computed(() => {
   return { xs: "gap-1", sm: "gap-1.5", md: "gap-2", lg: "gap-2.5" }[props.size];
 });
 
-const roundedClass = computed(() => {
-  if (props.iconOnly) return "rounded-lg";
-  return {
-    xs: "rounded-md",
-    sm: "rounded-lg",
-    md: "rounded-lg",
-    lg: "rounded-xl",
-  }[props.size];
-});
-
 const variantClass = computed(
   () =>
     ({
-      primary:
-        "bg-primary text-white shadow-sm hover:bg-primary/90 hover:shadow-md",
-      accent:
-        "bg-accent text-white shadow-sm hover:bg-accent/90 hover:shadow-md",
-      secondary:
-        "bg-muted text-white shadow-sm hover:bg-muted/90 hover:shadow-md",
-      ghost: "text-text-muted hover:bg-muted hover:text-text",
-      muted: "bg-muted/50 text-text-muted hover:bg-muted hover:text-text",
-      danger: "bg-error/10 text-error hover:bg-error/20",
-      success: "bg-success/10 text-success hover:bg-success/20",
-      surface:
-        "bg-surface text-accent border border-border shadow-sm hover:bg-muted hover:shadow",
-      outline: "border border-border bg-transparent text-text hover:bg-muted",
+      // The five variants in DESIGN.md. `accent`, `muted`, `surface` and `success` stay as
+      // aliases so existing call sites keep working.
+      primary: "bg-accent text-accent-fg hover:bg-accent-hover",
+      accent: "bg-accent text-accent-fg hover:bg-accent-hover",
+      secondary: "bg-muted text-text hover:bg-[color-mix(in_srgb,var(--color-muted),var(--color-text)_8%)]",
+      outline: "border border-border-strong bg-surface text-text hover:bg-muted",
+      ghost: "text-text hover:bg-muted",
+      danger: "bg-danger text-danger-fg hover:bg-danger-hover",
+      muted: "bg-muted text-text-muted hover:text-text",
+      surface: "border border-border bg-surface text-text hover:bg-muted",
+      success: "bg-success text-success-fg hover:bg-[color-mix(in_srgb,var(--color-success),black_12%)]",
     })[props.variant],
 );
 
@@ -176,12 +164,12 @@ const glassVariantClass = computed(() => {
   if (!props.glassTone) return `${base} text-white${edge}`;
 
   const foreground = {
-    primary: "text-primary",
-    accent: "text-accent",
+    primary: "text-accent-text",
+    accent: "text-accent-text",
     secondary: "text-text",
     ghost: "text-text",
     muted: "text-text-muted",
-    danger: "text-error",
+    danger: "text-danger-text",
     success: "text-success",
     surface: "text-text",
     outline: "text-text",
@@ -192,11 +180,11 @@ const glassVariantClass = computed(() => {
 
 /** The colour the pane takes on, and how much of it ends up in the fill. */
 const GLASS_TONES: Record<NonNullable<typeof props.variant>, { tone: string; strength: number }> = {
-  primary: { tone: "var(--color-primary, #3b82f6)", strength: 22 },
-  accent: { tone: "var(--color-accent, #f59e0b)", strength: 22 },
-  secondary: { tone: "var(--color-secondary, #8b5cf6)", strength: 22 },
-  danger: { tone: "var(--color-error, #ef4444)", strength: 24 },
-  success: { tone: "var(--color-success, #10b981)", strength: 24 },
+  primary: { tone: "var(--color-accent-text)", strength: 22 },
+  accent: { tone: "var(--color-accent-text)", strength: 22 },
+  secondary: { tone: "var(--color-text-muted)", strength: 22 },
+  danger: { tone: "var(--color-danger)", strength: 24 },
+  success: { tone: "var(--color-success)", strength: 24 },
   // The quiet variants stay quiet: plain glass, at the strength each already implied.
   ghost: { tone: "#ffffff", strength: 8 },
   muted: { tone: "#ffffff", strength: 14 },

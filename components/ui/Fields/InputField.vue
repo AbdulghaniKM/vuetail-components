@@ -1,6 +1,6 @@
 <template>
  <div class="flex flex-col gap-1.5 w-full">
- <label v-if="label" :for="fieldId" class="text-sm font-medium text-text">
+ <label v-if="label" :for="fieldId" class="text-control font-medium text-text">
  {{ label }}
  </label>
  <div class="relative w-full">
@@ -14,8 +14,8 @@
  :aria-invalid="error ? 'true' : undefined"
  :aria-describedby="error ? errorId : undefined"
  @input="handleInput"
- class="w-full rounded-lg border border-border bg-surface py-2.5 text-text placeholder:text-text/50 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
- :class="[customClass, type === 'password' ? 'ps-4 pe-10' : 'px-4', { 'border-error focus:border-error focus:ring-error/20': error }]"
+ class="h-control-md w-full rounded-md border border-border-strong bg-surface text-control text-text placeholder:text-text-subtle transition-[border-color,box-shadow] duration-(--vt-duration) hover:border-[color-mix(in_srgb,var(--color-border-strong),var(--color-text)_25%)] focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-60"
+ :class="[customClass, type === 'password' ? 'ps-3 pe-10' : 'px-3', { 'border-danger-text focus:border-danger-text focus:ring-danger-text/25': error }]"
  />
  <button
  v-if="type === 'password'"
@@ -37,7 +37,7 @@
  :id="errorId"
  role="alert"
  aria-live="polite"
- class="block min-h-[1.25rem] text-sm text-error"
+ class="block min-h-[1.25rem] text-[0.8125rem] text-danger-text"
  :class="{ invisible: !error }"
  >{{ error }}</span>
  </div>

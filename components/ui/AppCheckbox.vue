@@ -1,7 +1,7 @@
 <template>
   <label
-    class="inline-flex cursor-pointer items-center gap-2"
-    :class="disabled ? 'cursor-not-allowed opacity-50' : ''"
+    class="inline-flex cursor-pointer items-center gap-2.5"
+    :class="disabled ? 'cursor-not-allowed opacity-45' : ''"
   >
     <span class="relative flex shrink-0 items-center justify-center">
       <input
@@ -9,22 +9,22 @@
         type="checkbox"
         :checked="modelValue"
         :disabled="disabled"
-        class="peer size-4 cursor-pointer appearance-none rounded border border-border bg-surface transition-colors checked:border-accent checked:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-1 disabled:cursor-not-allowed"
+        class="peer size-[1.125rem] cursor-pointer appearance-none rounded-sm border border-border-strong bg-surface transition-colors duration-(--vt-duration) checked:border-accent checked:bg-accent indeterminate:border-accent indeterminate:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed"
         v-bind="$attrs"
         @change="emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
       />
       <span
         v-if="indeterminate"
-        class="pointer-events-none absolute h-0.5 w-2.5 rounded-full bg-white"
+        class="pointer-events-none absolute h-0.5 w-2.5 rounded-full bg-accent-fg"
       />
       <AppIcon
         v-else-if="modelValue"
         name="icon-[heroicons-outline--check]"
-        :size="0.625"
-        class="pointer-events-none absolute text-white"
+        :size="0.75"
+        class="pointer-events-none absolute text-accent-fg"
       />
     </span>
-    <span v-if="label" class="select-none text-sm text-text">{{ label }}</span>
+    <span v-if="label" class="select-none text-control text-text">{{ label }}</span>
     <slot />
   </label>
 </template>
