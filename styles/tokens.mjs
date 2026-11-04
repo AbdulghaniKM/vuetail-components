@@ -148,5 +148,6 @@ export const presets = {
 /** Motion curves. Not preset-specific. */
 export const easing = {
   standard: 'cubic-bezier(.2, 0, 0, 1)',
-  exit: 'cubic-bezier(.4, 0, 1, 1)',
+  // Exits use the same ease-out curve as entrances, only shorter (--vt-duration-exit).
+  exit: 'cubic-bezier(.2, 0, 0, 1)',
 };

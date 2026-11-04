@@ -4,7 +4,7 @@
  <div class="flex flex-col items-center">
  <button
  type="button"
- class="flex size-8 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-accent/10 hover:text-accent"
+ class="flex size-8 items-center justify-center rounded-lg text-text-muted transition-colors duration-(--vt-duration) ease-standard hover:bg-accent/10 hover:text-accent"
  aria-label="Increase hour"
  @click="adjustHour(1)"
  >
@@ -17,7 +17,7 @@
  inputmode="numeric"
  maxlength="2"
  aria-label="Hour"
- class="w-11 rounded-md border border-border-strong bg-surface py-2 text-center text-sm font-bold text-text tabular-nums transition-all focus:border-ring focus:ring-3 focus:ring-ring/25 focus:outline-none"
+ class="w-11 rounded-md border border-border-strong bg-surface py-2 text-center text-sm font-bold text-text tabular-nums transition-[border-color,box-shadow] duration-(--vt-duration) ease-standard focus:border-ring focus:ring-3 focus:ring-ring/25 focus:outline-none"
  @focus="onInputFocus"
  @blur="commitHours"
  @keydown.enter="($event.target as HTMLInputElement).blur()"
@@ -26,7 +26,7 @@
  />
  <button
  type="button"
- class="flex size-8 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-accent/10 hover:text-accent"
+ class="flex size-8 items-center justify-center rounded-lg text-text-muted transition-colors duration-(--vt-duration) ease-standard hover:bg-accent/10 hover:text-accent"
  aria-label="Decrease hour"
  @click="adjustHour(-1)"
  >
@@ -40,7 +40,7 @@
  <div class="flex flex-col items-center">
  <button
  type="button"
- class="flex size-8 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-accent/10 hover:text-accent"
+ class="flex size-8 items-center justify-center rounded-lg text-text-muted transition-colors duration-(--vt-duration) ease-standard hover:bg-accent/10 hover:text-accent"
  aria-label="Increase minute"
  @click="adjustMinute(1)"
  >
@@ -53,7 +53,7 @@
  inputmode="numeric"
  maxlength="2"
  aria-label="Minute"
- class="w-11 rounded-md border border-border-strong bg-surface py-2 text-center text-sm font-bold text-text tabular-nums transition-all focus:border-ring focus:ring-3 focus:ring-ring/25 focus:outline-none"
+ class="w-11 rounded-md border border-border-strong bg-surface py-2 text-center text-sm font-bold text-text tabular-nums transition-[border-color,box-shadow] duration-(--vt-duration) ease-standard focus:border-ring focus:ring-3 focus:ring-ring/25 focus:outline-none"
  @focus="onInputFocus"
  @blur="commitMinutes"
  @keydown.enter="($event.target as HTMLInputElement).blur()"
@@ -62,7 +62,7 @@
  />
  <button
  type="button"
- class="flex size-8 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-accent/10 hover:text-accent"
+ class="flex size-8 items-center justify-center rounded-lg text-text-muted transition-colors duration-(--vt-duration) ease-standard hover:bg-accent/10 hover:text-accent"
  aria-label="Decrease minute"
  @click="adjustMinute(-1)"
  >
@@ -74,7 +74,7 @@
  <div class="ms-3 flex flex-col gap-1.5">
  <button
  type="button"
- class="rounded-xl px-3 py-1.5 text-xs font-bold tracking-tight transition-all"
+ class="rounded-xl px-3 py-1.5 text-xs font-bold tracking-tight transition-colors duration-(--vt-duration) ease-standard"
  :class="!isPM ? 'bg-accent text-accent-fg' : 'bg-muted text-text-muted hover:bg-muted/80 hover:text-text'"
  @click="setPeriod(false)"
  >
@@ -82,7 +82,7 @@
  </button>
  <button
  type="button"
- class="rounded-xl px-3 py-1.5 text-xs font-bold tracking-tight transition-all"
+ class="rounded-xl px-3 py-1.5 text-xs font-bold tracking-tight transition-colors duration-(--vt-duration) ease-standard"
  :class="isPM ? 'bg-accent text-accent-fg' : 'bg-muted text-text-muted hover:bg-muted/80 hover:text-text'"
  @click="setPeriod(true)"
  >

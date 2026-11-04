@@ -17,7 +17,7 @@
           :initial="motionConfig.initial"
           :animate="motionConfig.animate"
           :exit="motionConfig.exit"
-          :transition="{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }"
+          :transition="enter()"
           @mouseenter="emit('pause', toast.id)"
           @mouseleave="emit('resume', toast.id)"
           @focusin="emit('pause', toast.id)"
@@ -62,6 +62,8 @@
   import { AnimatePresence, motion } from 'motion-v';
   import type { Toast } from '@/composables/useToast';
   import AppIcon from './AppIcon.vue';
+  import { useMotionTokens } from '@/composables/useMotionTokens';
+  import { useReducedMotion } from '@/composables/useReducedMotion';
 
   export interface AppToastProps {
     toasts: Toast[];
@@ -80,6 +82,9 @@
   
   const removeToast = (id: string) => emit('remove', id);
 
+  const { enter, exit } = useMotionTokens();
+  const reduced = useReducedMotion();
+
   const positionClass = computed(() => {
     switch (props.position) {
       case 'top-left': return 'inset-x-0 top-0 items-start sm:inset-x-auto sm:start-4 sm:top-4';
@@ -91,11 +96,20 @@
 
   const motionConfig = computed(() => {
     const isTop = props.position.startsWith('top');
+    // Reduced motion keeps the fade (it aids comprehension) and drops the slide/scale.
+    if (reduced.value) {
+      return {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0, transition: exit() },
+      };
+    }
     const yOffset = isTop ? -12 : 12;
+    const exitOffset = isTop ? -8 : 8;
     return {
       initial: { opacity: 0, y: yOffset, scale: 0.95 },
       animate: { opacity: 1, y: 0, scale: 1 },
-      exit: { opacity: 0, y: isTop ? -8 : 8, scale: 0.95 }
+      exit: { opacity: 0, y: exitOffset, scale: 0.95, transition: exit() }
     };
   });
 

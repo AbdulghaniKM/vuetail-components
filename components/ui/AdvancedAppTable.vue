@@ -349,9 +349,9 @@
     <!-- Bulk bar: stacks above the docked pager rather than over it -->
     <Transition
       enter-active-class="at-bulkbar-in"
-      leave-active-class="transition duration-150 ease-in"
+      leave-active-class="transition duration-(--vt-duration-exit) ease-exit"
       leave-from-class="opacity-100"
-      leave-to-class="translate-y-2 opacity-0"
+      leave-to-class="translate-y-2 opacity-0 motion-reduce:translate-y-0"
     >
       <div v-if="selectable && selectedCount > 0" class="at-bulkbar" :class="{ 'is-above-pager': pagerIsDocked }">
         <span class="at-bulkbar-count">{{ selectedCount }} {{ selectedLabel }}</span>

@@ -41,7 +41,7 @@
  @click="toggleDropdown"
  >
  <svg
- class="size-3.5 text-text/40 transition-transform duration-200"
+ class="size-3.5 text-text/40 transition-transform duration-(--vt-duration)"
  :class="{ 'rotate-180': isOpen }"
  viewBox="0 0 20 20"
  fill="currentColor"
@@ -53,12 +53,12 @@
 
  <Teleport to="body">
  <Transition
- enter-active-class="transition duration-150 ease-out"
- enter-from-class="opacity-0 scale-95"
+ enter-active-class="transition duration-(--vt-duration-enter) ease-standard"
+ enter-from-class="opacity-0 scale-95 motion-reduce:scale-100"
  enter-to-class="opacity-100 scale-100"
- leave-active-class="transition duration-100 ease-in"
+ leave-active-class="transition duration-(--vt-duration-exit) ease-exit"
  leave-from-class="opacity-100 scale-100"
- leave-to-class="opacity-0 scale-95"
+ leave-to-class="opacity-0 scale-95 motion-reduce:scale-100"
  >
  <div
  v-if="isOpen"

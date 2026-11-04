@@ -9,12 +9,12 @@
  >
  <slot />
  <Transition
- enter-active-class="transition duration-150 ease-out"
- enter-from-class="opacity-0 scale-95"
+ enter-active-class="transition duration-(--vt-duration-enter) ease-standard"
+ enter-from-class="opacity-0 scale-95 motion-reduce:scale-100"
  enter-to-class="opacity-100 scale-100"
- leave-active-class="transition duration-100 ease-in"
+ leave-active-class="transition duration-(--vt-duration-exit) ease-exit"
  leave-from-class="opacity-100 scale-100"
- leave-to-class="opacity-0 scale-95"
+ leave-to-class="opacity-0 scale-95 motion-reduce:scale-100"
  >
  <span
  v-if="content && show"
@@ -79,10 +79,10 @@ const arrowClass = computed(() =>
 )
 
 const placementClass = computed(() => ({
- top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
- bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
- start: 'end-full top-1/2 -translate-y-1/2 me-2',
- end: 'start-full top-1/2 -translate-y-1/2 ms-2',
+ top: 'bottom-full left-1/2 -translate-x-1/2 mb-2 origin-bottom',
+ bottom: 'top-full left-1/2 -translate-x-1/2 mt-2 origin-top',
+ start: 'end-full top-1/2 -translate-y-1/2 me-2 origin-right rtl:origin-left',
+ end: 'start-full top-1/2 -translate-y-1/2 ms-2 origin-left rtl:origin-right',
 })[props.placement])
 
 const arrowPositionClass = computed(() => ({

@@ -76,6 +76,8 @@ export function buildCss() {
       ...Object.entries(easing).map(([k, v]) => decl(`--vt-ease${k === 'standard' ? '' : `-${k}`}`, v)),
     ]),
     '',
+    `@media (prefers-reduced-motion: reduce) {\n${indent(block(':root', [decl('--vt-press-y', '0px'), decl('--vt-press-scale', '1')]))}\n}`,
+    '',
     ...darkBlocks(':root', [...colorLines({ ...ink.dark.colors, ...status.dark }), ...shadowLines(ink.dark.shadows)]),
   ];
 

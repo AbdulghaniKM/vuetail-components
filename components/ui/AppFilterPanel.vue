@@ -33,7 +33,7 @@
           </button>
           <button
             type="button"
-            class="inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-all duration-150 active:scale-95"
+            class="inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-[background-color,border-color,color,transform] duration-(--vt-duration) active:scale-95"
             :class="open ? 'border-accent/40 bg-accent/10 text-accent' : 'border-border bg-surface text-text hover:bg-muted'"
             :aria-expanded="open"
             @click="open = !open"
@@ -42,7 +42,7 @@
             <AppIcon
               name="icon-[heroicons-outline--chevron-down]"
               :size="0.875"
-              class="shrink-0 transition-transform duration-200"
+              class="shrink-0 transition-transform duration-(--vt-duration)"
               :class="open ? 'rotate-180' : ''"
             />
           </button>
@@ -73,12 +73,12 @@
 
       <!-- Collapsible fields -->
       <Transition
-        enter-active-class="transition-all duration-200 ease-out"
-        enter-from-class="opacity-0 -translate-y-1"
+        enter-active-class="transition-[opacity,transform] duration-(--vt-duration-enter) ease-standard"
+        enter-from-class="opacity-0 -translate-y-1 motion-reduce:translate-y-0"
         enter-to-class="opacity-100 translate-y-0"
-        leave-active-class="transition-all duration-150 ease-in"
+        leave-active-class="transition-[opacity,transform] duration-(--vt-duration-exit) ease-exit"
         leave-from-class="opacity-100 translate-y-0"
-        leave-to-class="opacity-0 -translate-y-1"
+        leave-to-class="opacity-0 -translate-y-1 motion-reduce:translate-y-0"
       >
         <div
           v-if="open"
@@ -181,7 +181,7 @@
                 <template #trigger="{ toggle, isOpen }">
                   <button
                     type="button"
-                    class="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-start text-sm transition-all focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
+                    class="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-start text-sm transition-[border-color,box-shadow] duration-(--vt-duration) ease-standard focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
                     @click="toggle"
                   >
                     <span class="truncate" :class="multiSelectSummary(field) ? 'text-text' : 'text-text/50'">
@@ -190,7 +190,7 @@
                     <AppIcon
                       name="icon-[heroicons-outline--chevron-down]"
                       :size="1.125"
-                      class="shrink-0 text-text-muted transition-transform duration-200"
+                      class="shrink-0 text-text-muted transition-transform duration-(--vt-duration)"
                       :class="isOpen ? 'rotate-180' : ''"
                     />
                   </button>
@@ -223,7 +223,7 @@
                 <template #trigger="{ toggle, isOpen }">
                   <button
                     type="button"
-                    class="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-start text-sm transition-all focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
+                    class="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-start text-sm transition-[border-color,box-shadow] duration-(--vt-duration) ease-standard focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
                     @click="toggle"
                   >
                     <span class="truncate" :class="dateRangeSummary(field.key) ? 'text-text' : 'text-text/50'">

@@ -9,7 +9,7 @@
  :initial="{ opacity: 0 }"
  :animate="{ opacity: 1 }"
  :exit="{ opacity: 0 }"
- :transition="{ duration: 0.2 }"
+ :transition="enterTransition"
  >
  <!-- Backdrop -->
  <motion.div
@@ -33,16 +33,16 @@
  maxWidthClass,
  fullscreen ? 'h-full max-h-full !rounded-none !border-0' : 'max-h-[85vh]',
  ]"
- :initial="{ opacity: 0, scale: 0.96, y: 12 }"
- :animate="{ opacity: 1, scale: 1, y: 0 }"
- :exit="{ opacity: 0, scale: 0.97, y: 6 }"
- :transition="{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }"
+ :initial="panelInitial"
+ :animate="panelAnimate"
+ :exit="panelExit"
+ :transition="enterTransition"
  >
  <!-- Loading overlay -->
  <Transition
- enter-active-class="transition-opacity duration-200"
+ enter-active-class="transition-opacity duration-(--vt-duration-enter) ease-standard"
  enter-from-class="opacity-0"
- leave-active-class="transition-opacity duration-150"
+ leave-active-class="transition-opacity duration-(--vt-duration-exit) ease-exit"
  leave-from-class="opacity-100"
  leave-to-class="opacity-0"
  >
@@ -80,7 +80,7 @@
  <button
  v-if="!hideClose"
  type="button"
- class="text-text-muted hover:bg-muted hover:text-text focus-visible:ring-ring/25 -me-1 -mt-1 flex size-8 shrink-0 items-center justify-center rounded-lg transition-all focus-visible:ring-2 focus-visible:outline-none"
+ class="text-text-muted hover:bg-muted hover:text-text focus-visible:ring-ring/25 -me-1 -mt-1 flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors duration-(--vt-duration) ease-standard focus-visible:ring-2 focus-visible:outline-none"
  @click="handleClose"
  :aria-label="closeLabel"
  >
@@ -112,6 +112,8 @@ import { motion, AnimatePresence } from 'motion-v'
 import AppIcon from './AppIcon.vue'
 import AppSpinner from './AppSpinner.vue'
 import { useKeyboard } from '@/composables/useKeyboard'
+import { useMotionTokens } from '@/composables/useMotionTokens'
+import { useReducedMotion } from '@/composables/useReducedMotion'
 
 // Per-instance IDs for aria-labelledby / aria-describedby. Avoids collision
 // when two modals render on the same page.
@@ -154,6 +156,28 @@ const props = withDefaults(
 
 const emit = defineEmits<{ close: []; confirm: [] }>()
 const panelRef = ref<HTMLElement | null>(null)
+
+const { enter, exit } = useMotionTokens()
+
+// Read the tokens once per open: a fresh object on every render makes motion-v re-apply
+// the initial state for a frame when the enter animation completes. Reading on open still
+// picks up a preset switched while the modal was closed.
+const enterTransition = computed(() => (props.isOpen, enter()))
+const exitTransition = computed(() => (props.isOpen, exit()))
+const reduced = useReducedMotion()
+
+// Reduced motion keeps the fade (it aids comprehension) and drops the rise/scale.
+const panelInitial = computed(() =>
+ reduced.value ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.96 },
+)
+const panelAnimate = computed(() =>
+ reduced.value ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 },
+)
+const panelExit = computed(() =>
+ reduced.value
+ ? { opacity: 0, transition: exitTransition.value }
+ : { opacity: 0, y: 6, scale: 0.97, transition: exitTransition.value },
+)
 
 function handleClose() {
  if (props.loading) return

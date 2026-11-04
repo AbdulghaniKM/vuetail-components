@@ -18,12 +18,9 @@
     </div>
 
     <!-- Toolbar -->
-    <motion.div
+    <div
       v-if="searchable || exportable || $slots['toolbar-end']"
       class="mb-3 flex w-full min-w-0 flex-wrap items-center gap-2"
-      :initial="{ opacity: 0, y: -6 }"
-      :animate="{ opacity: 1, y: 0 }"
-      :transition="{ type: 'spring', stiffness: 420, damping: 32 }"
     >
       <div v-if="searchable" class="relative min-w-0 flex-1 sm:max-w-sm">
         <AppIcon
@@ -36,7 +33,7 @@
           v-model="searchQuery"
           type="text"
           :placeholder="searchPlaceholder"
-          class="border-border bg-surface text-text placeholder:text-text-muted/60 w-full rounded-xl border py-2 pe-9 ps-9 text-sm transition-all focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
+          class="border-border bg-surface text-text placeholder:text-text-muted/60 w-full rounded-xl border py-2 pe-9 ps-9 text-sm transition-[border-color,box-shadow] duration-(--vt-duration) ease-standard focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
         />
         <button
           v-if="searchQuery"
@@ -63,16 +60,16 @@
           @click="exportToExcel"
         />
       </div>
-    </motion.div>
+    </div>
 
     <!-- Bulk action bar -->
     <Transition
-      enter-active-class="transition duration-200 ease-out"
-      enter-from-class="opacity-0 -translate-y-1"
+      enter-active-class="transition duration-(--vt-duration-enter) ease-standard"
+      enter-from-class="opacity-0 -translate-y-1 motion-reduce:translate-y-0"
       enter-to-class="opacity-100 translate-y-0"
-      leave-active-class="transition duration-150 ease-in"
+      leave-active-class="transition duration-(--vt-duration-exit) ease-exit"
       leave-from-class="opacity-100 translate-y-0"
-      leave-to-class="opacity-0 -translate-y-1"
+      leave-to-class="opacity-0 -translate-y-1 motion-reduce:translate-y-0"
     >
       <div
         v-if="selectable && selectedSet.size > 0"
@@ -151,7 +148,7 @@
 
     <!-- Table -->
     <div
-      class="overflow-hidden rounded-xl transition-all duration-300"
+      class="overflow-hidden rounded-xl transition-shadow duration-(--vt-duration)"
       :class="
         outlined
           ? 'border-border/60 border bg-surface/80 backdrop-blur-xl shadow-sm hover:shadow-md'
@@ -200,7 +197,7 @@
                   <button
                     v-if="isColumnSortable(column)"
                     type="button"
-                    class="group flex items-center gap-1 transition-all duration-300 ease-out"
+                    class="group flex items-center gap-1 transition-[color,transform] duration-(--vt-duration) ease-out"
                     :class="
                       sortKey === column.key
                         ? 'text-accent'
@@ -210,7 +207,7 @@
                   >
                     <span>{{ column.label }}</span>
                     <span
-                      class="flex size-5 items-center justify-center rounded transition-all duration-300 ease-out"
+                      class="flex size-5 items-center justify-center rounded transition-[background-color,opacity,transform] duration-(--vt-duration) ease-out"
                       :class="
                         sortKey === column.key
                           ? 'bg-accent/10 opacity-100 scale-100'
@@ -263,9 +260,9 @@
               <td :colspan="effectiveColumns.length" class="py-16 text-center">
                 <motion.div
                   class="flex flex-col items-center gap-3"
-                  :initial="{ opacity: 0, scale: 0.94, y: 8 }"
-                  :animate="{ opacity: 1, scale: 1, y: 0 }"
-                  :transition="{ type: 'spring', stiffness: 380, damping: 26 }"
+                  :initial="{ opacity: 0, y: 8, scale: 0.97 }"
+                  :animate="{ opacity: 1, y: 0, scale: 1 }"
+                  :transition="motionEnter()"
                 >
                   <div class="bg-muted flex size-14 items-center justify-center rounded-xl">
                     <AppIcon
@@ -306,7 +303,7 @@
               v-for="(row, index) in displayData"
               v-else
               :key="getRowKey(row, index)"
-              class="table-row-data border-border/40 border-b transition-all duration-300 ease-out last:border-b-0 hover:bg-accent/[0.04] hover:shadow-[inset_2px_0_0_0_var(--color-accent)]"
+              class="table-row-data border-border/40 border-b transition-[background-color,box-shadow] duration-(--vt-duration) ease-out last:border-b-0 hover:bg-accent/[0.04] hover:shadow-[inset_2px_0_0_0_var(--color-accent)]"
               :class="selectable && isRowSelected(row, index) ? 'bg-accent/[0.03]' : ''"
             >
               <td
@@ -499,12 +496,9 @@
     </div>
 
     <!-- Footer -->
-    <motion.div
+    <div
       v-if="showPagination || showColumnToggle"
       class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-      :initial="{ opacity: 0, y: 6 }"
-      :animate="{ opacity: 1, y: 0 }"
-      :transition="{ type: 'spring', stiffness: 420, damping: 32 }"
     >
       <div class="flex flex-wrap items-center gap-2">
         <span v-if="showPagination" class="text-text-muted text-sm tabular-nums">
@@ -514,19 +508,19 @@
         <div v-if="serverPaginated && pageSizeOptions.length > 0" ref="pageSizeRef" class="relative">
           <button
             type="button"
-            class="border-border bg-surface text-text hover:bg-muted hover:shadow-sm flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all duration-300 ease-out active:scale-95"
+            class="border-border bg-surface text-text hover:bg-muted hover:shadow-sm flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-[background-color,box-shadow,transform] duration-(--vt-duration) ease-out active:scale-95"
             @click="showPageSizeMenu = !showPageSizeMenu"
           >
             {{ pageSize }} / page
             <AppIcon name="icon-[heroicons--chevron-up-down]" :size="0.75" class="text-text-muted" />
           </button>
           <Transition
-            enter-active-class="transition duration-100 ease-out"
-            enter-from-class="opacity-0 scale-95"
+            enter-active-class="transition duration-(--vt-duration-enter) ease-standard"
+            enter-from-class="opacity-0 scale-95 motion-reduce:scale-100"
             enter-to-class="opacity-100 scale-100"
-            leave-active-class="transition duration-75 ease-in"
+            leave-active-class="transition duration-(--vt-duration-exit) ease-exit"
             leave-from-class="opacity-100 scale-100"
-            leave-to-class="opacity-0 scale-95"
+            leave-to-class="opacity-0 scale-95 motion-reduce:scale-100"
           >
             <div
               v-if="showPageSizeMenu"
@@ -553,7 +547,7 @@
         <div v-if="showColumnToggle" ref="columnToggleRef" class="relative">
           <button
             type="button"
-            class="border-border bg-surface text-text-muted hover:text-text hover:bg-muted hover:shadow-sm flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all duration-300 ease-out active:scale-95"
+            class="border-border bg-surface text-text-muted hover:text-text hover:bg-muted hover:shadow-sm flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-[color,background-color,box-shadow,transform] duration-(--vt-duration) ease-out active:scale-95"
             aria-haspopup="true"
             :aria-expanded="showColumnMenu"
             @click="showColumnMenu = !showColumnMenu"
@@ -562,12 +556,12 @@
             <span class="text-text-muted">{{ visibleToggleableCount }}/{{ toggleableColumns.length }}</span>
           </button>
           <Transition
-            enter-active-class="transition duration-150 ease-out"
-            enter-from-class="opacity-0 scale-95 translate-y-1"
+            enter-active-class="transition duration-(--vt-duration-enter) ease-standard"
+            enter-from-class="opacity-0 scale-95 translate-y-1 motion-reduce:scale-100 motion-reduce:translate-y-0"
             enter-to-class="opacity-100 scale-100 translate-y-0"
-            leave-active-class="transition duration-100 ease-in"
+            leave-active-class="transition duration-(--vt-duration-exit) ease-exit"
             leave-from-class="opacity-100 scale-100 translate-y-0"
-            leave-to-class="opacity-0 scale-95 translate-y-1"
+            leave-to-class="opacity-0 scale-95 translate-y-1 motion-reduce:scale-100 motion-reduce:translate-y-0"
           >
             <div
               v-if="showColumnMenu"
@@ -576,12 +570,12 @@
               <div class="flex items-center justify-between px-3 py-2">
                 <p class="text-text-muted text-xs font-semibold">Columns</p>
                 <Transition
-                  enter-active-class="transition duration-200 ease-out"
-                  enter-from-class="opacity-0 scale-90"
+                  enter-active-class="transition duration-(--vt-duration-enter) ease-standard"
+                  enter-from-class="opacity-0 scale-90 motion-reduce:scale-100"
                   enter-to-class="opacity-100 scale-100"
-                  leave-active-class="transition duration-150 ease-in"
+                  leave-active-class="transition duration-(--vt-duration-exit) ease-exit"
                   leave-from-class="opacity-100 scale-100"
-                  leave-to-class="opacity-0 scale-90"
+                  leave-to-class="opacity-0 scale-90 motion-reduce:scale-100"
                 >
                   <span
                     v-if="columnSavedHint"
@@ -612,11 +606,11 @@
                 >
                   <span>{{ col.label }}</span>
                   <span
-                    class="flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors duration-200"
+                    class="flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors duration-(--vt-duration)"
                     :class="visibleColumnsSet.has(col.key) ? 'bg-accent' : 'bg-border'"
                   >
                     <span
-                      class="size-4 rounded-full bg-white shadow-sm transition-transform duration-200"
+                      class="size-4 rounded-full bg-white shadow-sm transition-transform duration-(--vt-duration)"
                       :class="visibleColumnsSet.has(col.key) ? 'translate-x-4' : 'translate-x-0'"
                     />
                   </span>
@@ -673,7 +667,7 @@
           @click="goToNext"
         />
       </div>
-    </motion.div>
+    </div>
 
     <!-- Truncate expand modal -->
     <AppModal
@@ -698,6 +692,9 @@ import { usePagination } from '@/composables/usePagination';
 import { useDebounce } from '@/composables/useDebounce';
 import { useLocalStorage } from '@/composables/useLocalStorage';
 import { useConfirm } from '@/composables/useConfirm';
+import { useMotionTokens } from '@/composables/useMotionTokens';
+
+const { enter: motionEnter } = useMotionTokens();
 
 import AppButton from './AppButton.vue';
 import AppIcon from './AppIcon.vue';

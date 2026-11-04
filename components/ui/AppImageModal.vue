@@ -1,10 +1,10 @@
 <template>
  <Teleport to="body">
  <Transition
- enter-active-class="transition-opacity duration-300"
+ enter-active-class="transition-opacity duration-[calc(var(--vt-duration-enter)*1.5)] ease-standard"
  enter-from-class="opacity-0"
  enter-to-class="opacity-100"
- leave-active-class="transition-opacity duration-300"
+ leave-active-class="transition-opacity duration-[calc(var(--vt-duration-enter)*1.5)] ease-exit"
  leave-from-class="opacity-100"
  leave-to-class="opacity-0"
  >
@@ -58,12 +58,12 @@
 
  <!-- Image Container -->
  <Transition
- enter-active-class="transition-all duration-300"
- enter-from-class="opacity-0 scale-95"
+ enter-active-class="transition-[opacity,transform] duration-(--vt-duration-enter) ease-standard"
+ enter-from-class="opacity-0 scale-95 motion-reduce:scale-100"
  enter-to-class="opacity-100 scale-100"
- leave-active-class="transition-all duration-300"
+ leave-active-class="transition-[opacity,transform] duration-(--vt-duration-exit) ease-exit"
  leave-from-class="opacity-100 scale-100"
- leave-to-class="opacity-0 scale-95"
+ leave-to-class="opacity-0 scale-95 motion-reduce:scale-100"
  mode="out-in"
  >
  <div

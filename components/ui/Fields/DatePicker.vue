@@ -13,7 +13,7 @@
  :aria-haspopup="true"
  :aria-invalid="!!error"
  :aria-describedby="error ? `${inputId}-error` : undefined"
- class="flex w-full items-center gap-2 h-control-md rounded-md border bg-surface px-3 text-start text-control transition-all focus:outline-none focus:ring-3 focus:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-50"
+ class="flex w-full items-center gap-2 h-control-md rounded-md border bg-surface px-3 text-start text-control transition-[border-color,box-shadow] duration-(--vt-duration) ease-standard focus:outline-none focus:ring-3 focus:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-50"
  :class="[
  error ? 'border-danger-text focus:border-danger-text focus:ring-danger-text/25' : 'border-border-strong focus:border-ring',
  customClass,
@@ -39,12 +39,12 @@
  <!-- Dropdown -->
  <Teleport to="body">
  <Transition
- enter-active-class="transition duration-150 ease-out"
- enter-from-class="opacity-0 scale-95 -translate-y-1"
+ enter-active-class="transition duration-(--vt-duration-enter) ease-standard"
+ enter-from-class="opacity-0 scale-95 -translate-y-1 motion-reduce:scale-100 motion-reduce:translate-y-0"
  enter-to-class="opacity-100 scale-100 translate-y-0"
- leave-active-class="transition duration-100 ease-in"
+ leave-active-class="transition duration-(--vt-duration-exit) ease-exit"
  leave-from-class="opacity-100 scale-100 translate-y-0"
- leave-to-class="opacity-0 scale-95 -translate-y-1"
+ leave-to-class="opacity-0 scale-95 -translate-y-1 motion-reduce:scale-100 motion-reduce:translate-y-0"
  >
  <div
  v-if="isOpen"
@@ -63,7 +63,7 @@
  <div class="relative">
  <select
  :value="viewMonth.getMonth()"
- class="appearance-none rounded-md border border-border-strong bg-surface py-1 pe-6 ps-2.5 text-sm font-semibold text-text cursor-pointer transition-all hover:bg-muted focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
+ class="appearance-none rounded-md border border-border-strong bg-surface py-1 pe-6 ps-2.5 text-sm font-semibold text-text cursor-pointer transition-[background-color,border-color,box-shadow] duration-(--vt-duration) ease-standard hover:bg-muted focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
  @change="setMonth(Number(($event.target as HTMLSelectElement).value))"
  >
  <option v-for="(m, i) in monthNames" :key="i" :value="i">{{ m }}</option>
@@ -78,7 +78,7 @@
  <div class="relative">
  <select
  :value="viewMonth.getFullYear()"
- class="appearance-none rounded-md border border-border-strong bg-surface py-1 pe-6 ps-2.5 text-sm font-semibold text-text cursor-pointer transition-all hover:bg-muted focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
+ class="appearance-none rounded-md border border-border-strong bg-surface py-1 pe-6 ps-2.5 text-sm font-semibold text-text cursor-pointer transition-[background-color,border-color,box-shadow] duration-(--vt-duration) ease-standard hover:bg-muted focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
  @change="setYear(Number(($event.target as HTMLSelectElement).value))"
  >
  <option v-for="y in yearRange" :key="y" :value="y">{{ y }}</option>
@@ -244,11 +244,13 @@ function updatePosition() {
  dropdownStyle.value = {
  top: toRem(rect.bottom + 4),
  left: toRem(rect.left),
+ transformOrigin: 'top left',
  }
  } else {
  dropdownStyle.value = {
  bottom: toRem(window.innerHeight - rect.top + 4),
  left: toRem(rect.left),
+ transformOrigin: 'bottom left',
  }
  }
 }

@@ -293,11 +293,13 @@ with no rewrite.
 | `--vt-duration-enter` (overlays in) | 200ms | 220ms | 140ms |
 | `--vt-duration-exit` (overlays out) | 130ms | 140ms | 90ms |
 | `--vt-ease` | `cubic-bezier(.2, 0, 0, 1)` | same | same |
-| `--vt-ease-exit` | `cubic-bezier(.4, 0, 1, 1)` | same | same |
+| `--vt-ease-exit` | `cubic-bezier(.2, 0, 0, 1)` | same | same |
 | Press | `translateY(1px)` | `scale(.98)` | `scale(.98)` |
 
+Exits reuse the ease-out curve and are shorter than entrances. Never ease-in on UI.
+
 Animate `transform`, `opacity` and colours only. Never bounce or overshoot. Under
-`prefers-reduced-motion: reduce`, state changes are instant and overlays fade without moving.
+`prefers-reduced-motion: reduce`, press movement is dropped and overlays fade without moving.
 
 ## Components
 

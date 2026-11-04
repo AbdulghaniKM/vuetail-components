@@ -63,7 +63,7 @@
   --spacing-control-pad: 16px;
   --text-control: 0.875rem;
   --ease-standard: cubic-bezier(.2, 0, 0, 1);
-  --ease-exit: cubic-bezier(.4, 0, 1, 1);
+  --ease-exit: cubic-bezier(.2, 0, 0, 1);
 }
 
 :root {
@@ -77,7 +77,14 @@
   --vt-press-y: 1px;
   --vt-press-scale: 1;
   --vt-ease: cubic-bezier(.2, 0, 0, 1);
-  --vt-ease-exit: cubic-bezier(.4, 0, 1, 1);
+  --vt-ease-exit: cubic-bezier(.2, 0, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --vt-press-y: 0px;
+    --vt-press-scale: 1;
+  }
 }
 
 :root[data-theme="dark"] {
