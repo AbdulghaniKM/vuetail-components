@@ -187,9 +187,9 @@
    */
   export const HUE_ACTIVE: Record<DockHue, string> = {
     primary:
-      'bg-primary/25 text-primary ring-1 ring-primary/40 shadow-[0_0.375rem_1rem_-0.375rem_var(--color-primary)]',
+      'bg-accent-subtle text-accent-text ring-1 ring-ring shadow-[0_0.375rem_1rem_-0.375rem_var(--color-accent)]',
     secondary:
-      'bg-secondary/25 text-secondary ring-1 ring-secondary/40 shadow-[0_0.375rem_1rem_-0.375rem_var(--color-secondary)]',
+      'bg-muted/25 text-text-muted ring-1 ring-border-strong shadow-[0_0.375rem_1rem_-0.375rem_var(--color-text-muted)]',
     accent:
       'bg-accent/25 text-accent ring-1 ring-accent/40 shadow-[0_0.375rem_1rem_-0.375rem_var(--color-accent)]',
     success:
@@ -197,29 +197,29 @@
     warning:
       'bg-warning/25 text-warning ring-1 ring-warning/40 shadow-[0_0.375rem_1rem_-0.375rem_var(--color-warning)]',
     error:
-      'bg-error/25 text-error ring-1 ring-error/40 shadow-[0_0.375rem_1rem_-0.375rem_var(--color-error)]',
+      'bg-danger-subtle text-danger-text ring-1 ring-danger-text/25 shadow-[0_0.375rem_1rem_-0.375rem_var(--color-danger)]',
     info: 'bg-info/25 text-info ring-1 ring-info/40 shadow-[0_0.375rem_1rem_-0.375rem_var(--color-info)]',
   };
 
   /** Idle icon tint — keeps the nav colourful even when nothing is selected. */
   export const HUE_ICON: Record<DockHue, string> = {
-    primary: 'text-primary',
-    secondary: 'text-secondary',
+    primary: 'text-accent-text',
+    secondary: 'text-text-muted',
     accent: 'text-accent',
     success: 'text-success',
     warning: 'text-warning',
-    error: 'text-error',
+    error: 'text-danger-text',
     info: 'text-info',
   };
 
   /** The running-app dot under an active tile. */
   export const HUE_DOT: Record<DockHue, string> = {
-    primary: 'bg-primary',
-    secondary: 'bg-secondary',
+    primary: 'bg-accent',
+    secondary: 'bg-muted',
     accent: 'bg-accent',
     success: 'bg-success',
     warning: 'bg-warning',
-    error: 'bg-error',
+    error: 'bg-danger',
     info: 'bg-info',
   };
 

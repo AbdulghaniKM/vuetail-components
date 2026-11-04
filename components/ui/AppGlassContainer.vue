@@ -59,8 +59,8 @@ const style = computed(() => ({
   padding: `${padding.value}px`,
   ...(props.filled
     ? {
-        background: 'color-mix(in srgb, var(--color-surface, #fff) 40%, transparent)',
-        border: '1px solid var(--color-border, rgba(255, 255, 255, 0.12))',
+        background: 'color-mix(in srgb, var(--color-surface) 40%, transparent)',
+        border: '1px solid var(--color-border)',
       }
     : {}),
 }));

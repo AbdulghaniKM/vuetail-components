@@ -1,6 +1,6 @@
 <template>
  <div ref="rootRef" class="flex w-full flex-col gap-1.5">
- <label v-if="label" :id="labelId" :for="inputId" class="text-sm font-medium text-text">
+ <label v-if="label" :id="labelId" :for="inputId" class="text-control font-medium text-text">
  {{ label }}
  </label>
 
@@ -15,8 +15,8 @@
  :aria-haspopup="'listbox'"
  :aria-invalid="!!error"
  :aria-describedby="error ? `${inputId}-error` : undefined"
- class="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-start text-text transition-all focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
- :class="[customClass, { 'border-error focus:border-error focus:ring-error/20': error }]"
+ class="flex w-full items-center justify-between gap-2 h-control-md rounded-md border border-border-strong bg-surface px-3 text-start text-text transition-all focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-50"
+ :class="[customClass, { 'border-danger-text focus:border-danger-text focus:ring-danger-text/25': error }]"
  @click="toggle"
  @keydown="onTriggerKeydown"
  >
@@ -44,7 +44,7 @@
  <div
  v-if="isOpen"
  ref="listContainerRef"
- class="fixed z-[9999] rounded-lg border border-border bg-surface shadow-lg"
+ class="fixed z-[9999] rounded-lg border border-border bg-surface-raised shadow-lg"
  :style="dropdownStyle"
  >
  <!-- Search -->
@@ -110,7 +110,7 @@
 
  <span
  :id="`${inputId}-error`"
- class="block min-h-[1.25rem] text-sm text-error"
+ class="block min-h-[1.25rem] text-sm text-danger-text"
  :class="{ invisible: !error }"
  role="alert"
  >

@@ -339,7 +339,7 @@ const rootStyle = computed(() => {
     // Where transparency is refused outright, the pane still has to be readable.
     // Reduce Transparency and Increase Contrast both need a much denser fill than the
     // pane normally carries, and a border that is genuinely high-contrast.
-    '--lg-fill-dense': `color-mix(in srgb, ${tone} ${Math.max(strength, 82)}%, var(--color-surface, #ffffff))`,
+    '--lg-fill-dense': `color-mix(in srgb, ${tone} ${Math.max(strength, 82)}%, var(--color-surface))`,
     '--lg-frost-heavy': `${Math.max(20, resolved.value.blur * 2)}px`,
     '--lg-rim': `${props.rim}px`,
     '--lg-angle': `${props.lightAngle}deg`,

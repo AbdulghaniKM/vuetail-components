@@ -36,7 +36,7 @@
           v-model="searchQuery"
           type="text"
           :placeholder="searchPlaceholder"
-          class="border-border bg-surface text-text placeholder:text-text-muted/60 w-full rounded-xl border py-2 pe-9 ps-9 text-sm transition-all focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+          class="border-border bg-surface text-text placeholder:text-text-muted/60 w-full rounded-xl border py-2 pe-9 ps-9 text-sm transition-all focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
         />
         <button
           v-if="searchQuery"
@@ -371,7 +371,7 @@
                               class="flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors"
                               :class="
                                 action.danger
-                                  ? 'text-error hover:bg-error/10'
+                                  ? 'text-danger-text hover:bg-danger-subtle'
                                   : 'text-text hover:bg-muted'
                               "
                               :disabled="action.disabled?.(row) || isActionPending(action, row, index)"
@@ -410,7 +410,7 @@
                       <template #trigger="{ toggle }">
                         <button
                           type="button"
-                          class="rounded-full transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                          class="rounded-full transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25"
                           :class="
                             isCellEditPending(column, row, index)
                               ? 'cursor-wait opacity-60'
@@ -654,7 +654,7 @@
             class="flex size-8 items-center justify-center rounded-lg text-sm font-medium transition-colors"
             :class="
               page === clientPage
-                ? 'bg-accent text-white'
+                ? 'bg-accent text-accent-fg'
                 : 'text-text-muted hover:bg-muted hover:text-text'
             "
             @click="goToPage(page)"
@@ -1531,19 +1531,19 @@ defineExpose({ exportToExcel });
 
 .sticky-actions-th {
   z-index: 11;
-  background: color-mix(in srgb, var(--color-muted, #f3f4f6) 60%, transparent);
+  background: color-mix(in srgb, var(--color-muted) 60%, transparent);
 }
 
 .sticky-actions-td {
   z-index: 10;
-  background: var(--color-surface, #fff);
+  background: var(--color-surface);
 }
 
 tr:hover > .sticky-actions-td {
   background: color-mix(
     in srgb,
-    var(--color-accent, #4f46e5) 3%,
-    var(--color-surface, #fff)
+    var(--color-accent) 3%,
+    var(--color-surface)
   );
 }
 
@@ -1576,19 +1576,19 @@ tr:hover > .sticky-actions-td {
 
 .sticky-select-th {
   z-index: 11;
-  background: color-mix(in srgb, var(--color-muted, #f3f4f6) 60%, transparent);
+  background: color-mix(in srgb, var(--color-muted) 60%, transparent);
 }
 
 .sticky-select-td {
   z-index: 10;
-  background: var(--color-surface, #fff);
+  background: var(--color-surface);
 }
 
 tr:hover > .sticky-select-td {
   background: color-mix(
     in srgb,
-    var(--color-accent, #4f46e5) 3%,
-    var(--color-surface, #fff)
+    var(--color-accent) 3%,
+    var(--color-surface)
   );
 }
 

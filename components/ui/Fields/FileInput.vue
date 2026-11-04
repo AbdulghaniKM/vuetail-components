@@ -1,6 +1,6 @@
 <template>
  <div class="flex flex-col gap-1.5 w-full">
- <label v-if="label" class="text-sm font-medium text-text">
+ <label v-if="label" class="text-control font-medium text-text">
  {{ label }}
  </label>
  
@@ -45,7 +45,7 @@
  <span
  v-if="error"
  role="alert"
- class="text-sm text-error"
+ class="text-sm text-danger-text"
  >
  {{ error }}
  </span>

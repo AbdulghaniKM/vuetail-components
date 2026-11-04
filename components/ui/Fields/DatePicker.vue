@@ -13,9 +13,9 @@
  :aria-haspopup="true"
  :aria-invalid="!!error"
  :aria-describedby="error ? `${inputId}-error` : undefined"
- class="flex w-full items-center gap-2 rounded-xl border bg-surface px-3.5 py-2.5 text-start text-sm transition-all focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
+ class="flex w-full items-center gap-2 h-control-md rounded-md border bg-surface px-3 text-start text-control transition-all focus:outline-none focus:ring-3 focus:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-50"
  :class="[
- error ? 'border-error focus:border-error focus:ring-error/20' : 'border-border focus:border-accent',
+ error ? 'border-danger-text focus:border-danger-text focus:ring-danger-text/25' : 'border-border-strong focus:border-ring',
  customClass,
  ]"
  @click="toggle"
@@ -49,7 +49,7 @@
  <div
  v-if="isOpen"
  ref="dropdownRef"
- class="fixed z-[9998] w-[20rem] rounded-xl border border-border bg-surface shadow-xl"
+ class="fixed z-[9998] w-[20rem] rounded-lg border border-border bg-surface-raised shadow-lg"
  :style="dropdownStyle"
  >
  <!-- Header: month/year nav -->
@@ -63,7 +63,7 @@
  <div class="relative">
  <select
  :value="viewMonth.getMonth()"
- class="appearance-none rounded-lg border border-border bg-surface py-1 pe-6 ps-2.5 text-sm font-semibold text-text cursor-pointer transition-all hover:bg-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+ class="appearance-none rounded-md border border-border-strong bg-surface py-1 pe-6 ps-2.5 text-sm font-semibold text-text cursor-pointer transition-all hover:bg-muted focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
  @change="setMonth(Number(($event.target as HTMLSelectElement).value))"
  >
  <option v-for="(m, i) in monthNames" :key="i" :value="i">{{ m }}</option>
@@ -78,7 +78,7 @@
  <div class="relative">
  <select
  :value="viewMonth.getFullYear()"
- class="appearance-none rounded-lg border border-border bg-surface py-1 pe-6 ps-2.5 text-sm font-semibold text-text cursor-pointer transition-all hover:bg-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+ class="appearance-none rounded-md border border-border-strong bg-surface py-1 pe-6 ps-2.5 text-sm font-semibold text-text cursor-pointer transition-all hover:bg-muted focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
  @change="setYear(Number(($event.target as HTMLSelectElement).value))"
  >
  <option v-for="y in yearRange" :key="y" :value="y">{{ y }}</option>
@@ -153,7 +153,7 @@
  <span
  v-if="error"
  :id="`${inputId}-error`"
- class="text-error text-sm"
+ class="text-danger-text text-sm"
  role="alert"
  >
  {{ error }}
@@ -314,7 +314,7 @@ function goToToday() {
 
 // ÔöÇÔöÇ Day selection ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 function getDayClass(day: { isCurrentMonth: boolean; isToday: boolean; isSelected: boolean }) {
- if (day.isSelected) return 'bg-accent text-white font-medium hover:bg-accent/90'
+ if (day.isSelected) return 'bg-accent text-accent-fg font-medium hover:bg-accent-hover'
  if (day.isToday) return 'bg-accent/10 text-accent font-medium hover:bg-accent/20'
  if (!day.isCurrentMonth) return 'text-text-muted/40'
  return 'text-text hover:bg-muted'

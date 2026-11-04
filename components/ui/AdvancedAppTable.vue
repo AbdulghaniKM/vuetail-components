@@ -16,7 +16,7 @@
           type="text"
           :placeholder="searchPlaceholder"
           :aria-label="searchPlaceholder"
-          class="at-search w-full rounded-xl border border-border bg-surface py-2 pe-9 ps-9 text-sm text-text transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+          class="at-search w-full rounded-xl border border-border bg-surface py-2 pe-9 ps-9 text-sm text-text transition-colors focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
           @input="onSearchInput"
         />
         <button
@@ -1253,7 +1253,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   --at-card-gap: 0.75rem;
   --at-ease: cubic-bezier(0.16, 0.84, 0.24, 1);
   --at-dock: cubic-bezier(0.22, 1.12, 0.36, 1);
-  --at-rail: color-mix(in srgb, var(--color-text, #111827) 4%, var(--color-surface, #ffffff));
+  --at-rail: color-mix(in srgb, var(--color-text) 4%, var(--color-surface));
 
   /* Eight equally-weighted hues. Identity and categories pick from these rather than
      inventing one-off colours. */
@@ -1322,8 +1322,8 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 
 .at-wrap {
   position: relative;
-  background: var(--color-surface, #ffffff);
-  border: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 1rem;
   overflow: auto;
   overscroll-behavior: contain;
@@ -1345,7 +1345,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   display: block;
   width: 25%;
   height: 100%;
-  background: var(--color-accent, #f59e0b);
+  background: var(--color-accent);
   animation: at-sweep-run 1s ease-in-out infinite;
 }
 
@@ -1367,7 +1367,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 .at-table td {
   text-align: start;
   padding: var(--at-pad-y) var(--at-pad-x);
-  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  border-bottom: 1px solid var(--color-border);
 }
 
 /* Pinned header: the column you are reading stays named however far down you are.
@@ -1377,14 +1377,14 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   position: sticky;
   top: 0;
   z-index: 2;
-  background: var(--color-surface, #ffffff);
-  box-shadow: inset 0 -1px 0 var(--color-border, #e5e7eb);
+  background: var(--color-surface);
+  box-shadow: inset 0 -1px 0 var(--color-border);
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--color-text-secondary, var(--color-text-muted, #6b7280));
+  color: var(--color-text-muted);
   white-space: nowrap;
 }
 
@@ -1420,13 +1420,13 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 
 .at-muted,
 .at-muted-fg {
-  color: var(--color-text-secondary, var(--color-text-muted, #6b7280));
+  color: var(--color-text-muted);
 }
 
 .at-search::placeholder {
   color: color-mix(
     in srgb,
-    var(--color-text-secondary, var(--color-text-muted, #6b7280)) 70%,
+    var(--color-text-muted) 70%,
     transparent
   );
 }
@@ -1454,11 +1454,11 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 }
 
 .at-row:hover {
-  background: color-mix(in srgb, var(--color-accent, #f59e0b) 5%, var(--color-surface, #ffffff));
+  background: color-mix(in srgb, var(--color-accent) 5%, var(--color-surface));
 }
 
 .at-row.is-selected {
-  background: color-mix(in srgb, var(--color-accent, #f59e0b) 9%, var(--color-surface, #ffffff));
+  background: color-mix(in srgb, var(--color-accent) 9%, var(--color-surface));
 }
 
 .at-row.is-clickable {
@@ -1472,7 +1472,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   inset-block: 0;
   inset-inline-start: 0;
   width: 0.125rem;
-  background: var(--color-accent, #f59e0b);
+  background: var(--color-accent);
 }
 
 .at-check {
@@ -1493,7 +1493,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 }
 
 .at-wrap:not(.is-plain) .at-row:hover > .at-actions-col {
-  background: color-mix(in srgb, var(--color-accent, #f59e0b) 5%, var(--at-rail));
+  background: color-mix(in srgb, var(--color-accent) 5%, var(--at-rail));
 }
 
 /* The seam that marks content sliding under the rail. */
@@ -1548,11 +1548,11 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 }
 
 .at-sort:hover {
-  color: var(--color-text, #111827);
+  color: var(--color-text);
 }
 
 .at-sort[data-on] {
-  color: var(--color-accent, #f59e0b);
+  color: var(--color-accent);
 }
 
 .at-sort-icon {
@@ -1574,7 +1574,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   display: block;
   height: 0.875rem;
   border-radius: 9999px;
-  background: color-mix(in srgb, var(--color-text, #111827) 9%, transparent);
+  background: color-mix(in srgb, var(--color-text) 9%, transparent);
   animation: at-skeleton-pulse 1.4s ease-in-out infinite;
 }
 
@@ -1587,7 +1587,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 .at-empty {
   padding: 2.5rem;
   text-align: center;
-  color: var(--color-text-secondary, var(--color-text-muted, #6b7280));
+  color: var(--color-text-muted);
 }
 
 /* ── Cell vocabulary ────────────────────────────────────────────────────────── */
@@ -1659,7 +1659,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 
 .at-identity-title {
   font-weight: 600;
-  color: var(--color-text, #111827);
+  color: var(--color-text);
 }
 
 .at-identity-sub {
@@ -1667,7 +1667,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   align-items: center;
   gap: 0.25rem;
   font-size: 0.75rem;
-  color: var(--color-text-secondary, var(--color-text-muted, #6b7280));
+  color: var(--color-text-muted);
   white-space: nowrap;
 }
 
@@ -1675,7 +1675,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 0.6875rem;
   letter-spacing: 0.06em;
-  color: var(--color-text-secondary, var(--color-text-muted, #6b7280));
+  color: var(--color-text-muted);
   opacity: 0.75;
   white-space: nowrap;
 }
@@ -1689,7 +1689,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   padding: 0;
   border: none;
   background: transparent;
-  color: var(--color-text-secondary, var(--color-text-muted, #6b7280));
+  color: var(--color-text-muted);
   opacity: 0.7;
   cursor: pointer;
   transition:
@@ -1700,7 +1700,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 .at-copy:hover,
 .at-copy.is-ok {
   opacity: 1;
-  color: var(--color-accent, #f59e0b);
+  color: var(--color-accent);
 }
 
 /* ── Display menu ───────────────────────────────────────────────────────────── */
@@ -1712,9 +1712,9 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   height: 2rem;
   padding: 0 0.625rem;
   border-radius: 0.5rem;
-  border: 1px solid var(--color-border, #e5e7eb);
-  background: var(--color-surface, #ffffff);
-  color: var(--color-text-secondary, var(--color-text-muted, #6b7280));
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
@@ -1724,13 +1724,13 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 }
 
 .at-chrome-trigger:hover {
-  color: var(--color-text, #111827);
-  border-color: color-mix(in srgb, var(--color-text, #111827) 25%, transparent);
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--color-text) 25%, transparent);
 }
 
 .at-chrome-trigger.is-open {
-  color: var(--color-accent, #f59e0b);
-  border-color: var(--color-accent, #f59e0b);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .at-menu-title {
@@ -1738,7 +1738,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   font-size: 0.625rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-text-secondary, var(--color-text-muted, #6b7280));
+  color: var(--color-text-muted);
   padding: 0.5rem 0.5rem 0.25rem;
 }
 
@@ -1751,7 +1751,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   border: 0;
   border-radius: 0.5rem;
   background: transparent;
-  color: var(--color-text-secondary, var(--color-text-muted, #6b7280));
+  color: var(--color-text-muted);
   font: inherit;
   font-size: 0.8125rem;
   text-align: start;
@@ -1759,13 +1759,13 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 }
 
 .at-menu-item:hover:not(:disabled) {
-  background: var(--color-muted, #f3f4f6);
-  color: var(--color-text, #111827);
+  background: var(--color-muted);
+  color: var(--color-text);
 }
 
 .at-menu-item.is-active {
-  background: color-mix(in srgb, var(--color-accent, #f59e0b) 12%, transparent);
-  color: var(--color-accent, #f59e0b);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
 }
 
 .at-menu-item:disabled {
@@ -1781,7 +1781,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 }
 
 .at-switch-item.is-on {
-  color: var(--color-text, #111827);
+  color: var(--color-text);
 }
 
 .at-switch-label {
@@ -1796,8 +1796,8 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   width: 1.75rem;
   height: 1rem;
   border-radius: 9999px;
-  background: color-mix(in srgb, var(--color-text, #111827) 10%, transparent);
-  border: 1px solid var(--color-border, #e5e7eb);
+  background: color-mix(in srgb, var(--color-text) 10%, transparent);
+  border: 1px solid var(--color-border);
   transition:
     background 0.15s ease,
     border-color 0.15s ease;
@@ -1811,19 +1811,19 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   width: 0.625rem;
   height: 0.625rem;
   border-radius: 9999px;
-  background: var(--color-text-secondary, var(--color-text-muted, #6b7280));
+  background: var(--color-text-muted);
   transition:
     transform 0.15s ease,
     background 0.15s ease;
 }
 
 .at-switch[data-on='true'] {
-  background: color-mix(in srgb, var(--color-accent, #f59e0b) 14%, transparent);
-  border-color: var(--color-accent, #f59e0b);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  border-color: var(--color-accent);
 }
 
 .at-switch[data-on='true']::after {
-  background: var(--color-accent, #f59e0b);
+  background: var(--color-accent);
   transform: translateX(0.75rem);
 }
 
@@ -1844,13 +1844,13 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   margin: 0.875rem auto 0;
   padding: 0.5rem 0.625rem;
   padding-inline-start: 1rem;
-  background: color-mix(in srgb, var(--color-surface, #ffffff) 92%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
   backdrop-filter: blur(0.75rem) saturate(140%);
-  border: 1px solid color-mix(in srgb, var(--color-accent, #f59e0b) 22%, var(--color-border, #e5e7eb));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 22%, var(--color-border));
   border-radius: 9999px;
   box-shadow:
     0 0.5rem 1.5rem rgb(0 0 0 / 0.18),
-    0 0 1.5rem -0.7rem color-mix(in srgb, var(--color-accent, #f59e0b) 65%, transparent);
+    0 0 1.5rem -0.7rem color-mix(in srgb, var(--color-accent) 65%, transparent);
 }
 
 /* Stack above the docked pager rather than over it. */
@@ -1862,7 +1862,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 0.75rem;
   letter-spacing: 0.05em;
-  color: var(--color-accent, #f59e0b);
+  color: var(--color-accent);
   white-space: nowrap;
 }
 
@@ -1891,13 +1891,13 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   flex-wrap: wrap;
   margin-top: 0.875rem;
   padding: 0.625rem 0.875rem;
-  background: var(--color-surface, #ffffff);
-  border: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.75rem;
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 0.75rem;
   letter-spacing: 0.05em;
-  color: var(--color-text-secondary, var(--color-text-muted, #6b7280));
+  color: var(--color-text-muted);
 }
 
 /* Paging is the control you reach for most on a long list, so it gets a fixed place
@@ -1924,9 +1924,9 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   justify-content: center;
   padding: 0 0.5rem;
   border-radius: 0.5rem;
-  border: 1px solid var(--color-border, #e5e7eb);
+  border: 1px solid var(--color-border);
   background: transparent;
-  color: var(--color-text, #111827);
+  color: var(--color-text);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -1938,7 +1938,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 
 .at-page-btn:hover:not(:disabled),
 .at-page-size:hover {
-  background: var(--color-muted, #f3f4f6);
+  background: var(--color-muted);
 }
 
 .at-page-btn:disabled {
@@ -1949,9 +1949,9 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 /* The current page is "disabled" so it isn't clickable — but it's the one thing here
    that should read at full strength. */
 .at-page-btn.is-current {
-  background: var(--color-accent, #f59e0b);
-  border-color: var(--color-accent, #f59e0b);
-  color: var(--color-accent-fg, var(--color-background, #ffffff));
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-fg);
   opacity: 1;
   cursor: default;
 }
@@ -1989,13 +1989,13 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   gap: 0.375rem;
   min-width: 0;
   padding: var(--at-card-pad);
-  background: var(--color-surface, #ffffff);
-  border: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.875rem;
 }
 
 .advanced-table[data-view='cards'] tbody tr:hover {
-  border-color: var(--color-accent, #f59e0b);
+  border-color: var(--color-accent);
 }
 
 .advanced-table[data-view='cards'] .at-row:hover > td:first-child::before {
@@ -2020,7 +2020,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--color-text-secondary, var(--color-text-muted, #6b7280));
+  color: var(--color-text-muted);
 }
 
 /* A pinned rail is a horizontal-scroll affordance, and a card has no sideways. */

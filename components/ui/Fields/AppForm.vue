@@ -92,7 +92,7 @@
         <button
           type="submit"
           :disabled="submitting"
-          class="rounded-lg bg-accent px-6 py-2.5 font-semibold text-white transition-all hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+          class="rounded-lg bg-accent px-6 py-2.5 font-semibold text-accent-fg transition-all hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           {{ submitting ? 'Submitting...' : 'Submit' }}
         </button>

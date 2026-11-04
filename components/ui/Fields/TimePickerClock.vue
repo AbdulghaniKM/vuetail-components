@@ -17,7 +17,7 @@
  inputmode="numeric"
  maxlength="2"
  aria-label="Hour"
- class="w-11 rounded-xl border border-border bg-surface py-2 text-center text-sm font-bold text-text tabular-nums shadow-sm transition-all focus:border-accent focus:ring-4 focus:ring-accent/10 focus:outline-none"
+ class="w-11 rounded-md border border-border-strong bg-surface py-2 text-center text-sm font-bold text-text tabular-nums transition-all focus:border-ring focus:ring-3 focus:ring-ring/25 focus:outline-none"
  @focus="onInputFocus"
  @blur="commitHours"
  @keydown.enter="($event.target as HTMLInputElement).blur()"
@@ -53,7 +53,7 @@
  inputmode="numeric"
  maxlength="2"
  aria-label="Minute"
- class="w-11 rounded-xl border border-border bg-surface py-2 text-center text-sm font-bold text-text tabular-nums shadow-sm transition-all focus:border-accent focus:ring-4 focus:ring-accent/10 focus:outline-none"
+ class="w-11 rounded-md border border-border-strong bg-surface py-2 text-center text-sm font-bold text-text tabular-nums transition-all focus:border-ring focus:ring-3 focus:ring-ring/25 focus:outline-none"
  @focus="onInputFocus"
  @blur="commitMinutes"
  @keydown.enter="($event.target as HTMLInputElement).blur()"
@@ -75,7 +75,7 @@
  <button
  type="button"
  class="rounded-xl px-3 py-1.5 text-xs font-bold tracking-tight transition-all"
- :class="!isPM ? 'bg-accent text-white shadow-md shadow-accent/20' : 'bg-muted text-text-muted hover:bg-muted/80 hover:text-text'"
+ :class="!isPM ? 'bg-accent text-accent-fg' : 'bg-muted text-text-muted hover:bg-muted/80 hover:text-text'"
  @click="setPeriod(false)"
  >
  AM
@@ -83,7 +83,7 @@
  <button
  type="button"
  class="rounded-xl px-3 py-1.5 text-xs font-bold tracking-tight transition-all"
- :class="isPM ? 'bg-accent text-white shadow-md shadow-accent/20' : 'bg-muted text-text-muted hover:bg-muted/80 hover:text-text'"
+ :class="isPM ? 'bg-accent text-accent-fg' : 'bg-muted text-text-muted hover:bg-muted/80 hover:text-text'"
  @click="setPeriod(true)"
  >
  PM

@@ -488,9 +488,9 @@
     --nav-border: var(--color-border);
     --nav-border-compact: var(--color-border);
     --nav-ink: var(--color-text);
-    --nav-ink-muted: var(--color-text-secondary, var(--color-text));
-    --nav-pill: color-mix(in srgb, var(--color-primary) 16%, transparent);
-    --nav-hover: color-mix(in srgb, var(--color-primary) 10%, transparent);
+    --nav-ink-muted: var(--color-text-muted);
+    --nav-pill: color-mix(in srgb, var(--color-accent) 16%, transparent);
+    --nav-hover: color-mix(in srgb, var(--color-accent) 10%, transparent);
     --nav-shadow: rgb(0 0 0 / 0.1);
   }
 
@@ -544,19 +544,19 @@
   }
 
   .nav-cta {
-    background-color: var(--color-primary);
-    color: var(--color-background, #fff);
+    background-color: var(--color-accent);
+    color: var(--color-bg);
     /* Hover brightens the fill and lays a ring outside it, so the button gains
        presence without changing size — buttons never scale here. */
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 30%, transparent);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 30%, transparent);
     transition:
       background-color 200ms cubic-bezier(0.2, 0, 0, 1),
       box-shadow 200ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .nav-cta:hover {
-    background-color: color-mix(in srgb, var(--color-primary) 88%, white);
-    box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--color-primary) 30%, transparent);
+    background-color: color-mix(in srgb, var(--color-accent) 88%, white);
+    box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--color-accent) 30%, transparent);
   }
 
   .nav-row-off {
@@ -585,7 +585,7 @@
   .nav-link:focus-visible,
   .nav-ghost:focus-visible,
   .nav-cta:focus-visible {
-    outline: 0.125rem solid var(--color-primary);
+    outline: 0.125rem solid var(--color-accent);
     outline-offset: 0.125rem;
   }
 

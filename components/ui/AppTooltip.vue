@@ -20,7 +20,7 @@
  v-if="content && show"
  :id="tipId"
  role="tooltip"
- class="pointer-events-none absolute z-[9990] max-w-xs whitespace-normal rounded-lg px-3 py-1.5 text-xs font-medium leading-snug shadow-lg"
+ class="pointer-events-none absolute z-[9990] max-w-xs whitespace-normal rounded-md px-2.5 py-1.5 text-[0.75rem] font-medium leading-snug shadow-md"
  :class="[themeClass, placementClass]"
  >
  {{ content }}
@@ -68,14 +68,14 @@ function onLeave() {
 
 const themeClass = computed(() =>
  props.dark
- ? 'bg-text text-surface ring-1 ring-surface/10'
- : 'bg-surface text-text border border-border shadow-md'
+ ? 'bg-text text-bg'
+ : 'bg-surface-raised text-text border border-border'
 )
 
 const arrowClass = computed(() =>
  props.dark
  ? 'bg-text'
- : 'bg-surface border border-border'
+ : 'bg-surface-raised border border-border'
 )
 
 const placementClass = computed(() => ({

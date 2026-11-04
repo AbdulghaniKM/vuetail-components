@@ -13,7 +13,7 @@
  >
  <!-- Backdrop -->
  <motion.div
- class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+ class="absolute inset-0 bg-overlay"
  :initial="{ opacity: 0 }"
  :animate="{ opacity: 1 }"
  :exit="{ opacity: 0 }"
@@ -28,10 +28,10 @@
  aria-modal="true"
  :aria-labelledby="title ? titleId : undefined"
  :aria-describedby="description ? descId : undefined"
- class="relative mx-auto flex w-full flex-col overflow-hidden rounded-xl bg-surface text-text shadow-xl ring-1 ring-border/50"
+ class="relative mx-auto flex w-full flex-col overflow-hidden rounded-xl border border-border bg-surface-raised text-text shadow-xl"
  :class="[
  maxWidthClass,
- fullscreen ? 'h-full max-h-full !rounded-none !ring-0' : 'max-h-[85vh]',
+ fullscreen ? 'h-full max-h-full !rounded-none !border-0' : 'max-h-[85vh]',
  ]"
  :initial="{ opacity: 0, scale: 0.96, y: 12 }"
  :animate="{ opacity: 1, scale: 1, y: 0 }"
@@ -48,7 +48,7 @@
  >
  <div
  v-if="loading"
- class="absolute inset-0 z-20 flex items-center justify-center bg-surface/80 backdrop-blur-sm"
+ class="absolute inset-0 z-20 flex items-center justify-center bg-surface-raised/85"
  >
  <div class="flex flex-col items-center gap-3">
  <AppSpinner size="lg" />
@@ -66,7 +66,7 @@
  <div class="flex items-start gap-3">
  <div
  v-if="icon"
- class="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl"
+ class="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-lg"
  :class="iconContainerClass"
  >
  <AppIcon :name="icon" :size="1.25" :class="iconColorClass" />
@@ -80,7 +80,7 @@
  <button
  v-if="!hideClose"
  type="button"
- class="text-text-muted hover:bg-muted hover:text-text focus-visible:ring-accent/40 -me-1 -mt-1 flex size-8 shrink-0 items-center justify-center rounded-lg transition-all focus-visible:ring-2 focus-visible:outline-none"
+ class="text-text-muted hover:bg-muted hover:text-text focus-visible:ring-ring/25 -me-1 -mt-1 flex size-8 shrink-0 items-center justify-center rounded-lg transition-all focus-visible:ring-2 focus-visible:outline-none"
  @click="handleClose"
  :aria-label="closeLabel"
  >
@@ -261,22 +261,22 @@ const maxWidthClass = computed(() => {
 
 const iconContainerClass = computed(() => {
  const map: Record<string, string> = {
- primary: 'bg-accent/10',
- danger: 'bg-error/10',
- warning: 'bg-warning/10',
- success: 'bg-success/10',
- info: 'bg-info/10',
+ primary: 'bg-accent-subtle',
+ danger: 'bg-danger-subtle',
+ warning: 'bg-warning-subtle',
+ success: 'bg-success-subtle',
+ info: 'bg-info-subtle',
  }
  return map[props.iconVariant] || map.primary
 })
 
 const iconColorClass = computed(() => {
  const map: Record<string, string> = {
- primary: 'text-accent',
- danger: 'text-error',
- warning: 'text-warning',
- success: 'text-success',
- info: 'text-info',
+ primary: 'text-accent-text',
+ danger: 'text-danger-text',
+ warning: 'text-warning-text',
+ success: 'text-success-text',
+ info: 'text-info-text',
  }
  return map[props.iconVariant] || map.primary
 })

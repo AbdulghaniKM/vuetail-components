@@ -12,7 +12,7 @@
               <p class="truncate text-sm font-semibold text-text">{{ title }}</p>
               <span
                 v-if="activeCount > 0"
-                class="flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-[0.6875rem] font-semibold tabular-nums text-white"
+                class="flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-[0.6875rem] font-semibold tabular-nums text-accent-fg"
               >{{ activeCount }}</span>
             </div>
             <p class="truncate text-xs text-text-muted">
@@ -181,7 +181,7 @@
                 <template #trigger="{ toggle, isOpen }">
                   <button
                     type="button"
-                    class="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-start text-sm transition-all focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+                    class="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-start text-sm transition-all focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
                     @click="toggle"
                   >
                     <span class="truncate" :class="multiSelectSummary(field) ? 'text-text' : 'text-text/50'">
@@ -223,7 +223,7 @@
                 <template #trigger="{ toggle, isOpen }">
                   <button
                     type="button"
-                    class="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-start text-sm transition-all focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+                    class="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-start text-sm transition-all focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
                     @click="toggle"
                   >
                     <span class="truncate" :class="dateRangeSummary(field.key) ? 'text-text' : 'text-text/50'">
@@ -264,7 +264,7 @@
                   class="flex-1 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors"
                   :class="
                     getFieldValue(field.key) === true
-                      ? 'border-accent bg-accent text-white'
+                      ? 'border-accent bg-accent text-accent-fg'
                       : 'border-border bg-surface text-text hover:bg-muted'
                   "
                   @click="setFieldValue(field.key, getFieldValue(field.key) === true ? null : true)"
@@ -276,7 +276,7 @@
                   class="flex-1 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors"
                   :class="
                     getFieldValue(field.key) === false
-                      ? 'border-accent bg-accent text-white'
+                      ? 'border-accent bg-accent text-accent-fg'
                       : 'border-border bg-surface text-text hover:bg-muted'
                   "
                   @click="setFieldValue(field.key, getFieldValue(field.key) === false ? null : false)"

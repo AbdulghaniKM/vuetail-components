@@ -31,7 +31,7 @@
  icon="icon-[heroicons-outline--trash]"
  full-width
  size="md"
- class="flex-1 !bg-error !text-white !shadow-sm hover:!bg-error/90"
+ class="flex-1"
  @click="emit('confirm')"
  />
  </div>

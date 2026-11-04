@@ -150,7 +150,7 @@ const colorClass = computed(() => {
  'text-text-muted': 'text-text-muted',
  success: 'text-success',
  warning: 'text-warning',
- error: 'text-error',
+ error: 'text-danger-text',
  info: 'text-info',
  };
 
@@ -468,7 +468,7 @@ const getGradientColor = (color: string): string => {
  const colorMap: Record<string, string> = {
   accent: 'var(--color-accent)', success: 'var(--color-success)',
  warning: 'var(--color-warning)',
- error: 'var(--color-error)',
+ error: 'var(--color-danger)',
  info: 'var(--color-info)',
  };
 

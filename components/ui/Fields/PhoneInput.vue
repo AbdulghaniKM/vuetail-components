@@ -1,16 +1,16 @@
 <template>
  <div class="flex min-w-0 flex-col gap-1.5 w-full">
- <label v-if="label" :for="fieldId" class="text-sm font-medium text-text">
+ <label v-if="label" :for="fieldId" class="text-control font-medium text-text">
  {{ label }}
  </label>
  <div
- class="relative flex min-w-0 items-stretch rounded-lg border bg-surface transition-all"
+ class="relative flex h-control-md min-w-0 items-stretch rounded-md border bg-surface transition-[border-color,box-shadow] duration-(--vt-duration)"
  :class="[
  isFocused && !error
- ? 'border-accent ring-2 ring-accent/20'
+ ? 'border-ring ring-3 ring-ring/25'
  : error
- ? 'border-error ring-2 ring-error/20'
- : 'border-border',
+ ? 'border-danger-text ring-3 ring-danger-text/25'
+ : 'border-border-strong',
  readonly ? 'opacity-50 cursor-not-allowed' : '',
  ]"
  >
@@ -37,7 +37,7 @@
  ref="triggerRef"
  type="button"
  :disabled="readonly"
- class="flex items-center gap-1.5 ps-2 pe-3 text-sm text-text transition-colors hover:bg-muted/50 rounded-e-lg border-s border-border shrink-0 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+ class="flex items-center gap-1.5 ps-2 pe-3 text-sm text-text transition-colors hover:bg-muted/50 rounded-e-md border-s border-border-strong shrink-0 disabled:cursor-not-allowed disabled:hover:bg-transparent"
  @click="toggleDropdown"
  >
  <svg
@@ -63,7 +63,7 @@
  <div
  v-if="isOpen"
  ref="dropdownRef"
- class="fixed z-[9999] min-w-48 rounded-lg border border-border bg-surface shadow-lg shadow-text/10"
+ class="fixed z-[9999] min-w-48 rounded-lg border border-border bg-surface-raised shadow-lg"
  :style="dropdownStyle"
  >
  <div class="max-h-52 overflow-y-auto py-1 scrollbar-thin">
@@ -97,7 +97,7 @@
  :id="errorId"
  role="alert"
  aria-live="polite"
- class="block min-h-[1.25rem] text-sm text-error"
+ class="block min-h-[1.25rem] text-sm text-danger-text"
  :class="{ invisible: !error }"
  >{{ error }}</span>
  </div>

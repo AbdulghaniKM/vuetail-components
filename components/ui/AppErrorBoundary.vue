@@ -1,13 +1,13 @@
 <template>
  <div v-if="hasError" class="p-8 text-center">
  <div class="max-w-md mx-auto">
- <AppIcon name="icon-[mdi--alert-circle]" size="xl" class="text-error mb-4 mx-auto" />
+ <AppIcon name="icon-[mdi--alert-circle]" size="xl" class="text-danger-text mb-4 mx-auto" />
  <h2 class="text-2xl font-bold text-text mb-2">Something went wrong</h2>
  <p class="text-text-muted mb-4">{{ errorMessage }}</p>
  <div class="flex gap-2 justify-center">
  <button
  @click="handleReset"
- class="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors"
+ class="px-4 py-2 bg-accent text-accent-fg rounded-lg hover:bg-accent-hover transition-colors"
  >
  Try Again
  </button>

@@ -15,7 +15,7 @@
  aria-modal="true"
  :aria-label="alt || 'Image viewer'"
  tabindex="-1"
- class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+ class="fixed inset-0 z-[9999] flex items-center justify-center bg-overlay backdrop-blur-sm"
  @click.self="handleClose"
  >
  <div class="relative w-full h-full flex items-center justify-center p-4">
