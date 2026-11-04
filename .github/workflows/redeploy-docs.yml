@@ -1,0 +1,29 @@
+# The docs site renders these files straight from this repo (vuetail-docs/scripts/registry.mjs),
+# so a change here needs a docs rebuild to show up. This asks Vercel for one.
+#
+# Setup, once: Vercel > vuetail-docs > Settings > Git > Deploy Hooks, create a hook for the
+# master branch, then save its URL here as the repository secret DOCS_DEPLOY_HOOK.
+name: Redeploy docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'components/**'
+      - 'composables/**'
+      - 'registry.json'
+  workflow_dispatch:
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger the vuetail-docs deploy hook
+        env:
+          HOOK: ${{ secrets.DOCS_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::warning::DOCS_DEPLOY_HOOK is not set, so the docs were not redeployed."
+            exit 0
+          fi
+          curl --fail --silent --show-error -X POST "$HOOK"
