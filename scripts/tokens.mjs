@@ -284,7 +284,9 @@ function scanUsage(dirs) {
   const report = [];
   const totals = { rename: 0, misuse: 0, palette: 0, unknown: 0, hex: 0 };
   for (const file of files) {
-    const text = fs.readFileSync(file, 'utf8');
+    // `// token-scan: off` … `// token-scan: on` marks strings that look like classes but are
+    // data, such as a prop's accepted values.
+    const text = fs.readFileSync(file, 'utf8').replace(/\/\/ token-scan: off[\s\S]*?\/\/ token-scan: on/g, '');
     const found = { rename: new Map(), misuse: 0, palette: new Map(), unknown: new Map(), hex: 0 };
     const bump = (map, key) => map.set(key, (map.get(key) ?? 0) + 1);
     for (const [, prop, name] of text.matchAll(UTILITY)) {

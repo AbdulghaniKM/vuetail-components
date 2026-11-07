@@ -606,12 +606,14 @@
                 >
                   <span>{{ col.label }}</span>
                   <span
-                    class="flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors duration-(--vt-duration)"
-                    :class="visibleColumnsSet.has(col.key) ? 'bg-accent' : 'bg-border'"
+                    class="rounded-switch flex h-5 w-9 shrink-0 items-center p-0.5 transition-colors duration-(--vt-duration)"
+                    :class="visibleColumnsSet.has(col.key) ? 'bg-accent' : 'bg-muted ring-1 ring-inset ring-border-strong'"
                   >
+                    <!-- On: the accent-fg colour on accent. Off: the muted-text colour on muted, inside a border-strong edge.
+                         The token checker holds both pairs to AA in every preset. -->
                     <span
-                      class="size-4 rounded-full bg-white shadow-sm transition-transform duration-(--vt-duration)"
-                      :class="visibleColumnsSet.has(col.key) ? 'translate-x-4' : 'translate-x-0'"
+                      class="rounded-switch size-4 transition-[translate,background-color] duration-(--vt-duration)"
+                      :class="visibleColumnsSet.has(col.key) ? 'translate-x-4 bg-accent-fg' : 'translate-x-0 bg-text-muted'"
                     />
                   </span>
                 </button>

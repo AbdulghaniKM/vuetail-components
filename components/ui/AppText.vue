@@ -16,12 +16,18 @@ import { computed } from 'vue';
 type Variant = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span' | 'label' | 'caption' | 'overline';
 type Size = 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
 type Weight = 'light' | 'normal' | 'medium' | 'semibold' | 'bold';
-type Color = 'primary' | 'secondary' | 'accent' | 'text' | 'text-text-muted' | 'success' | 'warning' | 'error' | 'info';
+// token-scan: off
+/** Token colours. `primary`, `secondary` and `text-secondary` are older names, still accepted. */
+type Color =
+ | 'text' | 'text-muted' | 'text-subtle' | 'accent' | 'success' | 'warning' | 'danger' | 'info'
+ | 'primary' | 'secondary' | 'text-secondary' | 'error';
+// token-scan: on
 type Align = 'left' | 'center' | 'right' | 'justify';
 type Transform = 'uppercase' | 'lowercase' | 'capitalize' | 'normal-case';
 type Decoration = 'underline' | 'line-through' | 'no-underline';
 type DecorationStyle = 'solid' | 'double' | 'dotted' | 'dashed' | 'wavy';
-type Font = 'primary' | 'secondary' | 'mono';
+/** `primary` and `secondary` are older names for `sans` and `display`. */
+type Font = 'sans' | 'display' | 'mono' | 'primary' | 'secondary';
 type Tracking = 'tighter' | 'tight' | 'normal' | 'wide' | 'wider' | 'widest';
 type Leading = 'none' | 'tight' | 'snug' | 'normal' | 'relaxed' | 'loose';
 type Wrap = 'wrap' | 'nowrap' | 'balance' | 'pretty';
@@ -138,23 +144,31 @@ const weightClass = computed(() => {
  return weightMap[effectiveWeight] || '';
 });
 
-// Color classes
+// Color classes. Text uses the *-text tokens: the solid fills (success, warning…) are for
+// backgrounds and fail contrast as text, and Ink's accent is ink, so accent text is accent-text.
+// token-scan: off
+const TEXT_COLORS: Record<string, string> = {
+ text: 'text-text',
+ 'text-muted': 'text-text-muted',
+ 'text-subtle': 'text-text-subtle',
+ accent: 'text-accent-text',
+ success: 'text-success-text',
+ warning: 'text-warning-text',
+ danger: 'text-danger-text',
+ info: 'text-info-text',
+ primary: 'text-accent-text',
+ secondary: 'text-text-muted',
+ 'text-secondary': 'text-text-muted',
+ // Kept from the phase 3 rename so code written against it still resolves.
+ 'text-text-muted': 'text-text-muted',
+ error: 'text-danger-text',
+};
+// token-scan: on
+
 const colorClass = computed(() => {
  if (!props.color) return '';
 
- const colorMap: Record<string, string> = {
- primary: 'text-accent',
- secondary: 'text-text-muted',
- accent: 'text-accent',
- text: 'text-text',
- 'text-text-muted': 'text-text-muted',
- success: 'text-success',
- warning: 'text-warning',
- error: 'text-danger-text',
- info: 'text-info',
- };
-
- return colorMap[props.color] || '';
+ return TEXT_COLORS[props.color] || '';
 });
 
 // Alignment classes
@@ -219,9 +233,11 @@ const fontClass = computed(() => {
  if (!props.font) return '';
 
  const fontMap: Record<string, string> = {
- primary: 'font-[var(--font-primary)]',
- secondary: 'font-[var(--font-secondary)]',
- mono: 'font-[var(--font-mono)]',
+ sans: 'font-sans',
+ display: 'font-display',
+ mono: 'font-mono',
+ primary: 'font-sans',
+ secondary: 'font-display',
  };
 
  return fontMap[props.font] || '';
@@ -419,7 +435,7 @@ const computedStyles = computed(() => {
  }
 
  // Custom color handling (non-theme colors)
- if (props.color && !['primary', 'secondary', 'accent', 'text', 'text-text-muted', 'success', 'warning', 'error', 'info'].includes(props.color)) {
+ if (props.color && !(props.color in TEXT_COLORS)) {
  styles.color = props.color;
  }
 
@@ -465,12 +481,21 @@ const computedStyles = computed(() => {
 
 // Helper function to get gradient colors
 const getGradientColor = (color: string): string => {
+ // Gradient text is display type, so the stops read from the text-safe tokens too.
+ // token-scan: off
  const colorMap: Record<string, string> = {
-  accent: 'var(--color-accent)', success: 'var(--color-success)',
- warning: 'var(--color-warning)',
- error: 'var(--color-danger)',
- info: 'var(--color-info)',
+ text: 'var(--color-text)',
+ 'text-muted': 'var(--color-text-muted)',
+ accent: 'var(--color-accent-text)',
+ primary: 'var(--color-accent-text)',
+ secondary: 'var(--color-text-muted)',
+ success: 'var(--color-success-text)',
+ warning: 'var(--color-warning-text)',
+ danger: 'var(--color-danger-text)',
+ error: 'var(--color-danger-text)',
+ info: 'var(--color-info-text)',
  };
+ // token-scan: on
 
  return colorMap[color] || color;
 };

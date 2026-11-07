@@ -135,16 +135,21 @@ Phase 5 replaced `useColorCustomizer` with `useThemeCustomizer`, which needs onl
 
 ## Before the merge (phase 6)
 
-- [ ] AppTable column switch: the knob is `bg-white`; it needs a token that reads on both the
-  `bg-accent` (on) and `bg-border` (off) track in all six combinations.
-- [ ] `vuetail-docs/audit-plan.md` is the pre-Ink docs plan, superseded by this one: delete it.
-- [ ] AppText: phase 3's rename turned the `color` value `'text-secondary'` into `'text-text-muted'`.
-  That is a prop value, not a class: pick the public name (`'text-muted'`?) and keep the old one
-  working. The template's `types/text.types.ts` (imported by nothing) still lists the old names.
-- [ ] Template `pnpm check`: 13 files untouched by the redesign already fail `oxfmt --check` on `main`.
+- [x] AppTable column switch: on is `accent-fg` on `accent`, off is `text-muted` on `muted` inside a
+  `border-strong` edge, all pairs the checker holds to AA; `rounded-switch` corners.
+- [x] `vuetail-docs/audit-plan.md` deleted.
+- [x] AppText: `color` takes `text`, `text-muted`, `text-subtle`, `accent`, `success`, `warning`,
+  `danger`, `info`, mapped to the text-safe tokens (`accent-text`, `*-text`); `primary`,
+  `secondary`, `text-secondary`, `error` and `text-text-muted` still work. `font` takes `sans`,
+  `display`, `mono` (`primary` / `secondary` still work); the old `--font-primary` variable no
+  longer existed. Gradient stops gained `primary`. The template's `text.types.ts` matches.
+- [x] Template `pnpm check`: the format failures were CRLF only; `check` also called a missing
+  `typecheck` script, now added. It passes.
 
-Usage check as of phase 3b: 0 old names, 15 raw palette, 46 raw hex, all intentional except the
-AppTable knob.
+`// token-scan: off` … `// token-scan: on` in a source file hides prop values that look like
+classes from `check --usage` (AppText uses it).
+
+Usage check before the merge: 0 old names, 14 raw palette, 46 raw hex, all intentional.
 
 ## Checks
 
