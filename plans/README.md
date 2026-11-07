@@ -3,7 +3,7 @@
 The default look is **Ink**; **Pine** and **Console** are presets (`<html data-vt-preset="…">`).
 The contract is [DESIGN.md](../DESIGN.md); token values live in `styles/tokens.mjs`.
 Work happens on the `redesign` branch of vuetail-components and vuetail-docs, and, from phase 4, vuetail-template;
-it reaches the live site (vuetail-docs.vercel.app) only when they merge.
+it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026-11-08.
 
 | Phase | Work | Status |
 |---|---|---|
@@ -14,7 +14,7 @@ it reaches the live site (vuetail-docs.vercel.app) only when they merge.
 | 3b | Motion on the tokens: ease-out exits, token durations, reduced motion, no `transition-all` | Done |
 | 4 | vuetail-template adopts the tokens, the new `theme.ts` and the CLI `styles` entry | Done |
 | 5 | `useThemeCustomizer` (replaces `useColorCustomizer`): the five settings on top of any preset | Done |
-| 6 | Merge `redesign` into components `main`, then docs `master` and template `main` | **Next, after the pre-merge list** |
+| 6 | Merge `redesign` into components `main`, then docs `master` and template `main` | Done 2026-11-08: live on vuetail-docs.vercel.app |
 
 ## Phase 4 plan
 
