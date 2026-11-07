@@ -12,8 +12,8 @@ it reaches the live site (vuetail-docs.vercel.app) only when they merge.
 | 2 | Docs load the tokens; Ink shell, home page, preset switcher; `useAppUi` presets | Done |
 | 3 | Every component on the token vocabulary (0 old names) | Done |
 | 3b | Motion on the tokens: ease-out exits, token durations, reduced motion, no `transition-all` | Done |
-| 4 | vuetail-template adopts the tokens, the new `theme.ts` and the CLI `styles` entry | **Planned — waiting on approval** |
-| 5 | Docs colour customizer rebuilt around the five settings (`useColorCustomizer`, `utils/theme.ts`) | Todo |
+| 4 | vuetail-template adopts the tokens, the new `theme.ts` and the CLI `styles` entry | Done |
+| 5 | Docs colour customizer rebuilt around the five settings (`useColorCustomizer`, `utils/theme.ts`) | **Next** |
 | 6 | Merge `redesign` into components `main`, then docs `master` and template `main` | Todo |
 
 ## Phase 4 plan
@@ -29,48 +29,48 @@ layouts and pages (`_theme.vue` 28, `_routes.vue` 15, the rest 1 to 6 each).
 
 ### 4.1 Registry prep (vuetail-components)
 
-- [ ] `useTheme`: drop `palette` and `getColor`. They read the old palette and nothing uses them
+- [x] `useTheme`: drop `palette` and `getColor`. They read the old palette and nothing uses them
   (`useColorCustomizer` has its own `getColor`). `useTheme` then needs only `defaultTheme` from
   `app.config.ts`, plus `applyThemeToDOM` and `getSystemTheme`.
-- [ ] `scripts/tokens.mjs check --usage --dir <path>`: scan any `src/` (template, docs), not only
+- [x] `scripts/tokens.mjs check --usage --dir <path>`: scan any `src/` (template, docs), not only
   this repo, so the template has a measurable 0.
 
 ### 4.2 Theme plumbing (template)
 
-- [ ] `src/styles/tokens.css`: a copy of the registry's, recorded in `vuetail.json` like a component.
-- [ ] `style.css`: import `./styles/tokens.css`; delete the `@theme` palette, the font variables and
+- [x] `src/styles/tokens.css`: a copy of the registry's, recorded in `vuetail.json` like a component.
+- [x] `style.css`: import `./styles/tokens.css`; delete the `@theme` palette, the font variables and
   the `data-shape` rules; take body, selection, `:focus-visible` and scrollbar rules from docs.
-- [ ] `theme.ts`: the docs version (`Preset`, `theme.preset`, `presetInfo`, `presetFonts`).
-- [ ] `config/app.config.ts` + `types.ts`: `theme` keeps only `defaultTheme`; `typography` drops
+- [x] `theme.ts`: the docs version (`Preset`, `theme.preset`, `presetInfo`, `presetFonts`).
+- [x] `config/app.config.ts` + `types.ts`: `theme` keeps only `defaultTheme`; `typography` drops
   `primary` / `secondary` / `mono` (the tokens own `--font-sans`, `--font-display`, `--font-mono`).
-- [ ] `config/index.ts`: no `applyTheme()`, no `registerFontFamily()` (the docs fix).
-- [ ] `utils/theme.ts`: keep `getSystemTheme` and `applyThemeToDOM`, delete the palette generators.
+- [x] `config/index.ts`: no `applyTheme()`, no `registerFontFamily()` (the docs fix).
+- [x] `utils/theme.ts`: keep `getSystemTheme` and `applyThemeToDOM`, delete the palette generators.
   `utils/fonts.ts`: delete `registerFontFamily` and `applyFontFamily`.
-- [ ] `index.html`: the docs boot script (theme + `app-preset`), no `app-shape`.
-- [ ] `main.ts` imports the Ink faces; `package.json` adds the fontsource packages (decision 1).
+- [x] `index.html`: the docs boot script (theme + `app-preset`), no `app-shape`.
+- [x] `main.ts` imports the Ink faces; `package.json` adds the fontsource packages (decision 1).
 
 ### 4.3 Bundled files to the registry versions
 
-- [ ] Copy over AppEmptyState, AppIcon, AppPageLoader, AppSkeleton, AppToast, ThemeToggle and
+- [x] Copy over AppEmptyState, AppIcon, AppPageLoader, AppSkeleton, AppToast, ThemeToggle and
   useAppUi, useTheme, useToast, useSidebar from `redesign`, recorded in `vuetail.json` at that SHA.
 
 ### 4.4 The template's own pages on the tokens
 
-- [ ] Layouts (Auth, Dashboard, Default), `index.vue`, Login, Offline, ServerError, 404,
+- [x] Layouts (Auth, Dashboard, Default), `index.vue`, Login, Offline, ServerError, 404,
   `_routes.vue`, `types/text.types.ts`.
-- [ ] `_theme.vue` becomes the token preview: preset and light/dark switch, every colour token with
+- [x] `_theme.vue` becomes the token preview: preset and light/dark switch, every colour token with
   its value, type scale, radius, and a row of real controls.
 
 ### 4.5 CLI (`scripts/add.js`)
 
-- [ ] `pnpm add-component styles` installs every `registry.json` `"styles"` entry to
+- [x] `pnpm add-component styles` installs every `registry.json` `"styles"` entry to
   `src/styles/<name>.css`, records it in `vuetail.json`, and `verify` covers it.
-- [ ] Adding any component warns when `src/styles/tokens.css` is missing or differs from the ref
+- [x] Adding any component warns when `src/styles/tokens.css` is missing or differs from the ref
   being installed.
 
 ### 4.6 Docs for the template
 
-- [ ] Template README theming section: pick a preset in `theme.ts`, switch at runtime with
+- [x] Template README theming section: pick a preset in `theme.ts`, switch at runtime with
   `useAppUi`, edit tokens in `styles/tokens.css`; colours no longer live in `app.config.ts`.
 
 ### Verification
@@ -83,15 +83,27 @@ layouts and pages (`_theme.vue` 28, `_routes.vue` 15, the rest 1 to 6 each).
   `node scripts/add.js AppButton --ref redesign` and `styles`, then `verify`.
 - `pnpm build && pnpm test` in docs (4.1 touches `useTheme`).
 
-### Decisions needed before 4.2
+### Decided
 
-1. Fonts: ship all six fontsource packages (Pine and Console load on demand, so the bundle only
-   carries Ink) or Ink only, with Pine and Console falling back to system fonts until added.
-2. `public/font/IBMPlexSansArabic-Regular.ttf`, loaded at boot under the name "IBM Plex Sans", which
-   no token references: delete it, or keep it as a commented `typography.fonts` example.
+1. Fonts: all six fontsource packages ship; Pine and Console load on first use.
+2. `IBMPlexSansArabic-Regular.ttf`: deleted.
 
-Between phase 4 and 5, `useColorCustomizer` does not build against the new template (it imports
-the palette types). Nothing merges before phase 5, so this is fine.
+### Done differently from the plan
+
+- AppToast needs `useMotionTokens` and `useReducedMotion`, so the template ships those two
+  composables as well as `tokens.css`.
+- The template had newer fixes than the registry: `useTheme` with one module-scope OS listener,
+  and AppToast freezing its progress bar while paused. They moved into the registry first.
+- `useAppConfig` lost `primaryFont` / `secondaryFont` / `monoFont`; docs `app.config.ts` and
+  its showcase moved off typography families too.
+- The bundled files are recorded by content, not in a shipped `vuetail.json`: oxfmt reformats
+  them, and the CLI now asks before overwriting an unrecorded file that differs.
+- Verified: template build and lint, 0 old names (`--dir`), all six preset × theme combinations
+  screenshotted with no flash and no console errors, CLI `styles` / add / verify in a scratch copy
+  against pushed `74ff2c2`, docs build and tests.
+
+Until phase 5, `useColorCustomizer` does not build against the new template (it imports the
+palette types), and the template README no longer documents it. Phase 5 brings both back.
 
 ## Known decisions
 
@@ -109,6 +121,10 @@ the palette types). Nothing merges before phase 5, so this is fine.
 - [ ] AppTable column switch: the knob is `bg-white`; it needs a token that reads on both the
   `bg-accent` (on) and `bg-border` (off) track in all six combinations.
 - [ ] `vuetail-docs/audit-plan.md` is the pre-Ink docs plan, superseded by this one: delete it.
+- [ ] AppText: phase 3's rename turned the `color` value `'text-secondary'` into `'text-text-muted'`.
+  That is a prop value, not a class: pick the public name (`'text-muted'`?) and keep the old one
+  working. The template's `types/text.types.ts` (imported by nothing) still lists the old names.
+- [ ] Template `pnpm check`: 13 files untouched by the redesign already fail `oxfmt --check` on `main`.
 
 Usage check as of phase 3b: 0 old names, 15 raw palette, 46 raw hex, all intentional except the
 AppTable knob.
