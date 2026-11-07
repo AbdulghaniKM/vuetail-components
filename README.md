@@ -1103,6 +1103,86 @@ The bar listens to `window` by default. When the page scrolls inside a container
 
 ---
 
+### AppNotificationPreview
+
+A lock-screen picture of a push notification, for the preview beside a "send notification" form. It draws the notification the way an iPhone or an Android phone would, clamps the text the way each one does, and says when the lock screen will cut the title or the message off.
+
+```bash
+pnpm add-component AppNotificationPreview
+```
+
+Pulls in `AppIcon` and `useReducedMotion`.
+
+#### Props
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `appName` | `string` | `'App'` | The app name above the notification. Its initial is the fallback icon |
+| `title` | `string` | `''` | One line on both platforms |
+| `message` | `string` | `''` | Four lines on iOS, two on Android. Line breaks are kept |
+| `icon` | `string` | `''` | Iconify name for the app icon |
+| `iconSrc` | `string` | `''` | Image URL for the app icon. Wins over `icon` |
+| `image` | `string` | `''` | Attached image. Below the text on iOS, a thumbnail beside it on Android until expanded |
+| `platform` | `'ios' \| 'android'` | `'ios'` | Which phone draws it |
+| `appearance` | `'light' \| 'dark'` | `'light'` | The card's own theme, independent of the site's |
+| `expanded` | `boolean` | `false` | The long-press view: no clamps |
+| `time` | `Date \| string \| number` | now | What the lock-screen clock shows |
+| `live` | `boolean` | `true` | Re-reads the clock every 30s while no `time` is given |
+| `locale` | `string` | the browser's | BCP 47 locale for the clock, passed to `Intl` |
+| `when` | `string` | `'now'` | The timestamp on the card |
+| `stack` | `number` | `0` | Notifications waiting behind this one. Up to 2 are drawn |
+| `wallpaper` | `string` | deep blue | Any CSS background, set on `--np-wallpaper`. Keep it dark enough for the white clock |
+| `titlePlaceholder` | `string` | `'Your title'` | Shown, dimmed, while `title` is empty |
+| `messagePlaceholder` | `string` | `'Your message shows here.'` | Shown, dimmed, while `message` is empty |
+| `caption` | `string` | `''` | A note under the phone |
+| `warnCutoff` | `boolean` | `true` | Measure the clamps and say when text is cut. Off for a static picture |
+| `cutoffLabel` | `string` | `'The lock screen cuts the {part} off. Long-press shows the rest.'` | `{part}` becomes `title`, `message` or `title and message` |
+
+#### Slots
+
+| Slot | Scope | For |
+|---|---|---|
+| `icon` | — | The app icon, replacing `iconSrc`, `icon` and the initial |
+| `caption` | `{ titleCut, messageCut }` | The note under the phone. The cut-off warning still follows it |
+
+#### Emits
+
+| Event | Payload | When |
+|---|---|---|
+| `truncate` | `{ title: boolean; message: boolean }` | What the lock screen cuts off changes. Use it to warn or block sending |
+
+#### Accessibility
+
+The screen is one `role="img"` whose label is the notification itself: the platform, the app, the title and the message, and whether there is an image. The clock and the stacked cards are `aria-hidden`; they are decoration to a screen reader. The cut-off warning is a `role="status"`, so it is announced as the text crosses the limit.
+
+```vue
+<template>
+  <InputField v-model="title" label="Title" />
+  <Textarea v-model="message" label="Message" />
+  <AppNotificationPreview
+    class="max-w-[22rem]"
+    app-name="Kashfia"
+    :title="title"
+    :message="message"
+    :platform="platform"
+    @truncate="(cut) => (tooLong = cut.title || cut.message)"
+  />
+</template>
+```
+
+The preview is `w-full`. Give it a width, about `max-w-[22rem]`, or it collapses inside a centring flex parent.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Swap the phone's colours, radii and system font for tokens | It depicts a phone, not a piece of the app. Preset-driven colours would make an iPhone change colour with the site's theme. It reads the same in every preset and theme on purpose |
+| Work out the cut-off from character counts | The clamps are CSS, and where a line breaks depends on the font, the width and the script. Measuring `scrollHeight` against `clientHeight` is the only way to know what the phone hides |
+| Key the arrival animation on the text | Typing would replay it on every keystroke. It is keyed on `platform` and `expanded`, the changes a real card animates for |
+| Size the clock with `vw` | The phone is a fraction of the viewport. Container units size the clock to the phone, so it stays in proportion at any width |
+
+---
+
 ### AdvancedAppTable
 
 A data table that also knows how to stop being a table. The same column config renders as

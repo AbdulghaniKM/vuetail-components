@@ -16,6 +16,7 @@
     "AppMagnifier",
     "AppModal",
     "AppNavbar",
+    "AppNotificationPreview",
     "AppPageLoader",
     "AppPopover",
     "AppSkeleton",
@@ -107,6 +108,7 @@
     "RibbonField": ["useReducedMotion"],
     "AppDock": ["AppIcon", "useDockPosition", "useDockDrag", "useDockFlight", "useKeyboard"],
     "AppNavbar": ["AppIcon", "useReducedMotion"],
+    "AppNotificationPreview": ["AppIcon", "useReducedMotion"],
     "useDockDrag": ["useDockPosition", "useDockFlight", "useKeyboard"],
     "useDockFlight": ["useDockPosition"]
   },
