@@ -45,7 +45,6 @@
     "useAuth",
     "useBreakpoint",
     "useClipboard",
-    "useColorCustomizer",
     "useConfirm",
     "useDateFormat",
     "useDebounce",
@@ -64,6 +63,7 @@
     "useSidebar",
     "useTableDisplay",
     "useTheme",
+    "useThemeCustomizer",
     "useToast"
   ],
   "styles": ["tokens"],
@@ -102,7 +102,7 @@
     "Fields/Select": ["AppIcon"],
     "Fields/Textarea": [],
     "Fields/TimePickerClock": ["AppIcon"],
-    "useColorCustomizer": ["useTheme"],
+    "useThemeCustomizer": ["useAppUi"],
     "useConfirm": ["ConfirmDangerModal"],
     "RibbonField": ["useReducedMotion"],
     "AppDock": ["AppIcon", "useDockPosition", "useDockDrag", "useDockFlight", "useKeyboard"],
@@ -124,8 +124,8 @@
     "useAppConfig": {
       "files": ["src/config/app.config.ts", "src/config/types.ts", "src/config/index.ts"]
     },
-    "useColorCustomizer": {
-      "files": ["src/utils/theme.ts", "src/config/app.config.ts", "src/config/types.ts"]
+    "useThemeCustomizer": {
+      "files": ["src/theme.ts"]
     },
     "useDateFormat": {
       "files": ["src/utils/date.ts"],

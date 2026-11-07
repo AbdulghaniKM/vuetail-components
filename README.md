@@ -770,7 +770,7 @@ With no `ramps`, each ribbon's 5-stop ramp is built at runtime from the theme to
 - ribbon 0 ← `--color-primary`
 - ribbon 1 ← `--color-secondary`, or a drained `--color-primary` where the theme defines no distinct secondary
 
-The tokens are re-read on every route a theme can change through — the `data-theme` attribute, the injected `#app-theme-variables` stylesheet that `useColorCustomizer` rewrites, and the OS preference while the app follows the system — so the field tracks the app instead of drifting from it.
+The tokens are re-read on every route a theme can change through — the `data-theme` attribute, the injected `#app-theme-variables` stylesheet that `useThemeCustomizer` rewrites, the `data-vt-preset` attribute, and the OS preference while the app follows the system — so the field tracks the app instead of drifting from it.
 
 #### Responsiveness
 
@@ -907,7 +907,7 @@ palette — alongside navigation.
 
 The pill is deliberately dark in both themes — it floats over the page as system furniture rather than a surface belonging to it — and ships self-contained in the component's `<style>` block, so there is nothing to paste into `style.css`.
 
-The **tiles** are the part that follows the theme: `hue` names your own semantic tokens, so a light/dark swap or a `useColorCustomizer` change carries the dock with it. An active tile is a 25% tint of its hue with the hue as ink and a glow beneath, rather than the solid fill the design was first drawn with — a solid fill needs ink picked per colour to stay legible, and these hues are whatever the app's tokens happen to be.
+The **tiles** are the part that follows the theme: `hue` names your own semantic tokens, so a light/dark swap, a preset switch or a `useThemeCustomizer` change carries the dock with it. An active tile is a 25% tint of its hue with the hue as ink and a glow beneath, rather than the solid fill the design was first drawn with — a solid fill needs ink picked per colour to stay legible, and these hues are whatever the app's tokens happen to be.
 
 #### Mounting it
 

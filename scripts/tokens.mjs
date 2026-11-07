@@ -199,6 +199,53 @@ function checkContrast(errors, warnings) {
   return rows;
 }
 
+// ─── useThemeCustomizer preset table ───────────────────────────────────────────────────
+// The customizer derives values from each preset's neutrals, fonts and density. It is a
+// copy-in composable with no access to this file, so build writes the table into it.
+
+const CUSTOMIZER_PATH = path.join(ROOT, 'composables', 'useThemeCustomizer.ts');
+const GEN_START = '// <generated:presets>';
+const GEN_END = '// </generated:presets>';
+const CUSTOMIZER_COLORS = ['bg', 'surface', 'surface-raised', 'muted', 'border', 'border-strong', 'text', 'text-muted', 'text-subtle', 'accent-text', 'ring'];
+
+function customizerTable() {
+  const key = (k) => (/^[a-z]+$/.test(k) ? k : `'${k}'`);
+  const obj = (o) => `{ ${Object.entries(o).map(([k, v]) => `${key(k)}: '${v}'`).join(', ')} }`;
+  const lines = ['const PRESETS = {'];
+  for (const [name, p] of Object.entries(presets)) {
+    const pick = (mode) => {
+      const colors = { ...presets.ink[mode].colors, ...p[mode]?.colors };
+      return Object.fromEntries(CUSTOMIZER_COLORS.map((k) => [k, colors[k]]));
+    };
+    lines.push(
+      `  ${name}: {`,
+      `    fonts: ${obj({ ...presets.ink.fonts, ...p.fonts })},`,
+      `    density: ${obj({ ...presets.ink.density, ...p.density })},`,
+      `    light: ${obj(pick('light'))},`,
+      `    dark: ${obj(pick('dark'))},`,
+      '  },',
+    );
+  }
+  lines.push('} as const;');
+  return lines.join('\n');
+}
+
+function withCustomizerTable(text) {
+  const a = text.indexOf(GEN_START);
+  const b = text.indexOf(GEN_END);
+  if (a < 0 || b < a) throw new Error(`${GEN_START} … ${GEN_END} markers missing in useThemeCustomizer.ts`);
+  const afterStart = text.indexOf('\n', a) + 1;
+  return text.slice(0, afterStart) + customizerTable() + '\n' + text.slice(b);
+}
+
+function checkCustomizer(errors) {
+  if (!fs.existsSync(CUSTOMIZER_PATH)) return;
+  const current = fs.readFileSync(CUSTOMIZER_PATH, 'utf8').replace(/\r\n/g, '\n');
+  if (current !== withCustomizerTable(current)) {
+    errors.push('composables/useThemeCustomizer.ts preset table is out of date: run `node scripts/tokens.mjs build`');
+  }
+}
+
 function checkCss(errors) {
   const current = fs.existsSync(CSS_PATH) ? fs.readFileSync(CSS_PATH, 'utf8').replace(/\r\n/g, '\n') : '';
   if (current !== buildCss()) errors.push('styles/tokens.css is out of date: run `node scripts/tokens.mjs build`');
@@ -232,7 +279,8 @@ function walk(dir) {
 function scanUsage(dirs) {
   const vocab = new Set(Object.keys({ ...presets.ink.light.colors, ...status.light }));
   const roots = dirs.length ? dirs.map((d) => path.resolve(d)) : [path.join(ROOT, 'components'), path.join(ROOT, 'composables')];
-  const files = roots.flatMap(walk);
+  // useThemeCustomizer carries the preset table as data (hex values, token names as strings).
+  const files = roots.flatMap(walk).filter((f) => path.resolve(f) !== CUSTOMIZER_PATH);
   const report = [];
   const totals = { rename: 0, misuse: 0, palette: 0, unknown: 0, hex: 0 };
   for (const file of files) {
@@ -272,12 +320,19 @@ if (cmd === 'build') {
   fs.mkdirSync(path.dirname(CSS_PATH), { recursive: true });
   fs.writeFileSync(CSS_PATH, buildCss());
   console.log(`wrote ${path.relative(ROOT, CSS_PATH)}`);
+  if (fs.existsSync(CUSTOMIZER_PATH)) {
+    const raw = fs.readFileSync(CUSTOMIZER_PATH, 'utf8');
+    const next = withCustomizerTable(raw.replace(/\r\n/g, '\n'));
+    fs.writeFileSync(CUSTOMIZER_PATH, raw.includes('\r\n') ? next.replace(/\n/g, '\r\n') : next);
+    console.log(`wrote the preset table in ${path.relative(ROOT, CUSTOMIZER_PATH)}`);
+  }
 } else if (cmd === 'check') {
   const errors = [];
   const warnings = [];
   checkShape(errors);
   const rows = checkContrast(errors, warnings);
   checkCss(errors);
+  checkCustomizer(errors);
   console.log('Contrast, WCAG AA:');
   console.log(rows.join('\n'));
   for (const w of warnings) console.log(`  advisory: ${w}`);

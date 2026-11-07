@@ -607,10 +607,10 @@
       document.addEventListener('visibilitychange', onVisibility);
 
       // A theme swap rewrites the tokens the ramps and the word are sampled from,
-      // so re-read on all three routes that can change them: the `data-theme`
-      // attribute (`applyThemeToDOM`), the injected variables stylesheet
-      // (`applyTheme`, which the color customizer rewrites in place), and the OS
-      // preference while the app is following the system.
+      // so re-read on every route that can change them: the `data-theme` and
+      // `data-vt-preset` attributes, the `#app-theme-variables` stylesheet that
+      // useThemeCustomizer adds, rewrites and removes, and the OS preference while
+      // the app is following the system.
       const onThemeChange = () => {
         readTheme();
         measureWord();
@@ -620,14 +620,19 @@
       const themeAttr = new MutationObserver(onThemeChange);
       themeAttr.observe(document.documentElement, {
         attributes: true,
-        attributeFilter: ['data-theme'],
+        attributeFilter: ['data-theme', 'data-vt-preset'],
       });
 
-      const themeVars = new MutationObserver(onThemeChange);
-      const varsElement = document.getElementById('app-theme-variables');
-      if (varsElement) {
-        themeVars.observe(varsElement, { childList: true, characterData: true, subtree: true });
-      }
+      // Watch <head>, not the element: the stylesheet may not exist yet, and reset removes it.
+      const isVars = (node: Node | null) =>
+        !!node && (node instanceof Element ? node : node.parentElement)?.closest('#app-theme-variables') != null;
+      const themeVars = new MutationObserver((records) => {
+        const touched = records.some(
+          (r) => isVars(r.target) || [...r.addedNodes, ...r.removedNodes].some((n) => (n as Element).id === 'app-theme-variables'),
+        );
+        if (touched) onThemeChange();
+      });
+      themeVars.observe(document.head, { childList: true, characterData: true, subtree: true });
 
       const systemScheme = window.matchMedia('(prefers-color-scheme: dark)');
       systemScheme.addEventListener('change', onThemeChange);
