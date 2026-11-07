@@ -1345,19 +1345,22 @@ These are not style preferences. Break one and the table quietly stops working.
 
 ### AppLiquidGlass
 
-A pane of real glass. The bevelled edge **refracts** whatever sits behind it — computed from
-Snell's law, not faked with a blur — so straight lines behind the rim bend the way they do
-through a physical lens.
+A pane of real glass. Its rim **bends** whatever sits behind it, fringed red to blue, and catches
+light the way iOS 26.1 draws it, so straight lines behind the edge curve the way they do through
+a physical lens.
 
 ```bash
 pnpm add-component AppLiquidGlass
 ```
 
-Pulls in `useLiquidGlass`. No packages: the whole effect is a generated bitmap, one SVG filter,
-and one line of CSS.
+Pulls in `useLiquidGlass`. No packages: the whole effect is generated bitmaps, SVG filters, and
+a few lines of CSS.
 
-Based on the technique in [kube.io/blog/liquid-glass-css-svg](https://kube.io/blog/liquid-glass-css-svg/).
-That article works out the maths and does not ship an implementation; this is one.
+**The lens is ported from [glisse](https://github.com/0kzh/glisse)** by Kelvin Zhang, a faithful
+implementation of Apple's Liquid Glass for the web (MIT; the licence is reproduced at the top of
+`useLiquidGlass.ts`). glisse is itself after Aave's web glass. VueTail keeps its own Vue API,
+variants and tokens on top, maps its physical props (`thickness`, `refractiveIndex`, `profile`)
+onto glisse's lens, and adds a radial zoom for `AppMagnifier`.
 
 #### Where glass belongs
 
@@ -1390,67 +1393,74 @@ Clear without its dimming layer is the single most common way to get this wrong:
 of its own, legibility has nowhere to come from. `dim` defaults to `0.18` under Clear and `0`
 under Regular, and it is painted *below* the frost so the blur samples it.
 
-A variant is a set of defaults, not a lock — any prop you pass still wins.
+A variant is a set of defaults, not a lock — any prop you pass still wins. Regular's 14px frost
+softens the bend; glisse's own glass frosts 3px, so pass `:blur="3"` for its look.
 
 #### How it works — five layers
 
 ```
    content          your children
-   specular         a masked gradient rim: light travels around the perimeter
+   specular         the painted rim (iOS 26.1), plus a faint inner glow
    tint             the tone fill, plus the tone's hairline edge
-   refract          backdrop-filter: url(#…)   ← bends what the layer below produced
+   refract          backdrop-filter: url(#vt-glass-…)   ← bends what the layer below produced
    blur             backdrop-filter: blur() saturate() brightness()
    dim              a black wash, Clear only
 ```
 
-Blur and bend are **separate layers on purpose**. A single `backdrop-filter` chain would blur
-after bending and smear the refraction away; stacking them means the bend operates on an
-already-frosted image, which is the order real glass works in.
+Blur and bend are **separate layers on purpose**: the bend operates on an already-frosted image,
+the order glass works in.
 
-`feDisplacementMap` offsets every pixel by a vector read out of a second image — red is the x
-offset, green is y, and 128 means "don't move". So the whole job is *computing that image*:
-
-1. **A 1-D profile.** Trace one refracted ray per step across the bevel and record how far
-   sideways it lands. Displacement depends only on distance-from-the-edge, so a single lookup
-   table covers the entire shape.
-2. **A signed distance field.** For a rounded rectangle the distance to the nearest edge *and*
-   the direction to it are both closed-form, so that 1-D table can be smeared over 2-D without
-   tracing anything per pixel.
-3. **Encode and hand it over.** `r = 128 + x * 127`, `g = 128 + y * 127`, and the filter's
-   `scale` is twice the largest vector in the field.
+The lens is glisse's. Within a band round the rim (`bezel`, a quarter of the short side by
+default) each point shows content from further in, by the slope of a shallow dome across the
+pane; an error function fades it out toward the middle, which barely moves. The pull is stored as
+**two grey images, one per direction**, not one red/green image: on a wide-gamut display Chrome
+converts a coloured map to the display's colours before displacing, which bends a pull straight
+down sideways too, while greys come through unchanged. Each pass takes the other direction from an
+alpha of one half, which is no pull.
 
 ```html
-<filter id="glass" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-  <feImage href="data:image/png;base64,…" result="displacement" />
-  <feDisplacementMap in="SourceGraphic" in2="displacement"
-                     scale="21.8" xChannelSelector="R" yChannelSelector="G" />
+<filter id="vt-glass-0" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+  <feImage href="data:…across" result="across" />
+  <feImage href="data:…down" result="down" />
+  <feDisplacementMap in="SourceGraphic" in2="across-pull" scale="70"
+                     xChannelSelector="R" yChannelSelector="A" />
+  <!-- …then down, and the same for green and blue at slightly smaller scales -->
 </filter>
 ```
-```css
-.pane { backdrop-filter: url(#glass) saturate(1.6); }
-```
 
-`color-interpolation-filters="sRGB"` is not optional — the default is linearRGB, which converts
-the channels out from under the encoding and quietly ruins the field.
+Filters live in one hidden `<defs>` for the page, cached by shape and settings: twenty buttons of
+the same size share one.
+
+#### Every browser, with a marked backdrop
+
+**Only Chromium applies an SVG filter to a live backdrop.** Firefox and Safari parse
+`backdrop-filter: url(…)` and ignore it, so `CSS.supports()` is useless as a test and the engine
+sniffs for Chromium.
+
+Everywhere else, do what glisse does: **mark the content behind the glass with
+`data-glass-backdrop`.** The pane then filters that element itself, with its lens placed where the
+pane stands, refreshed every frame so it follows scrolling and dragging. That works in every
+browser. Keep marked content reasonably small where a lens moves over it: Safari redraws the filter
+on the CPU, about 40ms a frame for 1200 × 800 at 2x. Over anything unmarked, those browsers keep
+the frost, the tint, the painted rim and the shadow.
+
+`source` overrides the choice: `content` filters the marked element in Chromium too, `backdrop`
+never touches content. The pane exposes `mode` (`backdrop`, `content` or `none`).
 
 #### Chromatic dispersion
 
 Real glass splits light: a lens rim fringes because each wavelength bends by a different amount.
-`dispersion` (px) reproduces it by displacing the channels at three different scales and
-recombining them — red furthest, blue least — via `feColorMatrix` masks and arithmetic
-`feComposite`. Only the first pass carries alpha, so adding the three back does not triple it.
+Every pass is run three times, red bending furthest: at `dispersion: 0.08` (glisse's default)
+red bends 8% and green 4% further than blue, and the three are added back up with each keeping a
+third of its alpha.
 
-It is the cue that most separates glass from frosted plastic, and it costs **three displacement
-passes instead of one**. On by default for panes (1.5px) and off for buttons, where it is
-invisible at that size and the cost multiplies by however many are on screen.
+#### The lit rim
 
-#### The specular rim
-
-A uniform ring reads as a stroke. The rim here is a linear gradient masked down to `rim` px with
-`mask-composite`, so brightness travels around the perimeter — strong on the edges facing
-`lightAngle`, weaker on the far side — with a soft inner glow that gives the pane a thickness
-rather than an outline. It dims automatically in dark mode, where a rim at full strength reads as
-a white outline.
+A uniform ring reads as a stroke. The rim is painted per shape from glisse's measurements of iOS
+26.1: a line brightest at the very edge and gone `rim` px in (1.22), slightly bowed, lighting the
+sides that face `lightAngle` and, as its reflection, the opposite sides, fading over the corners
+between and a little wider on the corners it faces. It is 0.3 of white over a light page and 0.13
+over a dark one (`--lg-rim-shine`), and repaints when the theme or preset changes.
 
 #### Accessibility
 
@@ -1460,86 +1470,84 @@ material off":
 | Setting | The guide says | What the pane does |
 |---|---|---|
 | **Reduce Transparency** | "makes glass frostier" | Refraction goes — bending content someone asked to see *less* of is backwards — but the material stays. Frost roughly doubles and the tint densifies, so the pane still reads as a layer above the content rather than a flat card |
-| **Increase Contrast** | "makes elements predominantly black/white"; the test is "verify contrasting borders appear" | A real 2px border in black or white depending on scheme, the tint pushed most of the way to opaque, and the specular rim dropped — a soft gradient edge is the opposite of an unambiguous one |
+| **Increase Contrast** | "makes elements predominantly black/white"; the test is "verify contrasting borders appear" | A real 2px border in black or white depending on scheme, the tint pushed most of the way to opaque, and the lit rim dropped — a soft edge is the opposite of an unambiguous one |
 | **Reduce Motion** | "elastic properties disabled" | The hover lift and transitions go |
 
 Getting the first one wrong is easy and quiet: stripping `backdrop-filter` entirely *looks* like
 respecting the request, and instead destroys the layer separation the whole design depends on.
-
-#### ⚠️ Chromium only, by design of the platform
-
-**Only Chromium runs an SVG filter inside `backdrop-filter`.** Firefox and Safari *accept* the
-value and then silently ignore it, so `CSS.supports()` answers yes in all three and is useless
-here. The component sniffs for Chromium instead, and everywhere the answer is no it swaps the
-refraction for `fallbackBlur` while keeping the tint, the specular rim and the shadow — it still
-reads as glass, it just doesn't bend. `supportsSvgBackdropFilter()` is exported if you want to
-branch on it yourself.
 
 #### Props
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `variant` | `GlassVariant` | `'regular'` | `regular` frosts and is safe anywhere; `clear` is transparent and brings a dimming layer. See above |
-| `dispersion` | `number` | `1.5` | Channel separation at the rim, in px. Three filter passes instead of one; `0` disables |
+| `dispersion` | `number` | `0.08` | How much further red bends than blue, as a fraction. Past ~0.2 it stops reading as glass. Clamped to 0.4 |
 | `dim` | `number` | per variant | Darkens what is behind the glass, `0`–`1`, painted under the frost. Clear `0.18`, Regular `0` |
-| `rim` / `lightAngle` | `number` | `1.5` / `145` | Thickness of the specular rim, and where the light comes from |
-| `radius` | `number` | `24` | Corner radius in px, baked into the refraction as well as the CSS. Half the short side gives a circle |
-| `bezel` | `number` | `18` | How far the curved edge reaches in. **The entire effect lives in this band** — past it the pane is flat. `0` removes it |
-| `thickness` | `number` | `22` | Glass depth: how far a refracted ray travels before it lands. The strength dial. `0` renders flat |
-| `refractiveIndex` | `number` | `1.5` | Air is 1, window glass ~1.5, diamond 2.4. Higher bends harder |
-| `profile` | `GlassProfile` | `'squircle'` | Cross-section of the bevel — see below |
-| `magnification` | `number` | `1` | A plain radial zoom on top of the refraction. Refraction alone only ever affects the bevel; this is what reaches the middle |
-| `maxDisplacement` | `number` | `48` | Ceiling on the refraction term. A near-vertical bevel refracts almost infinitely and would spend the whole 8-bit range on one ring |
-| `resolution` | `number` | `0` (auto) | Pixel density of the generated map. `0` picks: full up to 180px, half beyond, where the field is broad enough that nobody can tell. Capped at 3 |
-| `blur` / `fallbackBlur` | `number` | per variant / `12` | `fallbackBlur` applies where the filter *cannot* run — not merely before the map is ready, or a Clear pane would flash frosted on every mount |
+| `rim` / `lightAngle` | `number` | `1.22` / `135` | Width of the lit line in px, and where the light comes from as a CSS gradient angle |
+| `radius` | `number` | `24` | Corner radius in px, baked into the lens as well as the CSS. Half the short side gives a circle |
+| `bezel` | `number \| 'auto'` | `'auto'` | Width of the band that bends, in px. `auto` is a quarter of the short side, glisse's tuning |
+| `thickness` | `number` | `22` | The strength dial. With `refractiveIndex`: 22 at 1.5 reaches 0.45 of the short side, glisse's default. `0` renders flat |
+| `refractiveIndex` | `number` | `1.5` | Air is 1 (no bend). The reach grows with how far it is above 1 |
+| `profile` | `GlassProfile` | `'squircle'` | The dome the bend follows — see below |
+| `magnification` | `number` | `1` | A radial zoom over the whole pane, on top of the rim. With a zoom the rim is scaled down just enough that the picture never folds back on itself |
+| `maxDisplacement` | `number` | `0` | Ceiling on how far any point moves, in px. `0` leaves it to the lens, which never moves content more than half its reach |
+| `resolution` | `number` | `0` (auto) | Map density in pixels per px. `0` follows the screen, up to 2 |
+| `source` | `GlassSource` | `'auto'` | What bends: `auto`, `backdrop` or `content`. See above |
+| `blur` / `fallbackBlur` | `number` | per variant / `12` | `fallbackBlur` applies where nothing bends — not merely before the first measurement, or a Clear pane would flash frosted on every mount |
 | `saturate` / `brightness` | `number` | per variant | Applied to the backdrop. Lifting both is what stops glass reading as grey film |
 | `tone` | `string` | `'#ffffff'` | **The colour the glass takes on.** One value in, three out — the fill, the lit rim and the glow beneath are all mixed from it. Accepts a `var()` with a fallback |
 | `toneStrength` | `number` | `14` | How much of `tone` reaches the fill, as a percentage. ~8 is plain glass with a hint; past ~25 it reads as paint |
 | `tint` | `string` | derived | Overrides the derived fill outright. `''` removes the layer |
-| `specular` | `boolean` | `true` | The lit rim — bright one side, dim the other, with an inner glow so the pane reads as a thickness rather than a border |
+| `specular` | `boolean` | `true` | The painted rim and the inner glow |
 | `shadow` / `interactive` | `boolean` | `true` / `false` | Drop shadow, and a small lift on hover |
-| `disabled` | `boolean` | `false` | Stops generating the map and leaves the fallback blur |
+| `disabled` | `boolean` | `false` | Stops the lens and leaves the fallback blur |
 | `as` | `string` | `'div'` | Root tag. `span` when the pane sits in an inline flow, as `AppButton` does |
 
 ```ts
 type GlassProfile = 'convex' | 'squircle' | 'concave' | 'lip';
+type GlassSource = 'auto' | 'backdrop' | 'content';
 ```
 
-| Profile | Shape | Reads as |
+| Profile | Dome | Reads as |
 |---|---|---|
-| `convex` | quarter circle | A plain lens. Magnifies |
-| `squircle` | `⁴√(1 - (1-t)⁴)` | Apple's curve — the bend concentrates into a thinner, harder rim |
-| `concave` | inverted convex | The lens inverted: pushes the backdrop outward instead of pulling it in |
-| `lip` | convex → concave | Bends one way then the other across the band |
+| `squircle` | glisse's glass: sags half the short side | Steep at the edge, a hard bright rim |
+| `convex` | sags 0.3 of it | Rounder: the bend spreads further in |
+| `concave` | squircle, inverted | Pushes the backdrop outward instead of pulling it in |
+| `lip` | squircle with `splay` 0.4 | Pulls straight across near the sides, as glisse's switch thumb does |
 
-The default slot is scoped: `<AppLiquidGlass v-slot="{ supported }">` tells you which path ran.
+The default slot is scoped: `<AppLiquidGlass v-slot="{ supported }">` tells you whether anything
+bends.
 
 #### The engine on its own
 
 ```ts
-import { useLiquidGlass, buildDisplacementMap, supportsSvgBackdropFilter } from '@/composables/useLiquidGlass';
+import { useLiquidGlass, findGlassBackdrop, supportsSvgBackdropFilter } from '@/composables/useLiquidGlass';
 
 const el = ref<HTMLElement | null>(null);
-const { filterId, map, supported, refresh } = useLiquidGlass(el, { radius: 32, bezel: 20 });
+const { filter, rim, mode, supported, refresh } = useLiquidGlass(
+  el,
+  { radius: 32, thickness: 24 },
+  { light: { angle: 135, width: 1.22 } },
+);
+// put filter on the element's backdrop-filter, rim on its background-image
 ```
 
-`useLiquidGlass` watches the element with a `ResizeObserver`, defers rebuilds to an animation
-frame, and skips entirely when the inputs come back unchanged — a resize that settles on the same
-box, or a parent re-render, costs nothing. `buildDisplacementMap(w, h, params)` is the pure
-function underneath if you want to drive it yourself.
+`useLiquidGlass` watches the element with a `ResizeObserver`, refits a frame later, and repaints
+the rim when the theme or preset changes. `lensMap(shape, params, density)` and
+`rimMap(shape, shine, light, density)` are the pure functions underneath.
 
 #### Things that look simplifiable but are not
 
 | Don't | Because |
 |---|---|
+| Store the pull as one red/green image | On a wide-gamut display Chrome converts a coloured map before displacing by it, so a pull straight down bends sideways too. Two grey images come through unchanged |
 | Drop `color-interpolation-filters="sRGB"` | The default is linearRGB. The channels get converted out from under the encoding and the field goes wrong in a way that looks like a subtle art bug |
-| Use `CSS.supports('backdrop-filter', 'url(#x)')` as the feature test | It parses the value, so Firefox and Safari both answer yes and then do nothing. There is no honest query for this; the component sniffs for Chromium |
-| Normalise the field against `maxDisplacement` instead of the real maximum | The encoding has 255 steps to spend. Spending them on a range nothing reaches quantises the part you can actually see |
-| Rebuild the map on every resize callback | It is O(width × height). Rebuilds are coalesced into one frame and skipped when the size rounds to the same integers, or a drag re-renders it dozens of times a second |
-| Clamp `bezel` up to a minimum of 1 | A 1px bevel is a sheer cliff: it refracts enormously, and that one ring then sets the normalisation for the whole field. `0` means no bevel |
-| Run blur and displacement in one `backdrop-filter` chain | The chain blurs *after* bending and smears the refraction away. Two stacked layers make the bend operate on an already-frosted image, which is the order real glass works in |
-| Fall back to `fallbackBlur` whenever the map is missing | The map is missing for a frame on every mount too. Tying the fallback to *can this browser refract* rather than *is the map ready* is what stops a Clear pane flashing frosted before it settles |
-| Size the pane from `getBoundingClientRect()` | That rect is post-transform, so a scaled or hover-lifted pane rebuilds its map at the wrong size — and again on every frame of the transition. `ResizeObserver` reports `borderBoxSize`, the untransformed box |
+| Use `CSS.supports('backdrop-filter', 'url(#x)')` as the feature test | It parses the value, so Firefox and Safari both answer yes and then do nothing. There is no honest query for this; the engine sniffs for Chromium |
+| Guard every lens against folding | At a pane's rim the fold is the look: glisse squeezes and mirrors the content there, as iOS does. Only a zoom needs the guard, where the fold would reach the middle |
+| Keep a filter's id when a lens over marked content moves | WebKit keeps showing a filter's old output until its id changes, so every move gets a new id |
+| Run blur and displacement in one `backdrop-filter` chain | Two stacked layers make the bend operate on an already-frosted image, which is the order glass works in |
+| Fall back to `fallbackBlur` before the first measurement | The pane has no lens for a frame on every mount. Assuming it refracts until measured is what stops a Clear pane flashing frosted before it settles |
+| Size the pane from `getBoundingClientRect()` | That rect is post-transform, so a scaled or hover-lifted pane redraws its map at the wrong size on every frame of the transition. `ResizeObserver` reports the untransformed box |
 | Put the pane's `max-height`-style sizing in the scoped CSS | The pane has no size of its own — it takes the size of whatever it wraps, which is what lets `AppButton` hand it a button |
 
 ---

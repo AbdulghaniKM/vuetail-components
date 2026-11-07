@@ -1,98 +1,5 @@
 <template>
   <component :is="as" ref="rootRef" class="liquid-glass" :class="rootClass" :style="rootStyle">
-    <!-- The filter lives next to the thing it filters; the id is per-instance. -->
-    <svg v-if="map" class="lg-defs" aria-hidden="true" focusable="false">
-      <filter
-        :id="filterId"
-        filterUnits="userSpaceOnUse"
-        x="0"
-        y="0"
-        :width="map.width"
-        :height="map.height"
-        color-interpolation-filters="sRGB"
-      >
-        <feImage
-          :href="map.href"
-          x="0"
-          y="0"
-          :width="map.width"
-          :height="map.height"
-          result="displacement"
-        />
-
-        <!--
-          Real glass splits light: the rim of a lens fringes because each wavelength
-          bends by a slightly different amount. Displacing the channels by different
-          amounts and recombining them reproduces that. It costs three passes instead
-          of one, so it is off unless asked for.
-        -->
-        <template v-if="dispersion > 0">
-          <!-- Red bends least, blue most: shorter wavelengths refract harder, which is
-               why a prism puts red on the inside of the fan. -->
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="displacement"
-            :scale="channelScales.red"
-            xChannelSelector="R"
-            yChannelSelector="G"
-            result="bentRed"
-          />
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="displacement"
-            :scale="channelScales.green"
-            xChannelSelector="R"
-            yChannelSelector="G"
-            result="bentGreen"
-          />
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="displacement"
-            :scale="channelScales.blue"
-            xChannelSelector="R"
-            yChannelSelector="G"
-            result="bentBlue"
-          />
-          <!--
-            Take one channel from each pass. Every matrix KEEPS alpha: feComposite's
-            arithmetic operator works on premultiplied colour, so a pass with alpha 0
-            premultiplies to black and contributes nothing at all. The alphas do sum
-            past 1, and are clamped back to it — which is correct here, because a
-            backdrop is opaque to begin with.
-          -->
-          <feColorMatrix
-            in="bentRed"
-            type="matrix"
-            values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"
-            result="justRed"
-          />
-          <feColorMatrix
-            in="bentGreen"
-            type="matrix"
-            values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0"
-            result="justGreen"
-          />
-          <feColorMatrix
-            in="bentBlue"
-            type="matrix"
-            values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0"
-            result="justBlue"
-          />
-          <feComposite in="justRed" in2="justGreen" operator="arithmetic" k2="1" k3="1" result="redGreen" />
-          <feComposite in="redGreen" in2="justBlue" operator="arithmetic" k2="1" k3="1" />
-        </template>
-
-        <feDisplacementMap
-          v-else
-          in="SourceGraphic"
-          in2="displacement"
-          :scale="map.scale"
-          xChannelSelector="R"
-          yChannelSelector="G"
-        />
-      </filter>
-    </svg>
-
     <!-- Apple's Clear variant is explicitly "placed on top of a dimming layer": with no
          frost of its own, legibility has to come from darkening what is underneath. -->
     <span v-if="resolved.dim > 0" class="lg-layer lg-dim" :style="dimStyle" />
@@ -104,7 +11,7 @@
     <span class="lg-layer lg-refract" :style="refractStyle" />
 
     <span v-if="showTint" class="lg-layer lg-tint" :style="tintStyle" />
-    <span v-if="specular" class="lg-layer lg-specular" :style="specularStyle" />
+    <span v-if="specular" class="lg-layer lg-specular" :class="{ 'is-painted': rim }" :style="specularStyle" />
 
     <div class="lg-content">
       <slot :supported="supported" :variant="variant" />
@@ -113,9 +20,9 @@
 </template>
 
 <script lang="ts">
-import type { GlassProfile } from '@/composables/useLiquidGlass';
+import type { GlassProfile, GlassSource } from '@/composables/useLiquidGlass';
 
-export type { GlassProfile };
+export type { GlassProfile, GlassSource };
 
 /** Apple ships two: Regular is safe anywhere, Clear needs help. */
 export type GlassVariant = 'regular' | 'clear';
@@ -146,6 +53,7 @@ export const GLASS_VARIANT_PRESETS: Record<
 import { computed, inject, provide, ref } from 'vue';
 import {
   concentricRadius,
+  DEFAULT_GLASS_LIGHT,
   DEFAULT_GLASS_PARAMS,
   GlassContainerKey,
   GlassPaneKey,
@@ -164,27 +72,31 @@ interface Props {
    * sheets to windows, windows to the display.
    */
   concentric?: boolean;
-  /** How far the curved bevel reaches in from the edge. The whole effect lives here. */
-  bezel?: number;
-  /** Glass depth — how far a refracted ray travels before it lands. Drives strength. */
+  /** Width of the band round the rim that bends, in px. `auto` is a quarter of the short side. */
+  bezel?: number | 'auto';
+  /** Glass depth. With the index it sets the strength: 22 at 1.5 is glisse's tuning; 0 is flat. */
   thickness?: number;
-  /** Index of refraction. Air is 1, window glass ~1.5. */
+  /** Index of refraction. Air is 1 (no bend), window glass ~1.5. */
   refractiveIndex?: number;
+  /** The rim's dome: `squircle` steep at the edge, `convex` rounder, `concave` inverts, `lip` pulls straight across. */
   profile?: GlassProfile;
   /** Plain radial zoom layered on top of the refraction. 1 leaves the middle alone. */
   magnification?: number;
-  /** Ceiling on displacement in px, so a near-vertical bevel cannot blow up. */
+  /** Ceiling on displacement in px. 0 leaves it to the lens, which never pulls past half its reach. */
   maxDisplacement?: number;
-  /** Pixel density of the generated map. 0 picks: full up to 180px, half beyond. */
+  /** Map density in pixels per px. 0 follows the screen, up to 2. */
   resolution?: number;
   /**
-   * Chromatic dispersion, as a fraction of the bend — 0.04 splits the channels by 4%.
-   * Relative rather than absolute on purpose: the displacement scale swings by an order
-   * of magnitude with thickness, so a fixed pixel offset is imperceptible at one end and
-   * inverts the blue channel at the other. Real crown glass is around 0.017; past ~0.15
-   * it stops reading as glass and starts reading as a broken monitor.
+   * How much further red bends than blue, as a fraction of the bend: 0.08 (glisse's
+   * default) puts red 8% and green 4% further out. Past ~0.2 it stops reading as glass.
    */
   dispersion?: number;
+  /**
+   * What bends. `auto`: the live backdrop in Chromium; elsewhere the `[data-glass-backdrop]`
+   * element behind the pane, filtered where the pane stands. `content` uses the marked
+   * element in Chromium too; `backdrop` never filters content.
+   */
+  source?: GlassSource;
 
   /** Frost behind the glass. Defaults to the variant's baseline. */
   blur?: number;
@@ -204,11 +116,11 @@ interface Props {
   toneStrength?: number;
   /** Overrides the derived fill outright. `''` removes the layer. */
   tint?: string;
-  /** The lit rim. */
+  /** The lit rim, as iOS 26.1 draws it. */
   specular?: boolean;
-  /** Thickness of that rim in px. */
+  /** Width of the lit line in px; iOS's is 1.22. */
   rim?: number;
-  /** Where the light is coming from, in deg. */
+  /** Where the light comes from, as a CSS gradient angle: 135 lights the top and left. */
   lightAngle?: number;
   /** Drop shadow under the pane. */
   shadow?: boolean;
@@ -231,7 +143,8 @@ const props = withDefaults(defineProps<Props>(), {
   magnification: DEFAULT_GLASS_PARAMS.magnification,
   maxDisplacement: DEFAULT_GLASS_PARAMS.maxDisplacement,
   resolution: DEFAULT_GLASS_PARAMS.resolution,
-  dispersion: 0.04,
+  dispersion: DEFAULT_GLASS_PARAMS.dispersion,
+  source: 'auto',
   // Left undefined so the variant's baseline decides, and an explicit value still wins.
   blur: undefined,
   saturate: undefined,
@@ -242,8 +155,8 @@ const props = withDefaults(defineProps<Props>(), {
   tone: '#ffffff',
   tint: undefined,
   specular: true,
-  rim: 1.5,
-  lightAngle: 145,
+  rim: DEFAULT_GLASS_LIGHT.width,
+  lightAngle: DEFAULT_GLASS_LIGHT.angle,
   shadow: true,
   interactive: false,
   disabled: false,
@@ -295,27 +208,20 @@ const glassParams = computed(() => ({
   magnification: props.magnification,
   maxDisplacement: props.maxDisplacement,
   resolution: props.resolution,
+  dispersion: Math.max(0, Math.min(0.4, props.dispersion)),
 }));
 
-const { filterId, map, supported, refresh } = useLiquidGlass(rootRef, glassParams, {
+const { filter, mode, rim, map, width, supported, refresh } = useLiquidGlass(rootRef, glassParams, {
   enabled: () => !props.disabled,
+  light: () => (props.specular ? { angle: props.lightAngle, width: props.rim } : null),
+  source: () => props.source,
 });
-
-/** Whether this browser could refract at all — independent of whether the map is ready. */
-const canRefract = computed(() => supported.value && !props.disabled);
-/** Whether there is actually a filter to point at right now. */
-const active = computed(() => canRefract.value && !!map.value);
 
 /**
- * Per-channel displacement. Clamped so the spread can never reach the scale itself:
- * a negative scale does not mean "less bend", it means the channel bends the opposite
- * way, which reads as a hard colour inversion rather than a fringe.
+ * Whether the pane refracts. Until its first measurement it is assumed to, so a Clear
+ * pane does not flash the fallback frost for a frame on mount.
  */
-const channelScales = computed(() => {
-  const scale = map.value?.scale ?? 0;
-  const spread = scale * Math.max(0, Math.min(0.4, props.dispersion));
-  return { red: scale - spread, green: scale, blue: scale + spread };
-});
+const canRefract = computed(() => !props.disabled && (supported.value || width.value === 0));
 
 const rootClass = computed(() => ({
   'is-interactive': props.interactive,
@@ -374,14 +280,13 @@ const blurStyle = computed(() => {
   };
 });
 
-/** Layer two: bend what layer one produced. Chromium only; elsewhere it renders nothing. */
+/**
+ * Layer two: bend what layer one produced, in Chromium. Where the pane bends marked
+ * content instead, the content itself is filtered and this layer stays empty.
+ */
 const refractStyle = computed(() =>
-  active.value
-    ? {
-        borderRadius: 'inherit',
-        backdropFilter: `url(#${filterId})`,
-        WebkitBackdropFilter: `url(#${filterId})`,
-      }
+  filter.value
+    ? { borderRadius: 'inherit', backdropFilter: filter.value, WebkitBackdropFilter: filter.value }
     : { borderRadius: 'inherit' },
 );
 
@@ -392,9 +297,11 @@ const tintStyle = computed(() => ({
   background: props.tint || 'var(--lg-fill)',
 }));
 
-const specularStyle = computed(() => ({ borderRadius: 'inherit' }));
+const specularStyle = computed(() =>
+  rim.value ? { borderRadius: 'inherit', backgroundImage: rim.value } : { borderRadius: 'inherit' },
+);
 
-defineExpose({ supported, map, refresh, variant: computed(() => props.variant) });
+defineExpose({ supported, mode, map, refresh, variant: computed(() => props.variant) });
 </script>
 
 <style scoped>
@@ -405,6 +312,8 @@ defineExpose({ supported, map, refresh, variant: computed(() => props.variant) }
   --lg-spec-lo: 0.55;
   --lg-inner: 0.1;
   --lg-contrast-edge: #000000;
+  /* The painted rim's light, measured from iOS: 0.3 over a light page, 0.13 over a dark one. */
+  --lg-rim-shine: 0.3;
 
   position: relative;
   isolation: isolate;
@@ -419,6 +328,7 @@ defineExpose({ supported, map, refresh, variant: computed(() => props.variant) }
     --lg-spec-lo: 0.36;
     --lg-inner: 0.07;
     --lg-contrast-edge: #ffffff;
+    --lg-rim-shine: 0.13;
   }
 }
 
@@ -427,18 +337,11 @@ defineExpose({ supported, map, refresh, variant: computed(() => props.variant) }
   --lg-spec-lo: 0.36;
   --lg-inner: 0.07;
   --lg-contrast-edge: #ffffff;
+  --lg-rim-shine: 0.13;
 }
 
 .liquid-glass.is-interactive:hover {
   transform: translateY(-0.125rem);
-}
-
-/* The filter has to be in the document to be referenced, but must never take space. */
-.lg-defs {
-  position: absolute;
-  width: 0;
-  height: 0;
-  pointer-events: none;
 }
 
 .lg-layer {
@@ -490,6 +393,14 @@ defineExpose({ supported, map, refresh, variant: computed(() => props.variant) }
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   mask-composite: exclude;
+}
+
+/* The painted rim (useLiquidGlass draws it per shape and theme) replaces the gradient. */
+.lg-specular.is-painted {
+  padding: 0;
+  background-size: 100% 100%;
+  -webkit-mask: none;
+  mask: none;
 }
 
 /* The inner glow that gives the pane a thickness rather than an outline. */
