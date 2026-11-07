@@ -6,6 +6,8 @@
 //   node scripts/tokens.mjs check --usage    also report old token names, raw palette colours and
 //                                            hex in components/ and composables/ (the migration list)
 //   node scripts/tokens.mjs check --usage --strict    fail on those too
+//   node scripts/tokens.mjs check --usage --dir ../vuetail-template/src    scan another project's
+//                                            source instead (repeat --dir for several)
 //
 // No dependencies. Tailwind specifics the output relies on (verified against Tailwind 4.2):
 //   - `@theme static` emits every variable, even ones no utility uses. Presets and runtime
@@ -227,9 +229,10 @@ function walk(dir) {
   });
 }
 
-function scanUsage() {
+function scanUsage(dirs) {
   const vocab = new Set(Object.keys({ ...presets.ink.light.colors, ...status.light }));
-  const files = [...walk(path.join(ROOT, 'components')), ...walk(path.join(ROOT, 'composables'))];
+  const roots = dirs.length ? dirs.map((d) => path.resolve(d)) : [path.join(ROOT, 'components'), path.join(ROOT, 'composables')];
+  const files = roots.flatMap(walk);
   const report = [];
   const totals = { rename: 0, misuse: 0, palette: 0, unknown: 0, hex: 0 };
   for (const file of files) {
@@ -281,7 +284,8 @@ if (cmd === 'build') {
 
   let usageFailed = false;
   if (flags.includes('--usage')) {
-    const { report, totals, files } = scanUsage();
+    const dirs = flags.flatMap((f, i) => (f === '--dir' && flags[i + 1] ? [flags[i + 1]] : []));
+    const { report, totals, files } = scanUsage(dirs);
     console.log(`\nToken usage in ${files} files:`);
     console.log(report.length ? report.join('\n') : '  clean');
     console.log(
@@ -298,6 +302,6 @@ if (cmd === 'build') {
   if (usageFailed) process.exit(1);
   console.log('\nTokens OK.');
 } else {
-  console.log('usage: node scripts/tokens.mjs build | check [--usage] [--strict]');
+  console.log('usage: node scripts/tokens.mjs build | check [--usage [--dir <path>]...] [--strict]');
   process.exit(2);
 }

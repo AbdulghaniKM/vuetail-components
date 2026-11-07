@@ -1,6 +1,6 @@
 import { appConfig } from '@/config/app.config';
 import { ThemePersistence, type ThemeMode } from '@/lib/ThemePersistence';
-import { applyThemeToDOM, getColorValue, getSystemTheme, type ColorPalette } from '@/utils/theme';
+import { applyThemeToDOM, getSystemTheme } from '@/utils/theme';
 import { computed, onMounted, ref, watch } from 'vue';
 
 const defaultMode: ThemeMode =
@@ -35,14 +35,6 @@ export const useTheme = () => {
 
     ThemePersistence.applyAppearanceToDocument(theme);
   };
-
-  const getColor = (colorKey: keyof ColorPalette): string => {
-    return getColorValue(colorKey, currentTheme.value);
-  };
-
-  const colors = computed(() => {
-    return appConfig.theme[currentTheme.value];
-  });
 
   onMounted(() => {
     applyThemeToDOM(themeMode.value);
@@ -80,7 +72,5 @@ export const useTheme = () => {
     isLight,
     toggleTheme,
     setTheme,
-    getColor,
-    colors,
   };
 };
