@@ -36,7 +36,17 @@ site (vuetail-docs.vercel.app) only when both merge.
   initial state for one frame when an animation ends. Revisit on upgrade.
 - `useMotionTokens` parses `.2s` and `200ms`: production CSS minifies `200ms` to `.2s`.
 - Intentional raw colours: AdvancedAppTable's categorical palette, liquid-glass material constants,
-  RibbonField canvas fallbacks, the dark chrome of AppDock and AppNavbar.
+  RibbonField canvas fallbacks, the dark chrome of AppDock and AppNavbar, white on glass in
+  AppButton's glass mode, and the white controls of AppImageModal (they sit on a dark backdrop).
+
+## Before the merge (phase 6)
+
+- [ ] AppTable column switch: the knob is `bg-white`; it needs a token that reads on both the
+  `bg-accent` (on) and `bg-border` (off) track in all six combinations.
+- [ ] `vuetail-docs/audit-plan.md` is the pre-Ink docs plan, superseded by this one: delete it.
+
+Usage check as of phase 3b: 0 old names, 15 raw palette, 46 raw hex, all intentional except the
+AppTable knob.
 
 ## Checks
 
