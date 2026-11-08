@@ -1255,8 +1255,6 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   --at-pad-x: 0.875rem;
   --at-card-pad: 1rem;
   --at-card-gap: 0.75rem;
-  --at-ease: cubic-bezier(0.16, 0.84, 0.24, 1);
-  --at-dock: cubic-bezier(0.22, 1.12, 0.36, 1);
   --at-rail: color-mix(in srgb, var(--color-text) 4%, var(--color-surface));
 
   /* Eight equally-weighted hues. Identity and categories pick from these rather than
@@ -1450,7 +1448,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 /* ── Rows ───────────────────────────────────────────────────────────────────── */
 
 .at-row {
-  transition: background-color 0.2s var(--at-ease);
+  transition: background-color var(--vt-duration) var(--vt-ease);
 }
 
 .at-row > td:first-child {
@@ -1526,7 +1524,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 /* Row actions stay quiet until the row is engaged — still reachable by keyboard. */
 .at-actions :deep(button) {
   opacity: 0.55;
-  transition: opacity 0.12s ease;
+  transition: opacity var(--vt-duration) var(--vt-ease);
 }
 
 .at-row:hover .at-actions :deep(button),
@@ -1548,7 +1546,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   letter-spacing: inherit;
   text-transform: inherit;
   cursor: pointer;
-  transition: color 0.2s var(--at-ease);
+  transition: color var(--vt-duration) var(--vt-ease);
 }
 
 .at-sort:hover {
@@ -1561,7 +1559,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 
 .at-sort-icon {
   opacity: 0.4;
-  transition: opacity 0.2s var(--at-ease);
+  transition: opacity var(--vt-duration) var(--vt-ease);
 }
 
 .at-sort:hover .at-sort-icon {
@@ -1638,8 +1636,8 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   background: var(--hue-fill);
   border: 1px solid var(--hue-edge);
   transition:
-    border-color 0.24s var(--at-ease),
-    box-shadow 0.3s var(--at-ease);
+    border-color var(--vt-duration) var(--vt-ease),
+    box-shadow var(--vt-duration) var(--vt-ease);
 }
 
 .at-avatar.is-placeholder {
@@ -1696,8 +1694,8 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   opacity: 0.7;
   cursor: pointer;
   transition:
-    opacity 0.15s ease,
-    color 0.15s ease;
+    opacity var(--vt-duration) var(--vt-ease),
+    color var(--vt-duration) var(--vt-ease);
 }
 
 .at-copy:hover,
@@ -1722,8 +1720,8 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   font-weight: 500;
   cursor: pointer;
   transition:
-    color 0.18s ease,
-    border-color 0.18s ease;
+    color var(--vt-duration) var(--vt-ease),
+    border-color var(--vt-duration) var(--vt-ease);
 }
 
 .at-chrome-trigger:hover {
@@ -1802,8 +1800,8 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   background: color-mix(in srgb, var(--color-text) 10%, transparent);
   border: 1px solid var(--color-border);
   transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
+    background var(--vt-duration) var(--vt-ease),
+    border-color var(--vt-duration) var(--vt-ease);
 }
 
 .at-switch::after {
@@ -1816,8 +1814,8 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   border-radius: 9999px;
   background: var(--color-text-muted);
   transition:
-    transform 0.15s ease,
-    background 0.15s ease;
+    transform var(--vt-duration) var(--vt-ease),
+    background var(--vt-duration) var(--vt-ease);
 }
 
 .at-switch[data-on='true'] {
@@ -1870,7 +1868,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 }
 
 .at-bulkbar-in {
-  animation: at-bulkbar-in 0.32s var(--at-dock);
+  animation: at-bulkbar-in var(--vt-duration-enter) var(--vt-ease);
 }
 
 @keyframes at-bulkbar-in {
@@ -1934,9 +1932,9 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   font-weight: 600;
   cursor: pointer;
   transition:
-    border-color 0.18s ease,
-    background 0.18s ease,
-    opacity 0.18s ease;
+    border-color var(--vt-duration) var(--vt-ease),
+    background var(--vt-duration) var(--vt-ease),
+    opacity var(--vt-duration) var(--vt-ease);
 }
 
 .at-page-btn:hover:not(:disabled),

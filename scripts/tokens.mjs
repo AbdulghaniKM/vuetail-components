@@ -69,6 +69,9 @@ export function buildCss() {
       ...Object.entries(SHADOW_SCALE).map(([k, level]) => decl(k ? `--shadow-${k}` : '--shadow', `var(--vt-shadow-${level})`)),
       ...densityLines(ink.density),
       ...Object.entries(easing).map(([k, v]) => decl(`--ease-${k}`, v)),
+      // Bare `transition-colors` and friends take the preset's motion, not Tailwind's 150ms curve.
+      decl('--default-transition-duration', 'var(--vt-duration)'),
+      decl('--default-transition-timing-function', 'var(--vt-ease)'),
     ]),
     '',
     block(':root', [

@@ -78,7 +78,7 @@
  :style="{
  transform: `scale(${zoom})`,
  transformOrigin: 'center center',
- transition: zoomTransition ? 'transform 0.2s ease-out' : 'none',
+ transition: zoomTransition ? 'transform var(--vt-duration) var(--vt-ease)' : 'none',
  }"
  @mousedown="handleMouseDown"
  @mousemove="handleMouseMove"

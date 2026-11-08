@@ -203,7 +203,7 @@
                   <button
                     v-if="isColumnSortable(column)"
                     type="button"
-                    class="group flex items-center gap-1 transition-[color,transform] duration-(--vt-duration) ease-out"
+                    class="group flex items-center gap-1 transition-[color,transform] duration-(--vt-duration) ease-standard"
                     :class="
                       sortKey === column.key
                         ? 'text-accent'
@@ -213,7 +213,7 @@
                   >
                     <span>{{ column.label }}</span>
                     <span
-                      class="flex size-5 items-center justify-center rounded transition-[background-color,opacity,transform] duration-(--vt-duration) ease-out"
+                      class="flex size-5 items-center justify-center rounded transition-[background-color,opacity,transform] duration-(--vt-duration) ease-standard"
                       :class="
                         sortKey === column.key
                           ? 'bg-accent/10 opacity-100 scale-100'
@@ -309,7 +309,7 @@
               v-for="(row, index) in displayData"
               v-else
               :key="getRowKey(row, index)"
-              class="table-row-data border-border/40 border-b transition-colors duration-(--vt-duration) ease-out last:border-b-0 hover:bg-accent/[0.04] hover:shadow-[inset_2px_0_0_0_var(--color-accent)]"
+              class="table-row-data border-border/40 border-b transition-colors duration-(--vt-duration) ease-standard last:border-b-0 hover:bg-accent/[0.04] hover:shadow-[inset_2px_0_0_0_var(--color-accent)]"
               :class="selectable && isRowSelected(row, index) ? 'bg-accent/[0.03]' : ''"
             >
               <td
@@ -515,7 +515,7 @@
         <div v-if="serverPaginated && pageSizeOptions.length > 0" ref="pageSizeRef" class="relative">
           <button
             type="button"
-            class="border-border bg-surface text-text hover:bg-muted hover:shadow-sm flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-[background-color,box-shadow,transform] duration-(--vt-duration) ease-out active:scale-95"
+            class="border-border bg-surface text-text hover:bg-muted hover:shadow-sm flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-[background-color,box-shadow,transform] duration-(--vt-duration) ease-standard active:scale-95"
             @click="showPageSizeMenu = !showPageSizeMenu"
           >
             {{ pageSize }} / page
@@ -554,7 +554,7 @@
         <div v-if="showColumnToggle" ref="columnToggleRef" class="relative">
           <button
             type="button"
-            class="border-border bg-surface text-text-muted hover:text-text hover:bg-muted hover:shadow-sm flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-[color,background-color,box-shadow,transform] duration-(--vt-duration) ease-out active:scale-95"
+            class="border-border bg-surface text-text-muted hover:text-text hover:bg-muted hover:shadow-sm flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-[color,background-color,box-shadow,transform] duration-(--vt-duration) ease-standard active:scale-95"
             aria-haspopup="true"
             :aria-expanded="showColumnMenu"
             @click="showColumnMenu = !showColumnMenu"
@@ -1564,7 +1564,7 @@ tr:hover > .sticky-actions-td {
   pointer-events: none;
   background: linear-gradient(to right, transparent, rgb(0 0 0 / 0.04));
   opacity: 0;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--vt-duration) var(--vt-ease);
 }
 
 .is-not-scrolled-to-end .sticky-actions-th::before,
@@ -1609,7 +1609,7 @@ tr:hover > .sticky-select-td {
   pointer-events: none;
   background: linear-gradient(to left, transparent, rgb(0 0 0 / 0.04));
   opacity: 0;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--vt-duration) var(--vt-ease);
 }
 
 .is-scrolled-from-start .sticky-select-th::after,

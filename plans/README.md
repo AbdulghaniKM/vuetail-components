@@ -474,4 +474,19 @@ Guarded by docs `tests/designBible.spec.ts`. Order follows the bible's appendix.
   transition is on `--vt-duration` / `--vt-ease` (the overshoot curve is gone). The white specular
   highlights stay as material constants. Checked in Chrome in Ink light and dark, Pine dark and
   Console light.
-- [ ] P5 motion  - [ ] P6 shape and type  - [ ] P7 elevation  - [ ] P8 icons
+- [x] P5 motion: `tokens.css` sets Tailwind's `--default-transition-duration` / `-timing-function` to
+  `--vt-duration` / `--vt-ease`, so every bare `transition-colors` follows the preset (Ink 160ms,
+  Console 110ms). No `cubic-bezier` literals, `duration-NNN` or raw `0.2s ease` in components:
+  AdvancedAppTable (17 transitions, the overshoot bulk bar), AppNavbar (`useMotionTokens`), AppTable,
+  AppDock, AppImageModal, AppNotificationPreview. AppPageLoader moves on `scaleX`, not `width`.
+  Exempt: infinite loading loops (`ease-in-out`) and AppToast's linear countdown. Guarded by the
+  §10 block in docs `tests/designBible.spec.ts`.
+  Not changed: the capsule's `max-width` contraction in AppNavbar and `useDockFlight`'s spring,
+  which overshoots (damping ratio 0.74). Owner decides.
+- [x] AppNavbar layout (user report, "the nav looks bad"): the full nav switches on a container
+  query on the bar (`sm` 40rem … `xl` 80rem), not the viewport, so a narrow bar shows the menu
+  button instead of overflowing; links don't wrap; the dark tone has an inverse CTA (Ink's accent
+  vanished into the capsule); its private accent focus outline is gone (one ring). The default
+  tone is `surface` in the docs too. Docs: the bar pins below the mock browser chrome and the demos
+  use `sm`.
+- [ ] P6 shape and type  - [ ] P7 elevation  - [ ] P8 icons

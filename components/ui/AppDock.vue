@@ -497,7 +497,7 @@
     <nav
       ref="barRef"
       class="dock-pill pointer-events-auto flex gap-1 rounded-3xl p-2"
-      :class="[DOCK_BAR[position], isDragging ? 'dock-lifted' : 'transition-shadow duration-200']"
+      :class="[DOCK_BAR[position], isDragging ? 'dock-lifted' : 'transition-shadow duration-(--vt-duration) ease-standard']"
       :aria-label="ariaLabel"
       :style="dragStyle"
       @mouseleave="hoveredIndex = null"
@@ -551,7 +551,7 @@
             @mouseenter="hoveredIndex = index"
           >
             <span
-              class="dock-label pointer-events-none absolute z-10 max-w-32 truncate rounded-lg px-2 py-1 text-xs font-medium opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100"
+              class="dock-label pointer-events-none absolute z-10 max-w-32 truncate rounded-lg px-2 py-1 text-xs font-medium opacity-0 transition-opacity duration-(--vt-duration) ease-standard group-focus-within:opacity-100 group-hover:opacity-100"
               :class="DOCK_LABEL[position]"
             >
               {{ entry.item.label }}
@@ -564,7 +564,7 @@
               :aria-label="entry.item.label"
               :aria-disabled="entry.item.disabled ? 'true' : undefined"
               :tabindex="entry.item.disabled ? -1 : undefined"
-              class="dock-focus flex items-center justify-center rounded-2xl transition-[transform,background-color,color] duration-200 ease-out"
+              class="dock-focus flex items-center justify-center rounded-2xl transition-[transform,background-color,color] duration-(--vt-duration) ease-standard"
               :class="[
                 isActive(entry.item)
                   ? HUE_ACTIVE[hueOf(entry.item)]

@@ -932,11 +932,11 @@ The dock is `position: fixed` and renders outside the content flow, so it belong
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden bg-background">
+  <div class="flex h-screen overflow-hidden bg-bg">
     <AppDock :items="items" />
 
     <div
-      class="mx-auto flex min-h-0 w-full min-w-0 flex-1 flex-col transition-[padding] duration-300 ease-out"
+      class="mx-auto flex min-h-0 w-full min-w-0 flex-1 flex-col transition-[padding] duration-(--vt-duration-enter) ease-standard"
       :class="CONTENT_CLEARANCE[previewDockPosition]"
     >
       <slot />
@@ -1015,7 +1015,7 @@ A floating nav capsule that contracts past the hero. Labels fold shut without un
 pnpm add-component AppNavbar
 ```
 
-Pulls in `AppIcon` and `useReducedMotion`. Needs `@vueuse/core`, `vue-router` and `motion-v`.
+Pulls in `AppIcon`, `useMotionTokens` and `useReducedMotion`. Needs `@vueuse/core`, `vue-router` and `motion-v`.
 
 #### Props
 
@@ -1023,7 +1023,7 @@ Pulls in `AppIcon` and `useReducedMotion`. Needs `@vueuse/core`, `vue-router` an
 |---|---|---|---|
 | `items` | `NavItem[]` | `[]` | The centred nav links |
 | `actions` | `NavAction[]` | `[]` | Trailing controls — a CTA, a theme toggle, a language switch |
-| `tone` | `'dark' \| 'surface'` | `'dark'` | A self-contained capsule, or one that follows the theme |
+| `tone` | `'dark' \| 'surface'` | `'surface'` | `surface` is the preset's raised surface; `dark` an inverse capsule (ink in light mode, the raised surface in dark mode) with an inverse call to action |
 | `floating` | `boolean` | `true` | Inset capsule, or a flush full-width bar |
 | `position` | `'top' \| 'bottom'` | `'top'` | Which edge it pins to. The panel opens away from it |
 | `width` | `NavWidth` | `'xl'` | Measure at rest — match your content column |
@@ -1032,7 +1032,7 @@ Pulls in `AppIcon` and `useReducedMotion`. Needs `@vueuse/core`, `vue-router` an
 | `contractAt` | `number` | 80% of viewport | Scroll offset, in px, at which it contracts |
 | `scrollTarget` | `HTMLElement \| null` | `window` | What it measures scroll against — see below |
 | `pill` | `boolean` | `true` | The travelling pill |
-| `breakpoint` | `'md' \| 'lg' \| 'xl'` | `'lg'` | Below this, links collapse into the menu button |
+| `breakpoint` | `'sm' \| 'md' \| 'lg' \| 'xl'` | `'lg'` | Bar width below which the links collapse into the menu button: `sm` 40rem, `md` 48rem, `lg` 64rem, `xl` 80rem. Measured on the bar (a container query), not the viewport |
 | `blur` | `boolean` | `true` | Backdrop blur behind the capsule |
 
 ```ts

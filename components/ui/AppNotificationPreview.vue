@@ -389,7 +389,7 @@ const summary = computed(() => {
 
 /* --- Arrival --- */
 .np-arrive {
-  animation: np-arrive var(--vt-duration-enter, 320ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: np-arrive var(--vt-duration-enter) var(--vt-ease) both;
 }
 
 @keyframes np-arrive {

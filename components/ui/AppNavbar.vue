@@ -74,11 +74,19 @@
     bottom: { floating: 'bottom-3 sm:bottom-4', flush: 'bottom-0' },
   };
 
-  /** Breakpoint at which the full nav replaces the menu button. */
-  export const NAV_DESKTOP: Record<'md' | 'lg' | 'xl', { show: string; hide: string }> = {
-    md: { show: 'md:flex', hide: 'md:hidden' },
-    lg: { show: 'lg:flex', hide: 'lg:hidden' },
-    xl: { show: 'xl:flex', hide: 'xl:hidden' },
+  /**
+   * Width of the bar at which the full nav replaces the menu button: 40, 48, 64
+   * and 80rem, the same sizes as Tailwind's `sm` to `xl`. Container queries on
+   * the header rather than viewport breakpoints, so a bar beside a sidebar, or
+   * in a narrow preview, switches when *it* runs out of room, not the window.
+   */
+  export type NavBreakpoint = 'sm' | 'md' | 'lg' | 'xl';
+
+  export const NAV_DESKTOP: Record<NavBreakpoint, { show: string; hide: string }> = {
+    sm: { show: '@min-[40rem]:flex', hide: '@min-[40rem]:hidden' },
+    md: { show: '@min-[48rem]:flex', hide: '@min-[48rem]:hidden' },
+    lg: { show: '@min-[64rem]:flex', hide: '@min-[64rem]:hidden' },
+    xl: { show: '@min-[80rem]:flex', hide: '@min-[80rem]:hidden' },
   };
 
   /**
@@ -98,6 +106,7 @@
   import { useRoute, RouterLink } from 'vue-router';
   import { motion } from 'motion-v';
   import AppIcon from './AppIcon.vue';
+  import { useMotionTokens } from '@/composables/useMotionTokens';
   import { useReducedMotion } from '@/composables/useReducedMotion';
 
   const props = withDefaults(
@@ -130,8 +139,11 @@
       scrollTarget?: HTMLElement | null;
       /** The travelling pill that rests on the current page. */
       pill?: boolean;
-      /** Breakpoint at which the full nav replaces the menu button. */
-      breakpoint?: 'md' | 'lg' | 'xl';
+      /**
+       * Bar width at which the full nav replaces the menu button (`sm` 40rem, `md` 48rem,
+       * `lg` 64rem, `xl` 80rem). Pick one the links and actions fit in.
+       */
+      breakpoint?: NavBreakpoint;
       /** Blur behind the capsule. Turn it off if the paint cost shows. */
       blur?: boolean;
       ariaLabel?: string;
@@ -240,17 +252,10 @@
   // under each link in turn.
   const pillAt = computed(() => (props.pill ? (hovered.value ?? activeLink.value) : null));
 
-  // Typed as a tuple, not an array: motion-v takes a four-point cubic bezier and
-  // a widened `number[]` does not satisfy it.
-  const EASE_STANDARD: [number, number, number, number] = [0.2, 0, 0, 1];
-
-  const pillTransition = computed(() =>
-    reduced.value ? { duration: 0 } : { duration: 0.28, ease: EASE_STANDARD },
-  );
-
-  const menuTransition = computed(() =>
-    reduced.value ? { duration: 0 } : { duration: 0.25, ease: EASE_STANDARD },
-  );
+  // Read per render rather than cached, so a preset switch reaches the next move.
+  const { enter } = useMotionTokens();
+  const pillTransition = () => (reduced.value ? { duration: 0 } : enter());
+  const menuTransition = () => (reduced.value ? { duration: 0 } : enter());
 
   const measure = computed(() => NAV_WIDTH[compact.value ? props.compactWidth : props.width]);
   const anchor = computed(() => NAV_ANCHOR[props.position][props.floating ? 'floating' : 'flush']);
@@ -278,7 +283,7 @@
 <template>
   <header
     :class="[
-      'nav-root fixed inset-x-0 z-50 flex flex-col',
+      'nav-root @container fixed inset-x-0 z-50 flex flex-col',
       anchor,
       floating ? 'px-5 sm:px-8' : '',
       position === 'bottom' ? 'flex-col-reverse' : '',
@@ -290,7 +295,6 @@
         'nav-capsule mx-auto flex w-full items-center gap-2 border',
         blur ? 'backdrop-blur-xl' : '',
         floating ? ['rounded-full p-2', measure] : 'max-w-none border-x-0 px-5 py-2 sm:px-8',
-        floating && position === 'bottom' ? '' : '',
         !floating && position === 'top' ? 'border-t-0' : '',
         !floating && position === 'bottom' ? 'border-b-0' : '',
         compact ? 'nav-capsule-compact' : '',
@@ -311,7 +315,7 @@
               :aria-disabled="link.item.disabled ? 'true' : undefined"
               :tabindex="link.item.disabled ? -1 : undefined"
               :class="[
-                'nav-link relative block rounded-full px-4 py-2 text-sm transition-colors',
+                'nav-link relative block rounded-full px-4 py-2 text-sm whitespace-nowrap transition-colors',
                 pillAt === link.item.to ? 'nav-link-on' : 'nav-link-off',
                 link.item.disabled ? 'nav-disabled' : '',
               ]"
@@ -326,7 +330,7 @@
                 v-if="pillAt === link.item.to"
                 :layout-id="pillId"
                 class="nav-pill absolute inset-0 rounded-full"
-                :transition="pillTransition"
+                :transition="pillTransition()"
                 aria-hidden="true"
               />
               <span class="relative">{{ link.item.label }}</span>
@@ -335,7 +339,7 @@
         </ul>
       </nav>
 
-      <div :class="['ms-auto flex shrink-0 items-center gap-1', desktop.show ? 'lg:ms-0' : '']">
+      <div class="ms-auto flex shrink-0 items-center gap-1">
         <slot name="actions" :compact="compact">
           <component
             :is="action.to ? RouterLink : 'button'"
@@ -411,7 +415,7 @@
           ? { opacity: 1, y: 0, pointerEvents: 'auto' }
           : { opacity: 0, y: position === 'bottom' ? 8 : -8, pointerEvents: 'none' }
       "
-      :transition="menuTransition"
+      :transition="menuTransition()"
       :class="[
         'nav-capsule mx-auto w-full rounded-xl border p-2',
         blur ? 'backdrop-blur-xl' : '',
@@ -469,6 +473,10 @@
     --nav-ink-muted: color-mix(in srgb, var(--color-bg) 72%, var(--color-text));
     --nav-pill: color-mix(in srgb, var(--color-bg) 14%, transparent);
     --nav-hover: color-mix(in srgb, var(--color-bg) 9%, transparent);
+    /* Inverse, because Ink's accent is ink: an accent CTA would vanish into the capsule. */
+    --nav-cta: var(--color-bg);
+    --nav-cta-fg: var(--color-text);
+    --nav-cta-hover: color-mix(in srgb, var(--color-bg) 86%, var(--color-text));
   }
 
   :global(:root[data-theme='dark']) .nav-dark,
@@ -481,6 +489,9 @@
     --nav-ink-muted: var(--color-text-muted);
     --nav-pill: var(--color-accent-subtle);
     --nav-hover: var(--color-muted);
+    --nav-cta: var(--color-accent);
+    --nav-cta-fg: var(--color-accent-fg);
+    --nav-cta-hover: var(--color-accent-hover);
   }
 
   @media (prefers-color-scheme: dark) {
@@ -493,6 +504,9 @@
       --nav-ink-muted: var(--color-text-muted);
       --nav-pill: var(--color-accent-subtle);
       --nav-hover: var(--color-muted);
+      --nav-cta: var(--color-accent);
+      --nav-cta-fg: var(--color-accent-fg);
+      --nav-cta-hover: var(--color-accent-hover);
     }
   }
 
@@ -542,13 +556,13 @@
   }
 
   .nav-cta {
-    background-color: var(--color-accent);
-    color: var(--color-accent-fg);
+    background-color: var(--nav-cta);
+    color: var(--nav-cta-fg);
     transition: background-color var(--vt-duration) var(--vt-ease);
   }
 
   .nav-cta:hover {
-    background-color: var(--color-accent-hover);
+    background-color: var(--nav-cta-hover);
   }
 
   .nav-row-off {
@@ -572,13 +586,6 @@
   .nav-disabled {
     pointer-events: none;
     opacity: 0.45;
-  }
-
-  .nav-link:focus-visible,
-  .nav-ghost:focus-visible,
-  .nav-cta:focus-visible {
-    outline: 0.125rem solid var(--color-accent);
-    outline-offset: 0.125rem;
   }
 
   @media (prefers-reduced-motion: reduce) {
