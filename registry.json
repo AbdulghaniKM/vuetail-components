@@ -104,7 +104,7 @@
     "Fields/Textarea": [],
     "Fields/TimePickerClock": ["AppIcon"],
     "useThemeCustomizer": ["useAppUi"],
-    "useConfirm": ["ConfirmDangerModal"],
+    "useConfirm": ["ConfirmDangerModal", "useMotionTokens"],
     "RibbonField": ["useReducedMotion"],
     "AppDock": ["AppIcon", "useDockPosition", "useDockDrag", "useDockFlight", "useKeyboard"],
     "AppNavbar": ["AppIcon", "useMotionTokens", "useReducedMotion"],
@@ -114,7 +114,7 @@
   },
   "requires": {
     "useAuth": {
-      "files": ["src/plugins/axios.ts"],
+      "files": ["src/plugins/axios.ts", "src/lib/authToken.ts"],
       "packages": ["axios"]
     },
     "useTheme": {

@@ -1,142 +1,150 @@
-import { computed, ref } from 'vue';
+import { computed, ref, watch, type Ref } from 'vue';
 import api, { setAuthProvider } from '@/plugins/axios';
+import { clearAuthToken, getAuthToken, setAuthToken } from '@/lib/authToken';
+
+/**
+ * Session state on top of `src/lib/authToken.ts`.
+ *
+ * The access token lives in memory only (authToken.ts), so an XSS payload cannot read it from
+ * storage. The refresh token is the server's business: an httpOnly, SameSite cookie that
+ * `/auth/refresh` reads. Nothing here touches localStorage. A reload starts signed out until
+ * `refresh()` (or the axios interceptor, on the first 401) gets a new access token from the cookie.
+ */
 
 export interface AuthUser {
   id: string | number;
   name: string;
   email: string;
   roles?: string[];
-  [key: string]: any;
 }
 
-const TOKEN_KEY = 'auth-token';
-const REFRESH_TOKEN_KEY = 'auth-refresh-token';
+export interface AuthEndpoints {
+  login: string;
+  refresh: string;
+  logout: string;
+  me: string;
+}
 
-// NOTE: Module-scope ref() state. SPA-only — not safe under SSR (state leaks across requests).
-const token = ref<string | null>(readToken());
+const endpoints: AuthEndpoints = {
+  login: '/auth/login',
+  refresh: '/auth/refresh',
+  logout: '/auth/logout',
+  me: '/auth/me',
+};
+
+/** Point useAuth at your API's routes. Call once, before the first request (main.ts). */
+export const configureAuth = (paths: Partial<AuthEndpoints>): void => {
+  Object.assign(endpoints, paths);
+};
+
+// NOTE: Module-scope state. SPA-only — not safe under SSR (state would leak across requests).
 const user = ref<AuthUser | null>(null);
 const loading = ref(false);
+const token = computed(() => getAuthToken());
+const isAuthenticated = computed(() => token.value !== null);
 
-function readToken(): string | null {
-  if (typeof localStorage === 'undefined') return null;
-  try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
-}
+// The token can be cleared from anywhere (the app's onUnauthorized, a logout in another
+// component); the user goes with it rather than lingering as a signed-out "Ada".
+watch(
+  isAuthenticated,
+  (signedIn) => {
+    if (!signedIn) user.value = null;
+  },
+  { flush: 'sync' },
+);
 
-function persistToken(t: string | null) {
-  if (typeof localStorage === 'undefined') return;
-  try {
-    if (t) localStorage.setItem(TOKEN_KEY, t);
-    else localStorage.removeItem(TOKEN_KEY);
-  } catch { /* storage unavailable */ }
-}
-
-function persistRefreshToken(t: string | null) {
-  if (typeof localStorage === 'undefined') return;
-  try {
-    if (t) localStorage.setItem(REFRESH_TOKEN_KEY, t);
-    else localStorage.removeItem(REFRESH_TOKEN_KEY);
-  } catch { /* storage unavailable */ }
-}
-
-export function getAuthToken(): string | null {
-  return token.value;
-}
-
-export function clearAuthSession() {
-  token.value = null;
+const clearSession = () => {
+  clearAuthToken();
   user.value = null;
-  persistToken(null);
-  persistRefreshToken(null);
-}
+};
 
-// Register with the axios plugin so the request interceptor can read the
-// token and the response interceptor can refresh / clear on 401.
-setAuthProvider({
-  getToken: () => token.value,
-  onUnauthorized: () => clearAuthSession(),
-  refreshToken: async () => {
-    const stored =
-      typeof localStorage !== 'undefined' ? localStorage.getItem(REFRESH_TOKEN_KEY) : null;
-    if (!stored) { clearAuthSession(); return null; }
+// `withCredentials` sends the httpOnly refresh cookie. `_retry` tells the axios interceptor not
+// to answer a 401 on this request with another refresh, which would wait on itself forever.
+const COOKIE_REQUEST = { withCredentials: true, _retry: true } as Record<string, unknown>;
+
+let inflight: Promise<string | null> | null = null;
+
+/** One refresh at a time: the interceptor and `refresh()` share the request in flight. */
+const refreshAccessToken = (): Promise<string | null> => {
+  inflight ??= (async () => {
     try {
-      const res = await api.post('/auth/refresh', { refreshToken: stored });
-      const newToken = res.data?.token ?? null;
-      if (!newToken) { clearAuthSession(); return null; }
-      token.value = newToken;
-      persistToken(newToken);
-      if (res.data?.refreshToken) persistRefreshToken(res.data.refreshToken);
-      return newToken;
+      const res = await api.post(endpoints.refresh, undefined, COOKIE_REQUEST);
+      const next: string | null = res.data?.token ?? null;
+      if (!next) {
+        clearSession();
+        return null;
+      }
+      setAuthToken(next);
+      return next;
     } catch {
-      clearAuthSession();
+      clearSession();
       return null;
     }
-  },
-});
+  })().finally(() => {
+    inflight = null;
+  });
+  return inflight;
+};
 
-export const useAuth = () => {
-  const isAuthenticated = computed(() => !!token.value);
+// getToken and refreshToken only: what happens on an unrecoverable 401 (redirect to Login,
+// a toast) belongs to the app, which registers onUnauthorized in main.ts.
+setAuthProvider({ getToken: getAuthToken, refreshToken: refreshAccessToken });
 
-  const setSession = (accessToken: string, refreshTkn?: string, userData?: AuthUser) => {
-    token.value = accessToken;
-    persistToken(accessToken);
-    if (refreshTkn) persistRefreshToken(refreshTkn);
+export const useAuth = <TUser extends AuthUser = AuthUser>() => {
+  /** Store a session your own code obtained (SSO callback, invite link…). */
+  const setSession = (accessToken: string, userData?: TUser) => {
+    setAuthToken(accessToken);
     if (userData) user.value = userData;
   };
 
   const login = async (credentials: { email: string; password: string }) => {
     loading.value = true;
     try {
-      const res = await api.post('/auth/login', credentials);
-      setSession(res.data.token, res.data.refreshToken, res.data.user);
+      const res = await api.post(endpoints.login, credentials, { withCredentials: true });
+      setSession(res.data.token, res.data.user);
       return res.data;
     } finally {
       loading.value = false;
     }
   };
 
-  const fetchUser = async () => {
-    if (!token.value) return null;
+  const fetchUser = async (): Promise<TUser | null> => {
+    if (!isAuthenticated.value) return null;
     loading.value = true;
     try {
-      const res = await api.get('/auth/me');
+      const res = await api.get(endpoints.me);
       user.value = res.data;
       return res.data;
     } catch {
-      clearAuthSession();
+      clearSession();
       return null;
     } finally {
       loading.value = false;
     }
   };
 
-  const refreshToken = async () => {
-    // Axios interceptor performs single-flight refresh via the provider
-    // registered above. Kept as a public method for callers that need to
-    // force a refresh outside an intercepted 401.
-    const stored =
-      typeof localStorage !== 'undefined' ? localStorage.getItem(REFRESH_TOKEN_KEY) : null;
-    if (!stored) { clearAuthSession(); return false; }
+  /** Trade the refresh cookie for a new access token. `false` (and signed out) if it failed. */
+  const refresh = async (): Promise<boolean> => (await refreshAccessToken()) !== null;
+
+  /** Clears the session here and asks the server to drop the refresh cookie. */
+  const logout = async () => {
+    clearSession();
     try {
-      const res = await api.post('/auth/refresh', { refreshToken: stored });
-      setSession(res.data.token, res.data.refreshToken);
-      return true;
+      await api.post(endpoints.logout, undefined, COOKIE_REQUEST);
     } catch {
-      clearAuthSession();
-      return false;
+      /* already signed out locally; the cookie expires on its own */
     }
   };
 
-  const logout = () => clearAuthSession();
-
   return {
-    user,
+    user: user as Ref<TUser | null>,
     token,
     loading,
     isAuthenticated,
     login,
     logout,
     fetchUser,
-    refreshToken,
+    refresh,
     setSession,
   };
 };

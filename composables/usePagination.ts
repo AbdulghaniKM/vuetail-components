@@ -1,36 +1,35 @@
-import { computed, ref, type Ref } from 'vue';
+import { computed, ref, toValue, watch, type MaybeRefOrGetter } from 'vue';
 
-interface UsePaginationOptions {
-  /** Total number of items */
-  total: Ref<number> | number;
-  /** Items per page */
-  pageSize?: Ref<number> | number;
-  /** Initial page (1-based) */
+export interface UsePaginationOptions {
+  /** Total number of items. A getter (`() => rows.value.length`) follows a filtered list. */
+  total: MaybeRefOrGetter<number>;
+  /** Items per page. Changing it goes back to page 1. */
+  pageSize?: MaybeRefOrGetter<number>;
+  /** Initial page (1-based), clamped to the pages that exist. */
   initialPage?: number;
   /** Max visible page buttons */
-  maxVisiblePages?: number;
+  maxVisiblePages?: MaybeRefOrGetter<number>;
 }
 
 export function usePagination(options: UsePaginationOptions) {
-  const totalRef = computed(() =>
-    typeof options.total === 'number' ? options.total : options.total.value,
-  );
-  const pageSizeRef = computed(() => {
-    const ps = options.pageSize ?? 10;
-    return typeof ps === 'number' ? ps : ps.value;
-  });
-  const maxVisible = options.maxVisiblePages ?? 5;
+  const totalRef = computed(() => Math.max(0, toValue(options.total)));
+  const pageSizeRef = computed(() => Math.max(1, toValue(options.pageSize ?? 10)));
+  const maxVisible = computed(() => Math.max(1, toValue(options.maxVisiblePages ?? 5)));
 
-  const page = ref(options.initialPage ?? 1);
+  const totalPages = computed(() => Math.max(1, Math.ceil(totalRef.value / pageSizeRef.value)));
 
-  const totalPages = computed(() =>
-    Math.max(1, Math.ceil(totalRef.value / pageSizeRef.value)),
-  );
+  const clamp = (p: number) => Math.max(1, Math.min(Math.trunc(p) || 1, totalPages.value));
+
+  const page = ref(clamp(options.initialPage ?? 1));
+
+  // Synchronous, so no render ever sees page 5 of 2 and an empty slice: filtering a list
+  // down shrinks `total` under the current page all the time.
+  watch(totalPages, () => (page.value = clamp(page.value)), { flush: 'sync' });
+  // A new page size reshuffles every page, so "page 4" would show unrelated rows.
+  watch(pageSizeRef, () => (page.value = 1), { flush: 'sync' });
 
   const startIndex = computed(() => (page.value - 1) * pageSizeRef.value);
-  const endIndex = computed(() =>
-    Math.min(startIndex.value + pageSizeRef.value, totalRef.value),
-  );
+  const endIndex = computed(() => Math.min(startIndex.value + pageSizeRef.value, totalRef.value));
 
   const isFirst = computed(() => page.value <= 1);
   const isLast = computed(() => page.value >= totalPages.value);
@@ -41,19 +40,20 @@ export function usePagination(options: UsePaginationOptions) {
     total: totalRef.value,
   }));
 
-  /** Visible page numbers for a pagination bar */
+  /** Visible page numbers for a pagination bar, centred on the current page. */
   const visiblePages = computed(() => {
     const pages: number[] = [];
     const total = totalPages.value;
-    let start = Math.max(1, page.value - Math.floor(maxVisible / 2));
-    let end = Math.min(total, start + maxVisible - 1);
-    if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
+    const max = maxVisible.value;
+    let start = Math.max(1, page.value - Math.floor(max / 2));
+    const end = Math.min(total, start + max - 1);
+    if (end - start < max - 1) start = Math.max(1, end - max + 1);
     for (let i = start; i <= end; i++) pages.push(i);
     return pages;
   });
 
   const goTo = (p: number) => {
-    page.value = Math.max(1, Math.min(p, totalPages.value));
+    page.value = clamp(p);
   };
 
   const next = () => {
@@ -73,7 +73,7 @@ export function usePagination(options: UsePaginationOptions) {
   };
 
   /** Slice an array according to the current page */
-  function paginate<T>(items: T[]): T[] {
+  function paginate<T>(items: readonly T[]): T[] {
     return items.slice(startIndex.value, endIndex.value);
   }
 

@@ -1068,9 +1068,20 @@ interface NavAction {
 
 A full-width bar with a hairline under it, pinned to the top of the viewport, reads as a lid over whatever is behind it: if the page opens on an image, a rule straight across the top of it cuts the frame in half. Hiding the bar until you scrolled treats the symptom and costs the site its navigation on first paint, which is the worse trade. Inset on all sides instead — the graphic runs full bleed underneath and past it, and the bar reads as an object sitting on the page rather than a frame around it. `floating: false` is there for apps that want the flush bar anyway.
 
-#### Why `tone="dark"` is the default
+#### `tone`: surface by default, dark on request
 
-The bar crosses whatever the page is made of — a hero image, the light body, a dark footer. A bar that restyles per surface has to know where it is. One dark capsule works over all three, and it means a lockup inside it can stay on its dark artwork everywhere instead of swapping mid-scroll. `tone="surface"` is there for apps whose header sits on ordinary page background.
+`surface` is the preset's raised surface with its border and `shadow-lg`, so the bar belongs to the
+page in every preset and theme (design bible §13: a dark dock or bar is never the default).
+`tone="dark"` is an inverse capsule for a page that opens on a light hero: ink in light mode, the
+raised surface in dark mode. Its call to action inverts too, because Ink's accent is ink and would
+vanish into the capsule.
+
+#### Full nav or menu button
+
+`breakpoint` is measured on the bar, not the window: the header is a size container and the links
+show from `@min-[40rem]` (`sm`), `48rem` (`md`), `64rem` (`lg`, the default) or `80rem` (`xl`) of its
+own width. A bar beside a sidebar, or inside a narrow preview, falls back to the menu button when it
+runs out of room instead of overflowing. Pick the size the links and actions fit in.
 
 #### Scrolling inside an app shell
 
@@ -1711,3 +1722,241 @@ Adding it meant the button markup could no longer be repeated per combination �
 four. The template now declares the button **once** and wraps it in a chain where each optional
 wrapper is either the real component or a passthrough that renders its children and nothing else.
 Adding a third wrapper later costs one more line, not another copy of the button.
+
+---
+
+## Composable reference
+
+Each composable is installed with `pnpm add-composable <name>` and lands in `src/composables/`.
+Sections follow the component format: what it does, options, what it returns, and the behaviour
+that is easy to break.
+
+### useInfiniteScroll
+
+Loads paginated data as the user nears the end of a list. An `IntersectionObserver` watches a
+sentinel after the last item; while it is in view (within `threshold` px) the next page loads.
+
+```bash
+pnpm add-composable useInfiniteScroll
+```
+
+```vue
+<template>
+  <ul ref="containerRef" class="h-80 overflow-y-auto">
+    <li v-for="item in items" :key="item.id">{{ item.name }}</li>
+    <li ref="sentinelRef" aria-hidden="true" />
+  </ul>
+  <p v-if="error" role="alert">{{ error }} <button @click="loadMore">Retry</button></p>
+</template>
+
+<script setup lang="ts">
+import { useInfiniteScroll } from '@/composables/useInfiniteScroll';
+
+const { items, error, containerRef, sentinelRef, loadMore } = useInfiniteScroll({
+  fetch: (page, { signal }) => api.get('/people', { params: { page }, signal }).then((r) => r.data),
+  pageSize: 20,
+});
+</script>
+```
+
+#### Options
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `fetch` | `(page, { signal }) => Promise<T[]>` | — | Loads one page (1-based). `signal` aborts when `reset()` runs or the owner unmounts |
+| `pageSize` | `number` | `20` | A page shorter than this means there is no more data |
+| `threshold` | `number` | `200` | How far before the end, in px, the next page starts loading |
+| `window` | `boolean` | `false` | Measure against the window, for a list the page itself scrolls. `containerRef` is then just the list |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| `items` | `Ref<T[]>` | Every loaded item, in page order |
+| `loading` | `Ref<boolean>` | A page is in flight |
+| `done` | `Ref<boolean>` | The last page came back short |
+| `error` | `Ref<string \| null>` | The last failure. The page is kept, so `loadMore()` retries it |
+| `containerRef` | `Ref<HTMLElement \| null>` | The scroller (or, with `window`, the list) |
+| `sentinelRef` | `Ref<HTMLElement \| null>` | Optional element placed after the items. Without one, a 1px `div` is appended and kept last |
+| `loadMore` | `() => Promise<void>` | Loads the next page now; a no-op while loading or done |
+| `reset` | `() => void` | Aborts the request in flight, clears the list and loads page 1 |
+
+#### Behaviour
+
+- Page 1 loads as soon as the container is attached, in view or not.
+- After each page, the sentinel is checked again. An observer only reports *changes*, so a page
+  too short to push the sentinel off screen would otherwise stall the list with room left.
+- A page that lands after `reset()` or unmount is dropped: it is never appended to the new list,
+  and the page counter only moves on success, so nothing repeats or is skipped.
+
+#### Things that look simplifiable but are not
+
+| Looks simplifiable | Why it is not |
+|---|---|
+| Rely on the observer alone | It reports on `observe()` and on change. Re-observing after each page is what asks "still in view?" |
+| Decrement the page on error | The page only advances on success, so there is nothing to undo and no window where it is wrong |
+| Drop the generation counter, `AbortSignal` is enough | Not every `fetch` honours the signal. The counter drops a late page whatever the fetch does |
+
+### useConfirm
+
+Opens a confirmation dialog (`ConfirmDangerModal`) and resolves the answer as a promise.
+
+```bash
+pnpm add-composable useConfirm
+```
+
+```ts
+const { confirm } = useConfirm(); // in setup
+
+if (await confirm({ title: 'Delete account?', confirmLabel: 'Delete account' })) {
+  await api.delete('/account');
+}
+```
+
+#### Options
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `title` | `string` | `'Are you sure?'` | The heading |
+| `message` | `string` | `'This action cannot be undone.'` | The description |
+| `confirmLabel` | `string` | `'Confirm'` | Name the action ("Delete account"), not "OK" |
+| `cancelLabel` | `string` | `'Cancel'` | |
+| `variant` | `'danger' \| 'primary'` | `'danger'` | `danger`: warning icon and a danger button. `primary`: an ordinary yes or no |
+| `body` | `() => VNode \| VNode[]` | — | Extra content under the message |
+
+#### Behaviour
+
+- Resolves `true` on confirm; `false` on Cancel, Escape, a backdrop click, or when another
+  `confirm()` opens (one dialog at a time, app-wide, so no promise is left pending).
+- Renders with the **caller's app context**: call `useConfirm()` in `setup` and the dialog sees the
+  router, plugins, global components and app-level provides.
+- Unmounts after the preset's exit duration (`--vt-duration-exit`), so it fades out instead of
+  vanishing.
+- Enter confirms only when focus is not on a field, button or link. Enter on the focused Cancel
+  button cancels (AppModal's rule, see its `@confirm`).
+
+#### Things that look simplifiable but are not
+
+| Looks simplifiable | Why it is not |
+|---|---|
+| `createApp(ConfirmDangerModal).mount()` | A second app has none of the first one's plugins, router or provides |
+| A fixed `setTimeout(…, 300)` before unmount | Console's exit is 90ms and Pine's 140ms: the token is the truth |
+| Let the old dialog's promise go when a new one opens | A caller awaiting it would hang forever |
+
+### useAuth
+
+Session state on top of the template's `src/lib/authToken.ts`. The **access token lives in memory
+only**; the **refresh token is an httpOnly, SameSite cookie** your server sets and reads. Nothing
+is written to `localStorage`, so an XSS payload has no token to read from storage.
+
+```bash
+pnpm add-composable useAuth   # also needs src/plugins/axios.ts and src/lib/authToken.ts
+```
+
+```ts
+// main.ts: your routes, then restore the session from the cookie before the first guard.
+configureAuth({ login: '/api/session', refresh: '/api/session/refresh', logout: '/api/session', me: '/api/me' });
+const { refresh, fetchUser } = useAuth();
+if (await refresh()) await fetchUser();
+```
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| `user` | `Ref<TUser \| null>` | Cleared whenever the token is, from anywhere |
+| `token` | `ComputedRef<string \| null>` | The in-memory access token |
+| `isAuthenticated` | `ComputedRef<boolean>` | Follows `clearAuthToken()` calls made elsewhere |
+| `loading` | `Ref<boolean>` | `login()` or `fetchUser()` in flight |
+| `login(credentials)` | `Promise<data>` | POST, then stores `data.token` and `data.user` |
+| `setSession(token, user?)` | `void` | A session your code obtained (SSO callback, invite link) |
+| `fetchUser()` | `Promise<TUser \| null>` | GET the me route; signs out on failure |
+| `refresh()` | `Promise<boolean>` | Cookie → new access token; `false` and signed out on failure |
+| `logout()` | `Promise<void>` | Signs out locally, then asks the server to drop the cookie |
+
+`useAuth<TUser>()` types `user` with your own fields. `configureAuth(paths)` is a separate export.
+
+#### Server contract
+
+| Route | Method | Request | Response |
+|---|---|---|---|
+| login | POST | `{ email, password }` | `{ token, user }`, and sets the refresh cookie |
+| refresh | POST | the cookie (`withCredentials`) | `{ token }` |
+| logout | POST | the cookie | clears the cookie |
+| me | GET | `Authorization: Bearer <token>` | the user |
+
+#### Behaviour
+
+- Registers `getToken` and `refreshToken` with the axios plugin. `onUnauthorized` (redirect to
+  Login, a toast) stays with the app, in `main.ts`.
+- One refresh at a time: the interceptor's 401 retry and `refresh()` share the request in flight.
+- The refresh request is marked `_retry`, so a 401 on it signs out instead of asking the
+  interceptor for another refresh, which would wait on itself forever.
+
+#### Things that look simplifiable but are not
+
+| Looks simplifiable | Why it is not |
+|---|---|
+| Keep the token in a `ref` inside useAuth | Then `clearAuthToken()` from the app's 401 handler leaves useAuth "signed in". authToken.ts is the one source, and reactive |
+| Store the refresh token so a reload stays signed in | That is the token worth stealing. The cookie gives the same reload behaviour without exposing it |
+| Register `onUnauthorized` here too | `setAuthProvider` merges, so it would replace the app's redirect |
+
+### usePagination
+
+Client-side pagination state for a table or list.
+
+```ts
+const query = ref('');
+const rows = computed(() => people.value.filter((p) => p.name.includes(query.value)));
+const { page, totalPages, range, visiblePages, paginate, goTo } = usePagination({
+  total: () => rows.value.length,
+  pageSize: 25,
+});
+// <tr v-for="row in paginate(rows)">
+```
+
+#### Options
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `total` | `MaybeRefOrGetter<number>` | — | Item count. A getter follows a filtered list |
+| `pageSize` | `MaybeRefOrGetter<number>` | `10` | Changing it goes back to page 1 |
+| `initialPage` | `number` | `1` | Clamped to the pages that exist |
+| `maxVisiblePages` | `MaybeRefOrGetter<number>` | `5` | Length of `visiblePages` |
+
+Returns `page`, `pageSize`, `totalPages` (at least 1), `startIndex`, `endIndex`, `isFirst`,
+`isLast`, `range` (`{ start, end, total }`, `start` is 0 when empty), `visiblePages`, `goTo`
+(clamps), `next`, `prev`, `first`, `last` and `paginate(items)`.
+
+#### Things that look simplifiable but are not
+
+| Looks simplifiable | Why it is not |
+|---|---|
+| Clamp `page` in a normal (pre-flush) watcher | For one render the slice is empty: "page 5 of 2" flashes "No results" after every narrowing filter. The clamp is `flush: 'sync'` |
+| Keep the page when `pageSize` changes | Page 4 at 10 per page and page 4 at 50 per page hold unrelated rows |
+
+### useKeyboard
+
+Global keyboard shortcuts, removed on unmount.
+
+```ts
+useKeyboard({ 'ctrl+k': () => (paletteOpen.value = true), '/': () => search.value?.focus() });
+useKeyboard({ escape: close, 'shift+/': showHelp }, isOpen, { repeat: false });
+```
+
+| Argument | Type | Description |
+|---|---|---|
+| `shortcuts` | `Record<string, (e) => void \| boolean>` | `ctrl` means Ctrl or ⌘. Return `true` to `preventDefault` |
+| `enabled` | `MaybeRefOrGetter<boolean>` | Binds while true; omitted, binds on mount |
+| `options.allowInInputs` | `boolean` (`false`) | Fire single-key shortcuts inside text fields |
+| `options.repeat` | `boolean` (`true`) | Fire on auto-repeat |
+
+#### Behaviour
+
+- **Typing is safe.** In an input, textarea, select or contenteditable, a shortcut with no ctrl,
+  alt or meta does not fire (`/`, `j`, `enter`). Escape always fires, so a dialog closes from a field.
+- **Shifted symbols match either spelling.** Shift+/ reports `?`; both `'?'` and `'shift+/'` match
+  it. Letters keep shift: `'a'` and `'shift+a'` are different shortcuts.
+- Keys pressed while an IME is composing (Japanese, Chinese input) are ignored.
+- One press fires one handler.
+

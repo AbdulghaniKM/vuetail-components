@@ -205,8 +205,10 @@ useKeyboard(
  },
  enter: (e: KeyboardEvent) => {
  if (props.loading) return
- const tag = (e.target as HTMLElement)?.tagName
- if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return
+ // Fields keep Enter for themselves, and a focused button or link already activates on
+ // Enter: confirming here as well would run "confirm" when the user pressed Cancel.
+ const target = e.target as HTMLElement | null
+ if (target?.closest('textarea, input, select, button, a[href], [role="button"], [contenteditable="true"]')) return
  handleConfirm()
  },
  },

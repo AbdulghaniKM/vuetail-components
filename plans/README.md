@@ -17,7 +17,7 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 6 | Merge `redesign` into components `main`, then docs `master` and template `main` | Done 2026-11-08: live on vuetail-docs.vercel.app |
 | 7 | Docs finalisation: every page on Ink, docs read in order (below) | **In progress** |
 | 8 | Apply DESIGN-BIBLE.md to the registry (P1–P8, below) | **In progress**: P1–P7 done, P8 icons left |
-| 9 | Composables: fix the 25, add the four that components duplicate (below) | **Planned** |
+| 9 | Composables: fix the 25, add the four that components duplicate (below) | **In progress**: 9.1 done |
 
 ## Phase 4 plan
 
@@ -536,6 +536,35 @@ one session.
 | 3 | useAuth | Access and refresh tokens in `localStorage`, against the template's in-memory `lib/authToken.ts` and the docs guide; refresh logic written twice | Build on `lib/authToken.ts`; one `refresh()` used by both the axios provider and the public method; `AuthUser` without `[key: string]: any` (generic `useAuth<TUser>()`); registry `requires.files` gains `src/lib/authToken.ts` |
 | 4 | usePagination | Page is not clamped when `total` shrinks (page 5 of 2, empty slice); options are not reactive | Watch `totalPages` and clamp; `MaybeRefOrGetter` for `total`, `pageSize`, `maxVisiblePages`; reset to 1 when `pageSize` changes |
 | 5 | useKeyboard | Single-key shortcuts fire while typing; `shift+/` never matches (`e.key` is `?`); IME composition and `repeat` not handled | Skip editable targets unless the combo has ctrl/alt (option `allowInInputs`); match on `e.key` with shift folded in; ignore `isComposing`; option `repeat: false` |
+
+**9.1 status (2026-11-08): done, uncommitted.** Docs `pnpm test` 664/664, `pnpm build` clean,
+checked in Chrome (0 console errors). Each has a spec in docs `tests/`, a README section under the
+new "Composable reference" and an updated docs page.
+- useInfiniteScroll (`useInfiniteScroll.spec.ts`, 8): re-checks the sentinel after every page,
+  drops pages that land after `reset()` or unmount (generation counter + `AbortSignal` passed to
+  `fetch`), advances the page only on success, `sentinelRef` and `window` options. One claim was
+  wrong: Vue already keeps the added sentinel last (it inserts before its own fragment anchor), so
+  there was no ordering bug; the spec keeps it as a guard.
+- useConfirm (`useConfirm.spec.ts`, 4): renders through `render()` with the caller's
+  `appContext`; a second confirm answers the first with `false`; unmounts after
+  `--vt-duration-exit`; `variant: 'primary'` and `body` options (ConfirmDangerModal gained
+  `variant` and a default slot). Found on the way: **AppModal confirmed on Enter while Cancel had
+  focus**, so Enter on Cancel ran the destructive action. AppModal now leaves Enter to focused
+  buttons and links. The spec mocks motion-v: happy-dom throws an AbortError when an animation is
+  cancelled, which browsers do not.
+- useAuth (`useAuth.spec.ts`, 6): on `lib/authToken.ts` (memory) plus an httpOnly refresh cookie;
+  nothing in localStorage; one refresh in flight shared with the interceptor; `configureAuth()`
+  for routes; `useAuth<TUser>()`. The template's `lib/authToken.ts` now keeps the token in a
+  `shallowRef` (same functions), so `isAuthenticated` follows a clear made anywhere; docs got a
+  copy and the registry `requires.files`. Found on the way: a 401 on the refresh request would make
+  the interceptor wait on its own refresh; the request is marked `_retry`.
+- usePagination (`usePagination.spec.ts`, 6): sync clamp when `total` shrinks, page 1 on a new
+  `pageSize`, `MaybeRefOrGetter` options, clamped `initialPage`. AppTable picks this up as is.
+- useKeyboard (`useKeyboard.spec.ts`, 10): single keys stay quiet in fields (Escape and modified
+  combos still fire), `shift+/` and `?` both match, IME composition ignored, `repeat` and
+  `allowInInputs` options, `enabled` takes a getter.
+- README: AppNavbar's stale "Why `tone="dark"` is the default" is now "surface by default, dark on
+  request", plus the container-query breakpoint.
 
 ### 9.2 Smaller fixes (about 2 h)
 

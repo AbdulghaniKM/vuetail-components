@@ -3,16 +3,15 @@
  :is-open="isOpen"
  :title="title"
  :description="message"
- icon="icon-[heroicons--exclamation-triangle]"
- icon-variant="danger"
+ :icon="variant === 'danger' ? 'icon-[heroicons--exclamation-triangle]' : 'icon-[heroicons-outline--question-mark-circle]'"
+ :icon-variant="variant"
  max-width="sm"
  hide-close
  @close="emit('close')"
  @confirm="emit('confirm')"
  >
- <template #default>
- <!-- intentionally empty ÔÇö description in header is enough -->
- </template>
+ <!-- Optional extra content; the description in the header is usually enough. -->
+ <slot />
  <template #footer>
  <div class="flex gap-2.5">
  <AppButton
@@ -24,11 +23,11 @@
  @click="emit('close')"
  />
  <AppButton
- variant="danger"
+ :variant="variant"
  :label="loading ? loadingLabel : confirmLabel"
  :loading="loading"
  :loading-label="loadingLabel"
- icon="icon-[heroicons-outline--trash]"
+ :icon="variant === 'danger' ? 'icon-[heroicons-outline--trash]' : undefined"
  full-width
  size="md"
  class="flex-1"
@@ -52,6 +51,8 @@ withDefaults(
  cancelLabel?: string
  loading?: boolean
  loadingLabel?: string
+ /** `danger` for destructive actions; `primary` for an ordinary yes or no. */
+ variant?: 'danger' | 'primary'
  }>(),
  {
  title: 'Confirm',
@@ -60,6 +61,7 @@ withDefaults(
  cancelLabel: 'Cancel',
  loading: false,
  loadingLabel: 'Processing...',
+ variant: 'danger',
  }
 )
 
