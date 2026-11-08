@@ -150,8 +150,8 @@ What already holds:
   `Fields/*` is apart and everything else is "Components". Composables is one list of 25. The home
   page already groups the registry by role (Actions and feedback, Forms, Overlays, Data, Navigation
   and layout, Materials), so the sidebar and home disagree.
-- [ ] No prev/next on any page (1 of 73 routes has a prev/next link, by accident).
-- [ ] Breadcrumbs are visible but not semantic: no `<nav aria-label="Breadcrumb">`, no
+- [x] No prev/next on any page (1 of 73 routes has a prev/next link, by accident).
+- [x] Breadcrumbs are visible but not semantic: no `<nav aria-label="Breadcrumb">`, no
   `aria-current="page"`. They fail axe's landmark checks on 73 of 73 routes.
 - [x] The explore pages group by folder (General / Fields) with one repeated icon on almost every
   card. They duplicate the sidebar instead of being the overview it lacks.
@@ -164,9 +164,9 @@ What already holds:
 
 **§5 Layout**
 - [ ] /offline, /500 and the 404 overflow at 375px (the header's actions row, `ms-auto.flex`).
-- [ ] DocPage's preview box is a fixed `min-h-[20rem] p-8 bg-surface` card: oversized for small
+- [x] DocPage's preview box is a fixed `min-h-[20rem] p-8 bg-surface` card: oversized for small
   demos, with no stage treatment.
-- [ ] At 375px the API table is cut off on the right (Default, Description). It needs stacked rows
+- [x] At 375px the API table is cut off on the right (Default, Description). It needs stacked rows
   or a labelled scroll region.
 - [ ] Mixed type scale: guide pages use `text-[1.375rem]`, `text-[0.9375rem]`, `text-[0.8125rem]`,
   `text-[0.6875rem]` (11px). Headings are Title Case ("Getting Started", "Explore Components") where
@@ -341,8 +341,25 @@ The 3b, 5d and 76 sessions are gone; 70 owns every package. WP1 is done, uncommi
   `CLAUDE_PROJECT_DIR` is set. Run tests with
   `CLAUDE_PROJECT_DIR="C:/Users/Abdulghani/Desktop/OpenSource"` so the guard sees red and green.
 
-Next: WP2 in `pages/DocPage.vue`: Preview/Code tablist, then h2 anchors and TOC, then `ApiTable`,
-`<DocsBreadcrumbs/>` and `<DocsPager/>`. home.vue's GROUPS should import from docsNav (WP3).
+WP2 is done, uncommitted. Docs `pnpm test` 159/159, `vue-tsc -b` clean.
+
+- `components/docs/PreviewCodeTabs.vue`: APG tabs with automatic activation (arrows wrap, Home, End,
+  one tab stop), `hidden` panels so demos keep their state, the preview panel is the Ink stage
+  (`bg` ground, hairline border, no min-height, no shadow).
+- `components/docs/ApiTable.vue`: a stacked list below `sm`, a table in a focusable labelled
+  region from `sm`.
+- `pages/DocPage.vue`: `DocsBreadcrumbs`, `DocsPager`, h2 ids with an "On this page" rail at `xl`
+  (sticky, clears the header), a named copy-install button, an h1 on the not-found state, token
+  buttons, no `animate-in`, no px. CodeBlock's own Copy replaces the duplicate "Copy code" bar.
+- Checked AppButton, AppModal, useThemeCustomizer and AppTable in all 6 combinations at both
+  widths: DocPage's own chrome has 0 axe findings, 0 overflow, 0 console errors. Arrow keys and the
+  TOC anchor (lands at 72px) checked in Chromium.
+- Left for WP4 (demos and content): icon-only buttons without labels in the AppButton examples, the
+  useThemeCustomizer demo's `.max-h-72` scroll box at 375px, Title Case example titles, dated
+  descriptions. For the registry: AppTable's toolbar icon buttons, row and select-all checkbox
+  labels, `text-text/50` contrast, empty header cells and its `overflow-x-auto` scroller.
+
+Next: WP3, the guide pages. home.vue's GROUPS should import from docsNav.
 
 ## Known decisions
 
