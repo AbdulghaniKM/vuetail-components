@@ -359,7 +359,28 @@ WP2 is done, uncommitted. Docs `pnpm test` 159/159, `vue-tsc -b` clean.
   descriptions. For the registry: AppTable's toolbar icon buttons, row and select-all checkbox
   labels, `text-text/50` contrast, empty header cells and its `overflow-x-auto` scroller.
 
-Next: WP3, the guide pages. home.vue's GROUPS should import from docsNav.
+WP3 is done. Docs `pnpm test` 196/196, `vue-tsc -b` and `pnpm build` clean.
+
+- `components/docs/GuidePage.vue` + `GuideSection.vue`: the frame for guide pages (breadcrumb, h1,
+  lead, the shared `components/nav/OnThisPage.vue` rail that DocPage now uses too, pager). Each page
+  declares its sections once, so the h2s and the rail cannot drift.
+- Getting started, Conventions and Data layer rewritten against vuetail-template as it is: presets
+  in `src/theme.ts`, tokens in `src/styles/tokens.css`, `useAppUi` / `useTheme` /
+  `useThemeCustomizer`, file-based routes with `definePage()`, the in-memory auth token. No
+  `localStorage` auth, no "tokens live in style.css".
+- Design tokens: live values of the active preset (colour by group, radius, density, type,
+  motion) through `components/docs/useLiveTokens.ts`, which follows preset, theme and customizer
+  changes.
+- home.vue groups the registry from docsNav. Breadcrumbs no longer link "Docs" to the page you are
+  on. `/login` has a `<main>`. Pages, nav and layouts use the Tailwind type scale only
+  (`tests/typeScale.spec.ts` guards it); readable text moved off `text-text-subtle`.
+- Checked 9 routes in all 6 combinations at both widths: 0 console errors, 0 overflow (the error
+  pages included), 0 critical axe. The 30 serious hits are all CodeBlock comment colour (WP4).
+- The docs `.prettierrc` has `htmlWhitespaceSensitivity: "ignore"`, which splits punctuation from
+  inline tags and renders a stray space ("`dist/` ."). The guide pages were formatted with
+  `--html-whitespace-sensitivity css`; a plain `pnpm format` would break them again.
+
+Next: WP4, starting with CodeBlock on the tokens.
 
 ## Known decisions
 
