@@ -478,7 +478,11 @@ export const hueFor = (seed: string): TableHue => {
 };
 
 /** Coloured text on a faint same-hue fill with a soft border — one badge language everywhere. */
-export const tone = (hex: string) => ({ color: hex, background: `${hex}17`, borderColor: `${hex}55` });
+export const tone = (hex: string) => ({
+  color: `color-mix(in srgb, ${hex} 55%, var(--color-text))`,
+  background: `${hex}17`,
+  borderColor: `${hex}55`,
+});
 
 /** Distinguishable hues that read on both a light and a dark surface. */
 const TONE_PALETTE = [
@@ -1613,7 +1617,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   font-weight: 600;
   letter-spacing: 0.04em;
   white-space: nowrap;
-  color: var(--hue);
+  color: color-mix(in srgb, var(--hue) 55%, var(--color-text));
   background: var(--hue-fill);
   border: 1px solid var(--hue-edge);
 }
@@ -1643,7 +1647,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   place-items: center;
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--hue);
+  color: color-mix(in srgb, var(--hue) 55%, var(--color-text));
 }
 
 .at-row:hover .at-avatar {
@@ -1676,7 +1680,6 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   font-size: 0.6875rem;
   letter-spacing: 0.06em;
   color: var(--color-text-muted);
-  opacity: 0.75;
   white-space: nowrap;
 }
 

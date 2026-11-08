@@ -25,7 +25,7 @@
  :aria-invalid="error ? 'true' : undefined"
  :aria-describedby="error ? errorId : undefined"
  dir="ltr"
- class="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-text placeholder:text-text/40 focus:outline-none disabled:cursor-not-allowed text-sm overflow-x-auto"
+ class="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-text placeholder:text-text-subtle focus:outline-none disabled:cursor-not-allowed text-sm overflow-x-auto"
  :class="customClass"
  @input="handleInput"
  @focus="isFocused = true"
@@ -41,7 +41,7 @@
  @click="toggleDropdown"
  >
  <svg
- class="size-3.5 text-text/40 transition-transform duration-(--vt-duration)"
+ class="size-3.5 text-text-subtle transition-transform duration-(--vt-duration)"
  :class="{ 'rotate-180': isOpen }"
  viewBox="0 0 20 20"
  fill="currentColor"
@@ -77,7 +77,7 @@
  >
  <span class="text-lg leading-none">{{ country.flag }}</span>
  <span dir="ltr">{{ country.code }}</span>
- <span class="text-text/50 text-xs">{{ country.name }}</span>
+ <span class="text-text-muted text-xs">{{ country.name }}</span>
  <svg
  v-if="country.code === countryCode"
  class="ms-auto size-4 text-accent"

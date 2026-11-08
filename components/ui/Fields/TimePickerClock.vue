@@ -34,7 +34,7 @@
  </button>
  </div>
 
- <span class="mb-1 self-center text-xl font-bold text-text-muted/20 select-none">:</span>
+ <span class="mb-1 self-center text-xl font-bold text-text-muted select-none">:</span>
 
  <!-- Minute column -->
  <div class="flex flex-col items-center">

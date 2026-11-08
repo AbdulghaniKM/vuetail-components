@@ -23,7 +23,7 @@
  tabindex="-1"
  :aria-label="showPassword ? 'Hide password' : 'Show password'"
  :aria-pressed="showPassword"
- class="absolute end-0 top-1/2 -translate-y-1/2 flex items-center justify-center px-3 text-text/40 hover:text-text/70 transition-colors"
+ class="absolute end-0 top-1/2 -translate-y-1/2 flex items-center justify-center px-3 text-text-muted hover:text-text transition-colors"
  @click="showPassword = !showPassword"
  >
  <AppIcon

@@ -20,7 +20,7 @@
  @click="toggle"
  @keydown="onTriggerKeydown"
  >
- <span :class="selectedLabel ? 'text-text' : 'text-text/50'" class="truncate">
+ <span :class="selectedLabel ? 'text-text' : 'text-text-muted'" class="truncate">
  {{ selectedLabel || placeholder || 'Select...' }}
  </span>
  <AppIcon
@@ -55,7 +55,7 @@
  ref="searchRef"
  v-model="searchQuery"
  type="text"
- class="w-full bg-transparent text-sm text-text placeholder:text-text/40 focus:outline-none"
+ class="w-full bg-transparent text-sm text-text placeholder:text-text-subtle focus:outline-none"
  placeholder="Search..."
  @keydown="onListKeydown"
  />

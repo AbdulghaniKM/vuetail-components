@@ -400,7 +400,25 @@ WP4 is done. Docs `pnpm test` 374/374, `vue-tsc -b` and `pnpm build` clean.
   colours (contrast), AppTable checkbox labels and `text-text/50`, Select's `text-text/50`
   placeholder (also in AppFilterPanel), AppDock's badge contrast, DatePicker's nested interactive.
 
-Next: those registry fixes, then WP5.
+Registry fixes are done, uncommitted. Docs `pnpm test` 429/429, `tokens.mjs check` and
+`check --usage` OK.
+
+- No registry component fades text with a token alpha (`text-text/50`, `text-text-muted/40`, …):
+  readable text is `text-text-muted`, native placeholders and decorative icons `text-text-subtle`.
+  Guarded by docs `tests/registryContrast.spec.ts`.
+- AppDock badge `#e5484d` → `#d93036` (3.91 → 4.74:1 with white).
+- AppTable: named select-all and row checkboxes, readable text in the select and actions header
+  cells, and its horizontal scroller is a focusable labelled group.
+- DatePicker: the Clear button is beside the trigger, not nested inside it.
+- AdvancedAppTable: avatar initials, hue chips and `tone()` badges mix the hue 55% with
+  `--color-text`, so each keeps its colour and reaches at least 4.99:1 on its tint in light and
+  dark; the identity code drops its 0.75 opacity. Guarded by `tests/advancedAppTableHues.spec.ts`.
+- Site crawl after this (all 73 routes, Ink light, both widths): 0 serious or critical, 0 overflow,
+  0 console errors.
+- Not changed: AdvancedAppTable line ~1259 uses an overshooting `cubic-bezier(0.22, 1.12, 0.36, 1)`
+  that the design hook flags as bounce easing. It predates this work; the owner decides.
+
+Next: WP5.
 
 ## Known decisions
 

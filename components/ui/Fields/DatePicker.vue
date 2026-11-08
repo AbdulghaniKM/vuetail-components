@@ -16,6 +16,7 @@
  class="flex w-full items-center gap-2 h-control-md rounded-md border bg-surface px-3 text-start text-control transition-[border-color,box-shadow] duration-(--vt-duration) ease-standard focus:outline-none focus:ring-3 focus:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-50"
  :class="[
  error ? 'border-danger-text focus:border-danger-text focus:ring-danger-text/25' : 'border-border-strong focus:border-ring',
+ displayValue && !readonly && 'pe-9',
  customClass,
  ]"
  @click="toggle"
@@ -24,15 +25,15 @@
  <span class="flex-1 truncate" :class="displayValue ? 'text-text' : 'text-text-muted'">
  {{ displayValue || placeholder }}
  </span>
+ </button>
  <button
  v-if="displayValue && !readonly"
  type="button"
- class="text-text-muted hover:text-text shrink-0 transition-colors"
+ class="absolute end-2 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded-sm text-text-muted transition-colors hover:text-text"
  aria-label="Clear date"
- @click.stop="clearValue"
+ @click="clearValue"
  >
- <AppIcon name="icon-[heroicons-outline--x-mark]" :size="0.875" />
- </button>
+ <AppIcon name="icon-[heroicons-outline--x-mark]" :size="0.875" aria-hidden="true" />
  </button>
  </div>
 
@@ -318,7 +319,7 @@ function goToToday() {
 function getDayClass(day: { isCurrentMonth: boolean; isToday: boolean; isSelected: boolean }) {
  if (day.isSelected) return 'bg-accent text-accent-fg font-medium hover:bg-accent-hover'
  if (day.isToday) return 'bg-accent/10 text-accent font-medium hover:bg-accent/20'
- if (!day.isCurrentMonth) return 'text-text-muted/40'
+ if (!day.isCurrentMonth) return 'text-text-muted'
  return 'text-text hover:bg-muted'
 }
 

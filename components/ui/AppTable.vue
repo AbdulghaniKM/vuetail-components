@@ -33,7 +33,7 @@
           v-model="searchQuery"
           type="text"
           :placeholder="searchPlaceholder"
-          class="border-border bg-surface text-text placeholder:text-text-muted/60 w-full rounded-xl border py-2 pe-9 ps-9 text-sm transition-[border-color,box-shadow] duration-(--vt-duration) ease-standard focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
+          class="border-border bg-surface text-text placeholder:text-text-subtle w-full rounded-xl border py-2 pe-9 ps-9 text-sm transition-[border-color,box-shadow] duration-(--vt-duration) ease-standard focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
         />
         <button
           v-if="searchQuery"
@@ -157,6 +157,9 @@
     >
       <div
         ref="tableScrollRef"
+        tabindex="0"
+        role="group"
+        aria-label="Table, scrolls sideways"
         class="overflow-x-auto"
         :class="{ 'is-scrolled-from-start': !scrollAtStart, 'is-not-scrolled-to-end': !scrollAtEnd }"
         style="-webkit-overflow-scrolling: touch"
@@ -184,14 +187,17 @@
                 "
               >
                 <template v-if="column.key === '__select__'">
+                  <span class="sr-only">Select</span>
                   <AppCheckbox
+                    aria-label="Select all rows"
                     :model-value="isAllSelected"
                     :indeterminate="isPartialSelected"
                     @update:model-value="toggleAll"
                   />
                 </template>
                 <template v-else-if="column.key === 'actions'">
-                  <span class="text-text-muted">{{ actionsLabel }}</span>
+                  <span v-if="actionsLabel" class="text-text-muted">{{ actionsLabel }}</span>
+                  <span v-else class="sr-only">Actions</span>
                 </template>
                 <template v-else>
                   <button
@@ -268,7 +274,7 @@
                     <AppIcon
                       name="icon-[heroicons-outline--inbox-stack]"
                       :size="1.75"
-                      class="text-text-muted/50"
+                      class="text-text-subtle"
                     />
                   </div>
                   <div>
@@ -319,6 +325,7 @@
                 <!-- selection column -->
                 <template v-if="column.key === '__select__'">
                   <AppCheckbox
+                    :aria-label="`Select row ${index + 1}`"
                     :model-value="isRowSelected(row, index)"
                     @update:model-value="toggleRow(row, index)"
                     @click.stop
@@ -596,7 +603,7 @@
                   :class="[
                     visibleColumnsSet.has(col.key)
                       ? 'text-text hover:bg-muted/60'
-                      : 'text-text-muted/60 hover:bg-muted/40',
+                      : 'text-text-muted hover:bg-muted/40',
                     isLastVisibleColumn(col.key) ? 'cursor-not-allowed opacity-50 hover:bg-transparent' : '',
                   ]"
                   :disabled="isLastVisibleColumn(col.key)"

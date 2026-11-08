@@ -680,7 +680,7 @@
     --dock-muted: #99a2b3;
     --dock-line: #262c37;
     --dock-accent: #3fd3b6;
-    --dock-badge: #e5484d;
+    --dock-badge: #d93036;
     --dock-badge-ink: #ffffff;
     --dock-glass: rgb(18 21 28 / 0.9);
     --dock-glass-line: rgb(232 236 243 / 0.12);
