@@ -99,7 +99,7 @@
 
  <!-- Weekday headers -->
  <div class="grid grid-cols-7 border-b border-border/50 px-3 py-2">
- <span v-for="(day, i) in weekdayLabels" :key="i" class="text-center text-xs font-semibold uppercase tracking-tight text-text-muted">
+ <span v-for="(day, i) in weekdayLabels" :key="i" class="text-center text-xs font-semibold text-text-muted">
  {{ day }}
  </span>
  </div>

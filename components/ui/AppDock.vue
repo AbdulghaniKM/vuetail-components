@@ -496,7 +496,7 @@
   >
     <nav
       ref="barRef"
-      class="dock-pill pointer-events-auto flex gap-1 rounded-3xl p-2"
+      class="dock-pill pointer-events-auto flex gap-1 rounded-xl p-2"
       :class="[DOCK_BAR[position], isDragging ? 'dock-lifted' : 'transition-shadow duration-(--vt-duration) ease-standard']"
       :aria-label="ariaLabel"
       :style="dragStyle"
@@ -505,7 +505,7 @@
       <button
         v-if="showGrip"
         type="button"
-        class="dock-grip dock-focus flex shrink-0 touch-none items-center justify-center rounded-2xl transition-colors"
+        class="dock-grip dock-focus flex shrink-0 touch-none items-center justify-center rounded-lg transition-colors"
         :class="[
           DOCK_GRIP[position],
           isDragging ? 'dock-grip-held cursor-grabbing' : 'cursor-grab',
@@ -564,7 +564,7 @@
               :aria-label="entry.item.label"
               :aria-disabled="entry.item.disabled ? 'true' : undefined"
               :tabindex="entry.item.disabled ? -1 : undefined"
-              class="dock-focus flex items-center justify-center rounded-2xl transition-[transform,background-color,color] duration-(--vt-duration) ease-standard"
+              class="dock-focus flex items-center justify-center rounded-lg transition-[transform,background-color,color] duration-(--vt-duration) ease-standard"
               :class="[
                 isActive(entry.item)
                   ? HUE_ACTIVE[hueOf(entry.item)]
@@ -581,7 +581,7 @@
 
             <span
               v-if="badgeOf(entry.item)"
-              class="dock-badge pointer-events-none absolute -top-0.5 -right-0.5 z-10 flex min-w-4 items-center justify-center rounded-full px-1 text-[0.625rem] leading-4 font-semibold"
+              class="dock-badge pointer-events-none absolute -top-0.5 -right-0.5 z-10 flex min-w-4 items-center justify-center rounded-full px-1 text-xs leading-4 font-semibold"
             >
               {{ badgeOf(entry.item) }}
             </span>
@@ -618,11 +618,11 @@
       aria-hidden="true"
     >
       <div
-        class="dock-pill dock-ghost flex gap-1 rounded-3xl p-2 opacity-50"
+        class="dock-pill dock-ghost flex gap-1 rounded-xl p-2 opacity-50"
         :class="DOCK_BAR[previewPosition]"
       >
         <span
-          class="dock-tile-idle shrink-0 rounded-2xl"
+          class="dock-tile-idle shrink-0 rounded-lg"
           :class="DOCK_GRIP[previewPosition]"
           :style="
             previewPosition === 'left' || previewPosition === 'right'
@@ -640,7 +640,7 @@
               :class="DOCK_SEPARATOR[previewPosition]"
             />
             <span
-              class="flex shrink-0 items-center justify-center rounded-2xl"
+              class="flex shrink-0 items-center justify-center rounded-lg"
               :class="
                 isActive(entry.item)
                   ? HUE_ACTIVE[hueOf(entry.item)]
@@ -675,11 +675,11 @@
     border: 0.0625rem solid var(--dock-glass-line);
     backdrop-filter: blur(1.5rem) saturate(1.5);
     -webkit-backdrop-filter: blur(1.5rem) saturate(1.5);
-    box-shadow: var(--vt-shadow-2);
+    box-shadow: var(--shadow-lg);
   }
 
   .dock-lifted {
-    box-shadow: var(--vt-shadow-3);
+    box-shadow: var(--shadow-xl);
     outline: 0.125rem solid var(--dock-accent);
     outline-offset: -0.0625rem;
   }
@@ -695,7 +695,7 @@
     color: var(--dock-ink);
     backdrop-filter: blur(1.25rem) saturate(1.7);
     -webkit-backdrop-filter: blur(1.25rem) saturate(1.7);
-    box-shadow: var(--vt-shadow-2);
+    box-shadow: var(--shadow-lg);
   }
 
   .dock-line {
@@ -740,15 +740,7 @@
   .dock-badge {
     background-color: var(--dock-badge);
     color: var(--dock-badge-ink);
-    box-shadow: 0 0 0 0.125rem var(--dock-chrome);
-  }
-
-  /* Ring drawn against the pill, not the page behind it. */
-  .dock-focus:focus-visible {
-    outline: none;
-    box-shadow:
-      0 0 0 0.125rem var(--dock-chrome),
-      0 0 0 0.25rem var(--dock-accent);
+    outline: 0.125rem solid var(--dock-chrome);
   }
 
   /*

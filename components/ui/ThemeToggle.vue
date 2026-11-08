@@ -3,7 +3,7 @@
     type="button"
     :aria-label="`Switch to ${nextMode} theme`"
     :title="`Theme: ${mode}`"
-    class="text-text-muted hover:bg-muted hover:text-text inline-flex size-10 items-center justify-center rounded-lg transition-colors focus-visible:outline-none"
+    class="text-text-muted hover:bg-muted hover:text-text inline-flex size-10 items-center justify-center rounded-md transition-colors"
     @click="cycle"
   >
     <AppIcon :name="iconName" :size="1.125" />

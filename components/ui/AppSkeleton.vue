@@ -4,7 +4,7 @@
     <span
       v-for="n in lines"
       :key="n"
-      class="app-skeleton bg-muted block h-3 rounded"
+      class="app-skeleton bg-muted block h-3 rounded-sm"
       :class="n === lines ? 'w-2/3' : 'w-full'"
     />
   </div>
@@ -36,7 +36,7 @@
   const shapeClass = computed(() => {
     if (props.variant === 'circle') return 'rounded-full';
     if (props.variant === 'rect') return 'rounded-lg';
-    return 'h-3 rounded';
+    return 'h-3 rounded-sm';
   });
 
   const toSize = (v: string | number | undefined) => {

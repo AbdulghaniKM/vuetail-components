@@ -113,18 +113,18 @@ const props = withDefaults(
 const sizeClass = computed(() => {
   if (props.iconOnly && !props.fullWidth) {
     return {
-      xs: "size-[calc(var(--spacing-control-sm)*0.8)] text-[0.75rem]",
-      sm: "size-control-sm text-[0.8125rem]",
+      xs: "size-[calc(var(--spacing-control-sm)*0.8)] text-xs",
+      sm: "size-control-sm text-sm",
       md: "size-control-md text-control",
-      lg: "size-control-lg text-[0.9375rem]",
+      lg: "size-control-lg text-base",
     }[props.size];
   }
   // Heights and padding come from the density tokens, so the Console preset reaches every button.
   return {
-    xs: "h-[calc(var(--spacing-control-sm)*0.8)] px-2.5 text-[0.75rem]",
-    sm: "h-control-sm px-3 text-[0.8125rem]",
+    xs: "h-[calc(var(--spacing-control-sm)*0.8)] px-2.5 text-xs",
+    sm: "h-control-sm px-3 text-sm",
     md: "h-control-md px-control-pad text-control",
-    lg: "h-control-lg px-6 text-[0.9375rem]",
+    lg: "h-control-lg px-6 text-base",
   }[props.size];
 });
 

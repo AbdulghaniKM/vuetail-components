@@ -16,6 +16,8 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 5 | `useThemeCustomizer` (replaces `useColorCustomizer`): the five settings on top of any preset | Done |
 | 6 | Merge `redesign` into components `main`, then docs `master` and template `main` | Done 2026-11-08: live on vuetail-docs.vercel.app |
 | 7 | Docs finalisation: every page on Ink, docs read in order (below) | **In progress** |
+| 8 | Apply DESIGN-BIBLE.md to the registry (P1–P8, below) | **In progress**: P1–P7 done, P8 icons left |
+| 9 | Composables: fix the 25, add the four that components duplicate (below) | **Planned** |
 
 ## Phase 4 plan
 
@@ -489,4 +491,97 @@ Guarded by docs `tests/designBible.spec.ts`. Order follows the bible's appendix.
   vanished into the capsule); its private accent focus outline is gone (one ring). The default
   tone is `surface` in the docs too. Docs: the bar pins below the mock browser chrome and the demos
   use `sm`.
-- [ ] P6 shape and type  - [ ] P7 elevation  - [ ] P8 icons
+- [x] P6 shape and type: AdvancedAppTable's 14 radii onto `--radius-*` by role (shell and row
+  cards `lg`, triggers and menu items `md`, badges and chips `--radius-badge`, switch
+  `--radius-switch`, bulk bar `xl`) and its 13 sizes onto `--text-xs` / `--text-sm`, so 10 and 11px
+  text is gone. Its uppercase mono column headers, menu title and card labels are sentence-case sans
+  now (mono stays for IDs, counts and pagination). AppButton sizes are `text-xs` / `text-sm` /
+  `text-control` / `text-base`; AppBadge, AppToast, AppTooltip, AppFilterPanel, InputField's error
+  text and AppDock's badge are on the scale; AppDock is `rounded-xl` with `rounded-lg` tiles;
+  AppSkeleton and AppTable's sort button are `rounded-sm`; AppTable headers and DatePicker weekdays
+  lose `uppercase`. Exempt (§13): AppNotificationPreview's imitated screen and AppLiquidGlass.
+  AppText's opt-in `overline` variant is kept.
+- [x] P7 elevation: only `shadow-sm` / `-lg` / `-xl` (`var(--shadow-lg|xl)` in CSS). AppTooltip
+  `shadow-md` → `lg`; AppTable loses `hover:shadow-md` and the inset accent bar on row hover;
+  AdvancedAppTable's bulk bar loses its black shadow and accent glow, the avatar its hover glow;
+  AppDock and AppNavbar read `--shadow-lg|xl` instead of `--vt-shadow-N`; AppDock's badge ring is an
+  outline and its private double focus ring is gone (one ring, §4). Kept: the sticky table
+  header's inset 1px border line.
+  Guarded by the §5 and §6/§8 blocks in docs `tests/designBible.spec.ts`.
+- [ ] P8 icons
+
+**Modal flash (user report, fixed, uncommitted).** Two causes, both measured in Chrome:
+1. motion-v 1.6.1 resets every motion element to its `initial` for one frame when an animation
+   ends, so the modal went to opacity 0 at ~250ms and then to 1. Docs now run motion-v 2.11.1
+   (`^2.2.1`, the template's range); the frame is gone. AppModal's static fade targets are hoisted
+   constants. Retest "Known decisions: motion-v keeps y/scale shorthands" on 2.x before relying on it.
+2. The body scroll lock removed a 10px Windows scrollbar, shifting the page 5px and the header
+   10px. `tokens.css` reserves it: `@layer base { :where(html) { scrollbar-gutter: stable } }`.
+Also: AppModal's close button, ThemeToggle and AppTable's editable-cell trigger had
+`focus-visible:outline-none`, which beats the zero-specificity ring and left no focus indicator.
+Removed; guarded in `designBible.spec.ts`.
+
+## Phase 9: composables
+
+Reviewed all 25 on 2026-11-08. Each step: fix, a vitest spec in docs `tests/` that fails first,
+the README section, the docs page in `content/docs/`. Order is by user impact. Estimates are for
+one session.
+
+### 9.1 Bugs (about 3 h)
+
+| # | Composable | Defect | Fix |
+|---|---|---|---|
+| 1 | useInfiniteScroll | Stalls when a page does not fill the box (the observer never fires again); Vue appends new items after its hand-inserted sentinel; `reset()` during a fetch appends the stale page; container scrolling only | `sentinelRef` the consumer places last; re-check intersection after each load; a request id (or `AbortSignal` to `fetch`) drops stale pages; `root: null` option for window scrolling |
+| 2 | useConfirm | A second `confirm()` leaves the first promise pending forever; `createApp` loses router, plugins and provides; a fixed 300ms close | Resolve the previous with `false`; render through one `<AppConfirmHost>` mounted in the app (or `app._context`); resolve after the exit (`--vt-duration-exit`); a `variant` beyond danger |
+| 3 | useAuth | Access and refresh tokens in `localStorage`, against the template's in-memory `lib/authToken.ts` and the docs guide; refresh logic written twice | Build on `lib/authToken.ts`; one `refresh()` used by both the axios provider and the public method; `AuthUser` without `[key: string]: any` (generic `useAuth<TUser>()`); registry `requires.files` gains `src/lib/authToken.ts` |
+| 4 | usePagination | Page is not clamped when `total` shrinks (page 5 of 2, empty slice); options are not reactive | Watch `totalPages` and clamp; `MaybeRefOrGetter` for `total`, `pageSize`, `maxVisiblePages`; reset to 1 when `pageSize` changes |
+| 5 | useKeyboard | Single-key shortcuts fire while typing; `shift+/` never matches (`e.key` is `?`); IME composition and `repeat` not handled | Skip editable targets unless the combo has ctrl/alt (option `allowInInputs`); match on `e.key` with shift folded in; ignore `isComposing`; option `repeat: false` |
+
+### 9.2 Smaller fixes (about 2 h)
+
+- useDebounce, useThrottle, useClipboard: clear timers in `onScopeDispose`; debounce gains
+  `cancel()` / `flush()`; useClipboard falls back to a hidden textarea where `navigator.clipboard`
+  is missing (http, old WebViews) and takes the toast text as an option.
+- useMotionTokens: add `state()` for `--vt-duration`; return opacity-only, near-zero-duration
+  transitions under reduced motion. Decide whether `tokens.css` shortens durations under
+  `prefers-reduced-motion` (the bible says it does; today only the press transform is dropped).
+- useLiquidGlass (content mode): the rAF loop reads every pane's rect every frame while any pane
+  exists. Run it only while a pane is in view (IntersectionObserver) and stop after a quiet frame.
+- useSeo: `watchEffect` over the config getter, so a title from fetched data updates; not only on
+  `route.path`.
+- useFormValidation: superseded by `useForm` (9.4); keep as a thin wrapper for one release.
+
+### 9.3 Cleanups (about 1 h)
+
+- useLocalStorage: sync across tabs (`storage` event) or wrap `@vueuse/core` `useStorage` (already
+  a dependency) with the zod check.
+- useAppConfig: return the static config object; twelve `computed`s over a constant add nothing.
+- useTableDisplay: `data-view` / `data-density` on `<html>` are generic names any app might use;
+  rename to `data-vt-table-view` / `data-vt-table-density` (AdvancedAppTable's CSS follows).
+- useBreakpoint: `greaterThan` is really "at least" (`min-width`), so rename or alias
+  `atLeast`; share the five media queries at module scope instead of five per call.
+- useDateFormat: `MaybeRefOrGetter` + `toValue` instead of the `'value' in date` check.
+- useDockFlight: `FLIGHT_MS` and the spring are the open motion decision (bible §10 bans
+  overshoot); read `--vt-duration-enter` and use `useReducedMotion` instead of its own media query.
+- useToast: optional `max` (oldest dropped), an `action` (Undo), `update(id)` and `promise()`.
+- Version the registry's `motion-v` requirement (`^2.2.1`); it is unversioned today and docs ran 1.x.
+
+### 9.4 New composables (about 5 h, then adopt)
+
+| New | Replaces code in | API sketch |
+|---|---|---|
+| useOverlay | AppModal, AppImageModal, docs CommandPalette, DashboardLayout's mobile sheet (four focus traps, two scroll locks) | `useOverlay(panelRef, open, { initialFocus, returnFocus, lockScroll, closeOnEscape })`: focus trap, return focus, scroll lock with a stacking count, Escape, `inert` on the rest of the page |
+| useRovingFocus | Select, AppImageModal, PreviewCodeTabs, PresetSwitcher, CommandPalette (arrow keys written five times) | `useRovingFocus(items, { orientation, loop, typeahead })`: one tab stop, arrows, Home/End, typeahead, `aria-activedescendant` mode for comboboxes |
+| useForm | useFormValidation, ad hoc submit state in forms | `useForm({ schema, initial })` → `values`, `errors` (nested zod paths), `touched`, `validate()`, `handleSubmit(fn)`, `isSubmitting`, `reset()` |
+| useAnnouncer | `aria-live` in 7 components (AppToast, AppTable, Fields…) | `announce(message, 'polite' \| 'assertive')` through one live region, so messages are not lost when a component unmounts |
+
+Adoption: AppModal and AppImageModal move to useOverlay first (their traps differ today), then
+the docs CommandPalette and DashboardLayout; Select and the docs tab and switcher components to
+useRovingFocus. Each needs a registry entry, `dependencies`, a README section and a docs page
+(docCoverage fails without one).
+
+### 9.5 Checks
+
+`pnpm test` and `pnpm build` in docs; a keyboard pass through every overlay and list after 9.4;
+the motion check (`tests/designBible.spec.ts`) stays green.
+

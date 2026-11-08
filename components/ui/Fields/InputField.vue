@@ -37,7 +37,7 @@
  :id="errorId"
  role="alert"
  aria-live="polite"
- class="block min-h-[1.25rem] text-[0.8125rem] text-danger-text"
+ class="block min-h-[1.25rem] text-xs text-danger-text"
  :class="{ invisible: !error }"
  >{{ error }}</span>
  </div>

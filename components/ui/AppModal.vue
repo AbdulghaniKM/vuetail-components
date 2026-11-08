@@ -6,17 +6,17 @@
  key="modal-backdrop"
  class="fixed inset-0 z-[9999] flex p-4 sm:p-6"
  :class="verticalAlign === 'center' ? 'items-center' : 'items-start pt-[8vh]'"
- :initial="{ opacity: 0 }"
- :animate="{ opacity: 1 }"
- :exit="{ opacity: 0 }"
+ :initial="FADE_OUT"
+ :animate="FADE_IN"
+ :exit="FADE_OUT"
  :transition="enterTransition"
  >
  <!-- Backdrop -->
  <motion.div
  class="absolute inset-0 bg-overlay"
- :initial="{ opacity: 0 }"
- :animate="{ opacity: 1 }"
- :exit="{ opacity: 0 }"
+ :initial="FADE_OUT"
+ :animate="FADE_IN"
+ :exit="FADE_OUT"
  @click="handleBackdropClick"
  />
 
@@ -80,7 +80,7 @@
  <button
  v-if="!hideClose"
  type="button"
- class="text-text-muted hover:bg-muted hover:text-text -me-1 -mt-1 flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors duration-(--vt-duration) ease-standard focus-visible:outline-none"
+ class="text-text-muted hover:bg-muted hover:text-text -me-1 -mt-1 flex size-8 shrink-0 items-center justify-center rounded-md transition-colors duration-(--vt-duration) ease-standard"
  @click="handleClose"
  :aria-label="closeLabel"
  >
@@ -158,6 +158,10 @@ const emit = defineEmits<{ close: []; confirm: [] }>()
 const panelRef = ref<HTMLElement | null>(null)
 
 const { enter, exit } = useMotionTokens()
+
+// Module-stable targets: a literal in the template is a new object on every render.
+const FADE_IN = { opacity: 1 }
+const FADE_OUT = { opacity: 0 }
 
 // Read the tokens once per open: a fresh object on every render makes motion-v re-apply
 // the initial state for a frame when the enter animation completes. Reading on open still

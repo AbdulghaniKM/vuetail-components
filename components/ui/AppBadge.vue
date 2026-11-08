@@ -1,6 +1,6 @@
 <template>
   <span
-    class="inline-flex h-[1.375rem] items-center justify-center gap-1.5 whitespace-nowrap rounded-badge px-2 text-[0.75rem] font-semibold leading-none"
+    class="inline-flex h-[1.375rem] items-center justify-center gap-1.5 whitespace-nowrap rounded-badge px-2 text-xs font-semibold leading-none"
     :class="variantClass"
   >
     <span v-if="dot" class="size-1.5 rounded-full bg-current" aria-hidden="true" />

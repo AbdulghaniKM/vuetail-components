@@ -45,7 +45,7 @@
 
       <span
         v-if="showCount && !loading"
-        class="at-muted-fg ms-auto whitespace-nowrap font-mono text-xs tracking-wide"
+        class="at-muted-fg ms-auto whitespace-nowrap font-mono text-xs"
       >
         {{ totalRows.toLocaleString() }} {{ countLabel }}
       </span>
@@ -1313,7 +1313,6 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 .hue-amber {
   --hue-fill: color-mix(in srgb, var(--hue) 12%, transparent);
   --hue-edge: color-mix(in srgb, var(--hue) 38%, transparent);
-  --hue-glow: color-mix(in srgb, var(--hue) 60%, transparent);
 }
 
 /* ── The surface ────────────────────────────────────────────────────────────── */
@@ -1326,7 +1325,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   position: relative;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 1rem;
+  border-radius: var(--radius-lg);
   overflow: auto;
   overscroll-behavior: contain;
 }
@@ -1381,11 +1380,8 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   z-index: 2;
   background: var(--color-surface);
   box-shadow: inset 0 -1px 0 var(--color-border);
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.6875rem;
+  font-size: var(--text-xs, 0.75rem);
   font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
   color: var(--color-text-muted);
   white-space: nowrap;
 }
@@ -1403,8 +1399,8 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 }
 
 .at-mono {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs, 0.75rem);
   letter-spacing: 0.02em;
 }
 
@@ -1575,7 +1571,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 .at-skeleton {
   display: block;
   height: 0.875rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--color-text) 9%, transparent);
   animation: at-skeleton-pulse 1.4s ease-in-out infinite;
 }
@@ -1597,23 +1593,19 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 .at-badge {
   display: inline-block;
   padding: 0.125rem 0.625rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-badge);
   border: 1px solid transparent;
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.6875rem;
+  font-size: var(--text-xs, 0.75rem);
   font-weight: 500;
-  letter-spacing: 0.05em;
   white-space: nowrap;
 }
 
 .at-chip {
   display: inline-block;
   padding: 0.0625rem 0.5rem;
-  border-radius: 9999px;
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.6875rem;
+  border-radius: var(--radius-badge);
+  font-size: var(--text-xs, 0.75rem);
   font-weight: 600;
-  letter-spacing: 0.04em;
   white-space: nowrap;
   color: color-mix(in srgb, var(--hue) 55%, var(--color-text));
   background: var(--hue-fill);
@@ -1643,14 +1635,13 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 .at-avatar.is-placeholder {
   display: grid;
   place-items: center;
-  font-size: 0.8125rem;
+  font-size: var(--text-xs, 0.75rem);
   font-weight: 700;
   color: color-mix(in srgb, var(--hue) 55%, var(--color-text));
 }
 
 .at-row:hover .at-avatar {
   border-color: var(--hue);
-  box-shadow: 0 0 0.85rem -0.15rem var(--hue-glow);
 }
 
 .at-identity-main {
@@ -1668,15 +1659,14 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.75rem;
+  font-size: var(--text-xs, 0.75rem);
   color: var(--color-text-muted);
   white-space: nowrap;
 }
 
 .at-identity-code {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs, 0.75rem);
   color: var(--color-text-muted);
   white-space: nowrap;
 }
@@ -1712,11 +1702,11 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   gap: 0.4375rem;
   height: 2rem;
   padding: 0 0.625rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text-muted);
-  font-size: 0.75rem;
+  font-size: var(--text-xs, 0.75rem);
   font-weight: 500;
   cursor: pointer;
   transition:
@@ -1735,10 +1725,8 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 }
 
 .at-menu-title {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.625rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 500;
   color: var(--color-text-muted);
   padding: 0.5rem 0.5rem 0.25rem;
 }
@@ -1750,11 +1738,11 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   gap: 0.5rem;
   padding: 0.45rem 0.5rem;
   border: 0;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   background: transparent;
   color: var(--color-text-muted);
   font: inherit;
-  font-size: 0.8125rem;
+  font-size: var(--text-sm, 0.875rem);
   text-align: start;
   cursor: pointer;
 }
@@ -1796,7 +1784,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   flex: 0 0 auto;
   width: 1.75rem;
   height: 1rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-switch);
   background: color-mix(in srgb, var(--color-text) 10%, transparent);
   border: 1px solid var(--color-border);
   transition:
@@ -1811,7 +1799,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   inset-inline-start: 0.125rem;
   width: 0.625rem;
   height: 0.625rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-switch);
   background: var(--color-text-muted);
   transition:
     transform var(--vt-duration) var(--vt-ease),
@@ -1848,10 +1836,8 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   background: color-mix(in srgb, var(--color-surface) 92%, transparent);
   backdrop-filter: blur(0.75rem) saturate(140%);
   border: 1px solid color-mix(in srgb, var(--color-accent) 22%, var(--color-border));
-  border-radius: 9999px;
-  box-shadow:
-    0 0.5rem 1.5rem rgb(0 0 0 / 0.18),
-    0 0 1.5rem -0.7rem color-mix(in srgb, var(--color-accent) 65%, transparent);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Stack above the docked pager rather than over it. */
@@ -1860,9 +1846,8 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 }
 
 .at-bulkbar-count {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.75rem;
-  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs, 0.75rem);
   color: var(--color-accent);
   white-space: nowrap;
 }
@@ -1894,10 +1879,9 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   padding: 0.625rem 0.875rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.75rem;
-  letter-spacing: 0.05em;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs, 0.75rem);
   color: var(--color-text-muted);
 }
 
@@ -1924,7 +1908,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   height: 1.875rem;
   justify-content: center;
   padding: 0 0.5rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   background: transparent;
   color: var(--color-text);
@@ -1992,7 +1976,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   padding: var(--at-card-pad);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 0.875rem;
+  border-radius: var(--radius-lg);
 }
 
 .advanced-table[data-view='cards'] tbody tr:hover {
@@ -2016,11 +2000,8 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 .advanced-table[data-view='cards'] .at-cell-label {
   display: block;
   flex: 0 0 auto;
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.625rem;
+  font-size: var(--text-xs, 0.75rem);
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   color: var(--color-text-muted);
 }
 

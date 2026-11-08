@@ -85,6 +85,9 @@ export function buildCss() {
     '',
     `@layer base {\n${indent(block(':where(:focus-visible)', [decl('outline', '2px solid var(--color-ring)'), decl('outline-offset', '2px')]))}\n}`,
     '',
+    // Reserve the scrollbar's width, so locking scroll under a modal does not shift the page.
+    `@layer base {\n${indent(block(':where(html)', [decl('scrollbar-gutter', 'stable')]))}\n}`,
+    '',
     ...darkBlocks(':root', [...colorLines({ ...ink.dark.colors, ...status.dark }), ...shadowLines(ink.dark.shadows)]),
   ];
 

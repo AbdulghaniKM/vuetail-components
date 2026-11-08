@@ -514,7 +514,7 @@
     background-color: var(--nav-bg);
     border-color: var(--nav-border);
     color: var(--nav-ink);
-    box-shadow: var(--vt-shadow-2);
+    box-shadow: var(--shadow-lg);
     transition:
       max-width var(--vt-duration-enter) var(--vt-ease),
       background-color var(--vt-duration-enter) var(--vt-ease),

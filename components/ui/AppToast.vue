@@ -31,8 +31,8 @@
               <AppIcon :name="toastIcon(toast.type)" :size="0.75" />
             </span>
             <div class="min-w-0 flex-1">
-              <p v-if="toast.title" class="text-[0.875rem] leading-snug font-semibold">{{ toast.title }}</p>
-              <p class="text-[0.875rem] leading-relaxed" :class="toast.title ? 'text-text-muted' : ''">
+              <p v-if="toast.title" class="text-sm leading-snug font-semibold">{{ toast.title }}</p>
+              <p class="text-sm leading-relaxed" :class="toast.title ? 'text-text-muted' : ''">
                 {{ toast.message }}
               </p>
             </div>

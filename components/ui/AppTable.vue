@@ -151,7 +151,7 @@
       class="overflow-hidden rounded-xl transition-shadow duration-(--vt-duration)"
       :class="
         outlined
-          ? 'border-border/60 border bg-surface/80 backdrop-blur-xl shadow-sm hover:shadow-md'
+          ? 'border-border/60 border bg-surface/80 backdrop-blur-xl shadow-sm'
           : ''
       "
     >
@@ -171,7 +171,7 @@
               <th
                 v-for="column in effectiveColumns"
                 :key="column.key"
-                class="px-4 py-3 text-start text-xs font-semibold uppercase tracking-tight whitespace-nowrap"
+                class="px-4 py-3 text-start text-xs font-semibold whitespace-nowrap"
                 :class="[
                   column.class,
                   column.key === '__select__'
@@ -213,7 +213,7 @@
                   >
                     <span>{{ column.label }}</span>
                     <span
-                      class="flex size-5 items-center justify-center rounded transition-[background-color,opacity,transform] duration-(--vt-duration) ease-standard"
+                      class="flex size-5 items-center justify-center rounded-sm transition-[background-color,opacity,transform] duration-(--vt-duration) ease-standard"
                       :class="
                         sortKey === column.key
                           ? 'bg-accent/10 opacity-100 scale-100'
@@ -309,7 +309,7 @@
               v-for="(row, index) in displayData"
               v-else
               :key="getRowKey(row, index)"
-              class="table-row-data border-border/40 border-b transition-colors duration-(--vt-duration) ease-standard last:border-b-0 hover:bg-accent/[0.04] hover:shadow-[inset_2px_0_0_0_var(--color-accent)]"
+              class="table-row-data border-border/40 border-b transition-colors duration-(--vt-duration) ease-standard last:border-b-0 hover:bg-accent/[0.04]"
               :class="selectable && isRowSelected(row, index) ? 'bg-accent/[0.03]' : ''"
             >
               <td
@@ -414,7 +414,7 @@
                       <template #trigger="{ toggle }">
                         <button
                           type="button"
-                          class="rounded-full transition-shadow focus-visible:outline-none"
+                          class="rounded-full transition-shadow"
                           :class="
                             isCellEditPending(column, row, index)
                               ? 'cursor-wait opacity-60'
@@ -450,7 +450,7 @@
                           </div>
                         </div>
                         <div v-else role="menu">
-                          <p class="mb-1.5 px-1 text-xs font-semibold uppercase tracking-tight text-text-muted">
+                          <p class="mb-1.5 px-1 text-xs font-semibold text-text-muted">
                             Change Status
                           </p>
                           <button

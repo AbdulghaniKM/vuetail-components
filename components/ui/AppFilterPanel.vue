@@ -12,7 +12,7 @@
               <p class="truncate text-sm font-semibold text-text">{{ title }}</p>
               <span
                 v-if="activeCount > 0"
-                class="flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-[0.6875rem] font-semibold tabular-nums text-accent-fg"
+                class="flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold tabular-nums text-accent-fg"
               >{{ activeCount }}</span>
             </div>
             <p class="truncate text-xs text-text-muted">

@@ -20,7 +20,7 @@
  v-if="content && show"
  :id="tipId"
  role="tooltip"
- class="pointer-events-none absolute z-[9990] max-w-xs whitespace-normal rounded-md px-2.5 py-1.5 text-[0.75rem] font-medium leading-snug shadow-md"
+ class="pointer-events-none absolute z-[9990] max-w-xs whitespace-normal rounded-md px-2.5 py-1.5 text-xs font-medium leading-snug shadow-lg"
  :class="[themeClass, placementClass]"
  >
  {{ content }}
