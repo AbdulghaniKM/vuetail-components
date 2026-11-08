@@ -17,7 +17,7 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 6 | Merge `redesign` into components `main`, then docs `master` and template `main` | Done 2026-11-08: live on vuetail-docs.vercel.app |
 | 7 | Docs finalisation: every page on Ink, docs read in order (below) | **In progress** |
 | 8 | Apply DESIGN-BIBLE.md to the registry (P1–P8, below) | **In progress**: P1–P7 done, P8 icons left |
-| 9 | Composables: fix the 25, add the four that components duplicate (below) | **In progress**: 9.1–9.3 done, 9.4 left |
+| 9 | Composables: fix the 25, add the four that components duplicate (below) | Done 2026-11-08 |
 
 ## Phase 4 plan
 
@@ -674,10 +674,14 @@ useAnnouncer next.**
   `aria-live="polite"` around `role="alert"` toasts that were read twice. InputField, Textarea and
   PhoneInput errors drop `aria-live="polite"` next to `role="alert"`. The template ships
   useAnnouncer now (its bundled AppToast needs it). Checked in Chrome.
-- useForm: **not started, pending the user's call.** Form state already exists twice: the
-  template's `src/lib/FormModel.ts` (used by AppForm and CreateUpdateModal) and AppForm's own
-  v-model + useFormValidation path. A third API would split it further; the alternative is to
-  extend FormModel (nested paths, touched, server errors, focus the first invalid field).
+- useForm → **FormModel extended instead (user decision)**, no third forms API. Errors by path
+  with a top-level alias, `touched` / `touch()`, `submitted`, `errorFor()`, `validateField()`,
+  `clearResolved()`, `setErrors()` (server, arrays take the first message), `firstErrorPath`.
+  `formModel.spec.ts` (6). AppForm: focuses the first invalid field after a failed submit
+  (`data-field` on each wrapper, both modes) and clears fixed errors as you type with a FormModel.
+  `appForm.spec.ts` (2). Template `src/lib/FormModel.ts` changed (same API plus the new members);
+  docs keeps a copy.
+- **Phase 9 is done.**
 
 ### 9.5 Checks
 

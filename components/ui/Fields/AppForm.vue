@@ -1,5 +1,5 @@
 <template>
-  <form @submit.prevent="handleSubmit" class="flex min-h-0 flex-col" :class="containerClass" novalidate>
+  <form ref="formRef" @submit.prevent="handleSubmit" class="flex min-h-0 flex-col" :class="containerClass" novalidate>
     <!-- Scrollable fields area -->
     <div class="scrollbar-thin flex min-h-0 flex-1 flex-col overflow-y-auto" :class="fieldGap">
       <div
@@ -11,6 +11,7 @@
         <div
           v-for="(field, fieldIndex) in row"
           :key="field.key ?? fieldIndex"
+          :data-field="field.key"
           :class="field.customClass"
         >
           <InputField
@@ -102,7 +103,7 @@
 </template>
 
 <script setup lang="ts" generic="TSchema extends ZodType = ZodType">
-  import { computed, ref } from 'vue';
+  import { computed, nextTick, ref, watch } from 'vue';
   import { z, type ZodType } from 'zod';
   import { FormModel } from '@/lib/FormModel';
   import { useFormValidation } from '@/composables/useFormValidation';
@@ -215,15 +216,44 @@
     errors.value = {};
   };
 
+  const formRef = ref<HTMLFormElement | null>(null);
+
+  // After a failed submit, focus goes to the first field with an error, so a keyboard or screen
+  // reader user lands on what to fix instead of hunting for red text.
+  const focusFirstError = async () => {
+    await nextTick();
+    const path = props.formModel ? props.formModel.firstErrorPath.value : Object.keys(errors.value).find((k) => errors.value[k]);
+    if (!path || !formRef.value) return;
+    const top = path.split('.')[0];
+    const host =
+      formRef.value.querySelector<HTMLElement>(`[data-field="${CSS.escape(path)}"]`) ??
+      formRef.value.querySelector<HTMLElement>(`[data-field="${CSS.escape(top)}"]`);
+    host?.querySelector<HTMLElement>('input:not([type="hidden"]), textarea, select, button')?.focus();
+  };
+
+  // With a FormModel, errors clear as the user fixes them, as the v-model path does through
+  // useFormValidation. New errors still only appear on submit.
+  if (props.formModel) {
+    watch(
+      () => props.formModel!.fields,
+      () => props.formModel!.clearResolved(),
+      { deep: true },
+    );
+  }
+
   const handleSubmit = async () => {
     if (props.formModel) {
       await props.formModel.submit(async (values) => {
         emit('submit', values as SchemaValues<TSchema>);
       });
+      if (props.formModel.firstErrorPath.value) await focusFirstError();
       return;
     }
 
-    if (!validate()) return;
+    if (!validate()) {
+      await focusFirstError();
+      return;
+    }
     isSubmitting.value = true;
     emit('submit', props.modelValue as SchemaValues<TSchema>);
     isSubmitting.value = false;

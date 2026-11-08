@@ -2184,3 +2184,36 @@ a live region, so toasts are no longer read twice (the old stack was `aria-live=
 | Give each component its own `aria-live` element | It is removed with the component, cutting the message short, and two of them talk over each other |
 | Create the region in `announce()` | A region added with its text in the same tick is often not read |
 
+### FormModel (template `src/lib/FormModel.ts`)
+
+The one model for form state, used by AppForm and CreateUpdateModal. Phase 9.4 extended it instead
+of adding a `useForm` composable, so forms keep one API.
+
+```ts
+const form = new FormModel({ email: '', address: { city: '', zip: '' } }, schema);
+
+await form.submit(async (payload) => {
+  try {
+    await api.post('/signup', payload);
+  } catch (e) {
+    form.setErrors(e.response?.data?.errors ?? {}); // { email: ['Already registered'] }
+  }
+});
+```
+
+| Member | Description |
+|---|---|
+| `fields` | Reactive values |
+| `errors` | `{ [path]: message }`: `email`, `address.city`. A nested error also sets its top-level key (`address`) |
+| `touched` / `touch(path)` | Visited fields; call `touch` on blur |
+| `submitted` | True after the first submit attempt |
+| `errorFor(path)` | The error to show: only once touched or submitted, so a fresh form is not red |
+| `validate()` / `validateField(path)` | Check everything, or one field and what is under it |
+| `clearResolved()` | Drop errors the user fixed; never adds new ones (AppForm calls it as you type) |
+| `setErrors(map)` / `setError(path, message)` | Server errors; arrays use their first message |
+| `firstErrorPath` | The first failing field in schema (or server) order |
+| `isDirty`, `isSubmitting`, `reset()`, `submit(fn)` | As before; `reset()` also clears touched and submitted |
+
+AppForm focuses the first invalid field after a failed submit (each field wrapper carries
+`data-field="<key>"`), in both the FormModel and the v-model + schema modes.
+
