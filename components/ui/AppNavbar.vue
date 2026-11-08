@@ -40,7 +40,7 @@
   export interface NavAction {
     label: string;
     /**
-     * Iconify name. Use the `icon-[ph--translate]` form, not `ph:translate` —
+     * Iconify name. Use the `icon-[heroicons--language]` form, not `ph:translate` —
      * Tailwind's iconify plugin only emits a class it can find spelled out in
      * scanned source, and the colon form never matches because `AppIcon`
      * converts it at runtime, long after Tailwind has run.
@@ -397,7 +397,7 @@
         >
           <span class="sr-only">{{ open ? 'Close menu' : 'Open menu' }}</span>
           <AppIcon
-            :name="open ? 'icon-[heroicons-outline--x]' : 'icon-[heroicons-outline--menu]'"
+            :name="open ? 'icon-[heroicons--x-mark]' : 'icon-[heroicons--bars-3]'"
             :size="1.25"
             aria-hidden="true"
           />

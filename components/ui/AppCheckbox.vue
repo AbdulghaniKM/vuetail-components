@@ -19,7 +19,7 @@
       />
       <AppIcon
         v-else-if="modelValue"
-        name="icon-[heroicons-outline--check]"
+        name="icon-[heroicons--check]"
         :size="0.75"
         class="pointer-events-none absolute text-accent-fg"
       />

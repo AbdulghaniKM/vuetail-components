@@ -382,12 +382,12 @@ import type { RowAction } from '@/components/ui/AppTable.vue'
 const actions: RowAction[] = [
   {
     label: 'Edit',
-    icon: 'icon-[heroicons-outline--pencil]',
+    icon: 'icon-[heroicons--pencil]',
     onClick: (row) => router.push(`/users/${row.id}/edit`),
   },
   {
     label: 'View',
-    icon: 'icon-[heroicons-outline--eye]',
+    icon: 'icon-[heroicons--eye]',
     onClick: (row) => openDrawer(row),
   },
   {
@@ -538,7 +538,7 @@ import type { BulkAction } from '@/components/ui/AppTable.vue'
 const bulkActions: BulkAction[] = [
   {
     label: 'Export',
-    icon: 'icon-[heroicons-outline--arrow-down-tray]',
+    icon: 'icon-[heroicons--arrow-down-tray]',
     onClick: async (rows) => {
       await exportToCsv(rows)
       toast.success(`Exported ${rows.length} rows`)
@@ -588,7 +588,7 @@ const bulkActions: BulkAction[] = [
   <AppTable v-model:selected="selected" :columns="columns" :data="data" selectable>
     <template #bulk-actions="{ selectedKeys, selectedRows, clear }">
       <span class="text-sm font-medium">{{ selectedKeys.length }} selected</span>
-      <AppButton label="Send email" icon="icon-[heroicons-outline--envelope]" size="sm"
+      <AppButton label="Send email" icon="icon-[heroicons--envelope]" size="sm"
         @click="sendEmail(selectedRows)" />
       <AppButton label="Clear" variant="ghost" size="sm" @click="clear" />
     </template>
@@ -635,7 +635,7 @@ const filterFields: FilterFieldRow[] = [
 const actions: RowAction[] = [
   {
     label: 'Edit',
-    icon: 'icon-[heroicons-outline--pencil]',
+    icon: 'icon-[heroicons--pencil]',
     onClick: (row) => openEditModal(row),
   },
   {
@@ -899,7 +899,7 @@ palette — alongside navigation.
 </AppDock>
 ```
 
-#### ⚠️ Write icons as `icon-[solar--home-2-linear]`, not `solar:home-2-linear`
+#### ⚠️ Write icons as `icon-[heroicons--home]`, not `solar:home-2-linear`
 
 `AppIcon` accepts both, but only the bracket form survives a production build. Tailwind's iconify plugin emits a class only when it can find it spelled out in scanned source, and the colon form never matches because `AppIcon` converts it at runtime — long after Tailwind has run. The colon form appears to work in dev whenever some *other* file in the project happens to use the same icon, which makes this fail late and look random.
 
@@ -921,9 +921,9 @@ The dock is `position: fixed` and renders outside the content flow, so it belong
   import { useDockDragState } from '@/composables/useDockDrag';
 
   const items: DockItem[] = [
-    { label: 'Home',     to: '/',         icon: 'icon-[solar--home-2-linear]',   hue: 'primary' },
-    { label: 'Orders',   to: '/orders',   icon: 'icon-[solar--bag-linear]',      hue: 'success' },
-    { label: 'Settings', to: '/settings', icon: 'icon-[solar--settings-linear]', hue: 'accent' },
+    { label: 'Home',     to: '/',         icon: 'icon-[heroicons--home]',   hue: 'primary' },
+    { label: 'Orders',   to: '/orders',   icon: 'icon-[heroicons--shopping-bag]',      hue: 'success' },
+    { label: 'Settings', to: '/settings', icon: 'icon-[heroicons--cog-6-tooth]', hue: 'accent' },
   ];
 
   const { dockPosition } = useDockPosition();
@@ -1047,7 +1047,7 @@ interface NavItem {
 
 interface NavAction {
   label: string;
-  icon?: string;                    // the icon-[ph--translate] form — see AppDock's warning
+  icon?: string;                    // the icon-[heroicons--language] form — see AppDock's warning
   to?: string;                      // a link; omit and pass onClick for a button
   onClick?: (action) => void;
   variant?: 'ghost' | 'solid';      // 'solid' is the bar's one filled element
@@ -1690,8 +1690,8 @@ stage has to be a positioned parent.
 `AppButton` takes a `glass` prop that sits it on an `AppLiquidGlass` pane.
 
 ```vue
-<AppButton glass variant="primary" label="Primary" icon="icon-[heroicons-outline--sparkles]" />
-<AppButton glass icon-only icon="icon-[heroicons-outline--adjustments-horizontal]" tooltip="Settings" />
+<AppButton glass variant="primary" label="Primary" icon="icon-[heroicons--sparkles]" />
+<AppButton glass icon-only icon="icon-[heroicons--adjustments-horizontal]" tooltip="Settings" />
 
 <AppButton glass variant="danger" :glass-blur="4" label="Frosted" />
 <AppButton glass :glass-tone="false" label="No colour, white label" />

@@ -508,7 +508,27 @@ Guarded by docs `tests/designBible.spec.ts`. Order follows the bible's appendix.
   outline and its private double focus ring is gone (one ring, §4). Kept: the sticky table
   header's inset 1px border line.
   Guarded by the §5 and §6/§8 blocks in docs `tests/designBible.spec.ts`.
-- [ ] P8 icons
+- [~] P8 icons, **in progress (stopped by the user 2026-11-09, committed unfinished)**. User
+  decision: **Heroicons v2** (`icon-[heroicons--*]`: outline by default, `-solid` for active
+  states). The bible had the sets backwards: `heroicons-outline` is the old v1 set (385 icons),
+  `heroicons` is v2.2 (1288). Done: 303 swaps in 83 files across components, docs and template
+  (scratchpad `convert.mjs`: v1 same-name, v1 renames such as `menu` → `bars-3`, `x` → `x-mark`,
+  `upload` → `arrow-up-tray`; Solar, Phosphor and MDI mapped by meaning; every target checked to
+  exist in v2). Kept as brand marks: `mdi--github`, `logos--vue`. No sidebar, keyboard, compass or
+  accessibility glyph in v2: the sidebar toggle is `chevron-double-left/right`, keyboard
+  `command-line`, compass and routing `map`, accessibility `window`. AppNotificationPreview's
+  imitated app icons use `bell-solid` / `calendar-solid` (§13).
+  Left:
+  1. Grep for icon names built from strings (`heroicons-outline--${…}`) the replace cannot see.
+  2. Fix DESIGN-BIBLE.md §9 and its appendix row to name `heroicons` (v2), and add a guard to
+     `tests/designBible.spec.ts` (only `heroicons--*`, brand marks excepted).
+  3. Chrome pass over the docs (sidebar, demos, 404) for blank icons in all presets.
+  4. Sync the template's bundled files (oxfmt) and run its typecheck.
+  5. **Docs `pnpm build` is broken** (since docs `08fab27`, pushed): `AppFormValidationDemo.vue`
+     declares `FIELDS` without the `FormFieldRow[]` type, so vue-tsc fails in AppForm's template
+     (`unknown` not assignable). Fix: `import type { FormFieldRow } from '@/types/form.types'` and
+     `const FIELDS: FormFieldRow[] = [...]`. `pnpm test` was 736/736 before the stop; template
+     typecheck passed. The last docs Vercel deploy has likely failed.
 
 **Modal flash (user report, fixed, uncommitted).** Two causes, both measured in Chrome:
 1. motion-v 1.6.1 resets every motion element to its `initial` for one frame when an animation

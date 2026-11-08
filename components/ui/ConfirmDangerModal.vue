@@ -3,7 +3,7 @@
  :is-open="isOpen"
  :title="title"
  :description="message"
- :icon="variant === 'danger' ? 'icon-[heroicons--exclamation-triangle]' : 'icon-[heroicons-outline--question-mark-circle]'"
+ :icon="variant === 'danger' ? 'icon-[heroicons--exclamation-triangle]' : 'icon-[heroicons--question-mark-circle]'"
  :icon-variant="variant"
  max-width="sm"
  hide-close
@@ -27,7 +27,7 @@
  :label="loading ? loadingLabel : confirmLabel"
  :loading="loading"
  :loading-label="loadingLabel"
- :icon="variant === 'danger' ? 'icon-[heroicons-outline--trash]' : undefined"
+ :icon="variant === 'danger' ? 'icon-[heroicons--trash]' : undefined"
  full-width
  size="md"
  class="flex-1"

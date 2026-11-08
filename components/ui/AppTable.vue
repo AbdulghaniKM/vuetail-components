@@ -24,7 +24,7 @@
     >
       <div v-if="searchable" class="relative min-w-0 flex-1 sm:max-w-sm">
         <AppIcon
-          name="icon-[heroicons-outline--magnifying-glass]"
+          name="icon-[heroicons--magnifying-glass]"
           :size="1.125"
           class="text-text-muted pointer-events-none absolute start-3 top-1/2 -translate-y-1/2"
         />
@@ -42,7 +42,7 @@
           aria-label="Clear search"
           @click="searchQuery = ''; searchInputRef?.focus();"
         >
-          <AppIcon name="icon-[heroicons-outline--x-mark]" :size="1" />
+          <AppIcon name="icon-[heroicons--x-mark]" :size="1" />
         </button>
       </div>
 
@@ -51,7 +51,7 @@
         <AppButton
           v-if="exportable"
           :label="exportLabel"
-          icon="icon-[heroicons-outline--arrow-down-tray]"
+          icon="icon-[heroicons--arrow-down-tray]"
           variant="outline"
           size="sm"
           :loading="isExporting"
@@ -114,7 +114,7 @@
                     aria-label="Remove from selection"
                     @click="removeFromSelection(key)"
                   >
-                    <AppIcon name="icon-[heroicons-outline--x-mark]" :size="0.875" />
+                    <AppIcon name="icon-[heroicons--x-mark]" :size="0.875" />
                   </button>
                 </div>
               </div>
@@ -138,7 +138,7 @@
           <AppButton
             variant="ghost"
             label="Clear"
-            icon="icon-[heroicons-outline--x-mark]"
+            icon="icon-[heroicons--x-mark]"
             size="sm"
             @click="clearSelection"
           />
@@ -223,8 +223,8 @@
                       <AppIcon
                         :name="
                           sortKey === column.key && sortOrder === 'desc'
-                            ? 'icon-[heroicons-outline--bars-arrow-down]'
-                            : 'icon-[heroicons-outline--bars-arrow-up]'
+                            ? 'icon-[heroicons--bars-arrow-down]'
+                            : 'icon-[heroicons--bars-arrow-up]'
                         "
                         :size="0.875"
                       />
@@ -272,7 +272,7 @@
                 >
                   <div class="bg-muted flex size-14 items-center justify-center rounded-xl">
                     <AppIcon
-                      name="icon-[heroicons-outline--inbox-stack]"
+                      name="icon-[heroicons--inbox-stack]"
                       :size="1.75"
                       class="text-text-subtle"
                     />
@@ -288,7 +288,7 @@
                       v-if="searchQuery"
                       variant="ghost"
                       label="Clear search"
-                      icon="icon-[heroicons-outline--x-mark]"
+                      icon="icon-[heroicons--x-mark]"
                       size="sm"
                       @click="searchQuery = ''"
                     />
@@ -296,7 +296,7 @@
                       v-if="hasAppliedFilters"
                       variant="ghost"
                       label="Clear filters"
-                      icon="icon-[heroicons-outline--funnel]"
+                      icon="icon-[heroicons--funnel]"
                       size="sm"
                       @click="clearFilters"
                     />
@@ -357,7 +357,7 @@
                       >
                         <template #trigger="{ toggle }">
                           <AppButton
-                            icon="icon-[heroicons-outline--ellipsis-vertical]"
+                            icon="icon-[heroicons--ellipsis-vertical]"
                             icon-only
                             variant="ghost"
                             size="sm"
@@ -469,7 +469,7 @@
                             <span>{{ opt.label }}</span>
                             <AppIcon
                               v-if="String(getValue(row, column.key)) === String(opt.value)"
-                              name="icon-[heroicons-outline--check]"
+                              name="icon-[heroicons--check]"
                               :size="0.875"
                             />
                           </button>
@@ -559,7 +559,7 @@
             :aria-expanded="showColumnMenu"
             @click="showColumnMenu = !showColumnMenu"
           >
-            <AppIcon name="icon-[heroicons-outline--view-columns]" :size="1" />
+            <AppIcon name="icon-[heroicons--view-columns]" :size="1" />
             <span class="text-text-muted">{{ visibleToggleableCount }}/{{ toggleableColumns.length }}</span>
           </button>
           <Transition
@@ -588,7 +588,7 @@
                     v-if="columnSavedHint"
                     class="text-success bg-success/10 flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-medium"
                   >
-                    <AppIcon name="icon-[heroicons-outline--check]" :size="0.625" />
+                    <AppIcon name="icon-[heroicons--check]" :size="0.625" />
                     Saved
                   </span>
                 </Transition>
@@ -631,7 +631,7 @@
                 class="text-text-muted hover:bg-muted/60 hover:text-text mt-0.5 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs transition-colors"
                 @click="resetColumnVisibility"
               >
-                <AppIcon name="icon-[heroicons-outline--arrow-path]" :size="0.875" />
+                <AppIcon name="icon-[heroicons--arrow-path]" :size="0.875" />
                 Reset defaults
               </button>
             </div>
@@ -641,7 +641,7 @@
 
       <div v-if="showPagination" class="flex items-center gap-1.5">
         <AppButton
-          icon="icon-[heroicons-outline--chevron-left]"
+          icon="icon-[heroicons--chevron-left]"
           tooltip="Previous"
           variant="ghost"
           size="sm"
@@ -667,7 +667,7 @@
         </template>
         <span v-else class="text-text px-2 text-sm font-medium tabular-nums">{{ props.pageNumber }}</span>
         <AppButton
-          icon="icon-[heroicons-outline--chevron-right]"
+          icon="icon-[heroicons--chevron-right]"
           tooltip="Next"
           variant="ghost"
           size="sm"

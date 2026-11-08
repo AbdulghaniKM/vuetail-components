@@ -8,7 +8,7 @@
  aria-label="Increase hour"
  @click="adjustHour(1)"
  >
- <AppIcon name="icon-[heroicons-outline--chevron-up]" :size="1" />
+ <AppIcon name="icon-[heroicons--chevron-up]" :size="1" />
  </button>
  <input
  ref="hourInputRef"
@@ -30,7 +30,7 @@
  aria-label="Decrease hour"
  @click="adjustHour(-1)"
  >
- <AppIcon name="icon-[heroicons-outline--chevron-down]" :size="1" />
+ <AppIcon name="icon-[heroicons--chevron-down]" :size="1" />
  </button>
  </div>
 
@@ -44,7 +44,7 @@
  aria-label="Increase minute"
  @click="adjustMinute(1)"
  >
- <AppIcon name="icon-[heroicons-outline--chevron-up]" :size="1" />
+ <AppIcon name="icon-[heroicons--chevron-up]" :size="1" />
  </button>
  <input
  ref="minuteInputRef"
@@ -66,7 +66,7 @@
  aria-label="Decrease minute"
  @click="adjustMinute(-1)"
  >
- <AppIcon name="icon-[heroicons-outline--chevron-down]" :size="1" />
+ <AppIcon name="icon-[heroicons--chevron-down]" :size="1" />
  </button>
  </div>
 

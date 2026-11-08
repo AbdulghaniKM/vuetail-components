@@ -21,7 +21,7 @@
  ]"
  @click="toggle"
  >
- <AppIcon name="icon-[heroicons-outline--calendar-days]" :size="1.125" class="text-text-muted shrink-0" />
+ <AppIcon name="icon-[heroicons--calendar-days]" :size="1.125" class="text-text-muted shrink-0" />
  <span class="flex-1 truncate" :class="displayValue ? 'text-text' : 'text-text-muted'">
  {{ displayValue || placeholder }}
  </span>
@@ -33,7 +33,7 @@
  aria-label="Clear date"
  @click="clearValue"
  >
- <AppIcon name="icon-[heroicons-outline--x-mark]" :size="0.875" aria-hidden="true" />
+ <AppIcon name="icon-[heroicons--x-mark]" :size="0.875" aria-hidden="true" />
  </button>
  </div>
 
@@ -56,7 +56,7 @@
  <!-- Header: month/year nav -->
  <div class="flex items-center justify-between border-b border-border px-4 py-3">
  <button type="button" class="flex size-8 items-center justify-center rounded-lg text-text-muted hover:bg-muted hover:text-text transition-colors" aria-label="Previous month" @click="prevMonth">
- <AppIcon name="icon-[heroicons-outline--chevron-left]" :size="1.125" />
+ <AppIcon name="icon-[heroicons--chevron-left]" :size="1.125" />
  </button>
 
  <div class="flex items-center gap-1">
@@ -70,7 +70,7 @@
  <option v-for="(m, i) in monthNames" :key="i" :value="i">{{ m }}</option>
  </select>
  <AppIcon
- name="icon-[heroicons-outline--chevron-down]"
+ name="icon-[heroicons--chevron-down]"
  :size="0.75"
  class="text-text-muted pointer-events-none absolute end-1.5 top-1/2 -translate-y-1/2"
  />
@@ -85,7 +85,7 @@
  <option v-for="y in yearRange" :key="y" :value="y">{{ y }}</option>
  </select>
  <AppIcon
- name="icon-[heroicons-outline--chevron-down]"
+ name="icon-[heroicons--chevron-down]"
  :size="0.75"
  class="text-text-muted pointer-events-none absolute end-1.5 top-1/2 -translate-y-1/2"
  />
@@ -93,7 +93,7 @@
  </div>
 
  <button type="button" class="flex size-8 items-center justify-center rounded-lg text-text-muted hover:bg-muted hover:text-text transition-colors" aria-label="Next month" @click="nextMonth">
- <AppIcon name="icon-[heroicons-outline--chevron-right]" :size="1.125" />
+ <AppIcon name="icon-[heroicons--chevron-right]" :size="1.125" />
  </button>
  </div>
 

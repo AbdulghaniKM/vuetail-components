@@ -1,7 +1,7 @@
 <template>
  <div v-if="hasError" class="p-8 text-center">
  <div class="max-w-md mx-auto">
- <AppIcon name="icon-[mdi--alert-circle]" size="xl" class="text-danger-text mb-4 mx-auto" />
+ <AppIcon name="icon-[heroicons--exclamation-circle]" size="xl" class="text-danger-text mb-4 mx-auto" />
  <h2 class="text-2xl font-bold text-text mb-2">Something went wrong</h2>
  <p class="text-text-muted mb-4">{{ errorMessage }}</p>
  <div class="flex gap-2 justify-center">

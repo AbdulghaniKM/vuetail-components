@@ -25,7 +25,7 @@
  @click="handleClose"
  aria-label="Close modal"
  >
- <span class="icon-[mdi--close] text-2xl" aria-hidden="true"></span>
+ <span class="icon-[heroicons--x-mark] text-2xl" aria-hidden="true"></span>
  </button>
 
  <!-- Navigation Buttons -->
@@ -35,7 +35,7 @@
  @click="previousImage"
  aria-label="Previous image"
  >
- <span class="icon-[mdi--chevron-left] text-2xl" aria-hidden="true"></span>
+ <span class="icon-[heroicons--chevron-left] text-2xl" aria-hidden="true"></span>
  </button>
 
  <button
@@ -44,7 +44,7 @@
  @click="nextImage"
  aria-label="Next image"
  >
- <span class="icon-[mdi--chevron-right] text-2xl" aria-hidden="true"></span>
+ <span class="icon-[heroicons--chevron-right] text-2xl" aria-hidden="true"></span>
  </button>
 
  <!-- Image Counter -->

@@ -84,7 +84,7 @@
  @click="handleClose"
  :aria-label="closeLabel"
  >
- <AppIcon name="icon-[heroicons-outline--x-mark]" :size="1.125" />
+ <AppIcon name="icon-[heroicons--x-mark]" :size="1.125" />
  </button>
  </div>
 

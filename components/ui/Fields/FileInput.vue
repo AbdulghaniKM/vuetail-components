@@ -18,7 +18,7 @@
  <AppButton
  type="button"
  variant="outline"
- icon="icon-[heroicons-outline--paper-clip]"
+ icon="icon-[heroicons--paper-clip]"
  :disabled="readonly || loading"
  :label="loading ? loadingLabel : buttonLabel"
  @click="inputRef?.click()"

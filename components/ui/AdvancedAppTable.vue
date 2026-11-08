@@ -6,7 +6,7 @@
 
       <div v-if="searchable" class="relative min-w-0 flex-1 sm:max-w-sm">
         <AppIcon
-          name="icon-[heroicons-outline--magnifying-glass]"
+          name="icon-[heroicons--magnifying-glass]"
           :size="1.125"
           class="at-muted-fg pointer-events-none absolute start-3 top-1/2 -translate-y-1/2"
         />
@@ -26,7 +26,7 @@
           aria-label="Clear search"
           @click="clearSearch"
         >
-          <AppIcon name="icon-[heroicons-outline--x-mark]" :size="1" />
+          <AppIcon name="icon-[heroicons--x-mark]" :size="1" />
         </button>
       </div>
 
@@ -35,7 +35,7 @@
       <AppButton
         v-if="exportable"
         :label="exportLabel"
-        icon="icon-[heroicons-outline--arrow-down-tray]"
+        icon="icon-[heroicons--arrow-down-tray]"
         variant="outline"
         size="sm"
         :loading="isExporting"
@@ -69,7 +69,7 @@
             :title="displayMenuTitle"
             @click="toggle"
           >
-            <AppIcon name="icon-[heroicons-outline--view-columns]" :size="1" />
+            <AppIcon name="icon-[heroicons--view-columns]" :size="1" />
             <span>{{
               hiddenCount > 0 ? `${visibleHideableCount}/${hideableColumns.length} ${columnsLabel}` : columnsLabel
             }}</span>
@@ -131,7 +131,7 @@
             </button>
 
             <button v-if="hiddenCount > 0" type="button" class="at-menu-item" @click="showAllColumns">
-              <AppIcon name="icon-[heroicons-outline--check]" :size="1" class="text-accent" />
+              <AppIcon name="icon-[heroicons--check]" :size="1" class="text-accent" />
               {{ showAllLabel }}
             </button>
           </template>
@@ -270,8 +270,8 @@
                               <AppIcon
                                 :name="
                                   copiedCell === copyKeyOf(col, row, index)
-                                    ? 'icon-[heroicons-outline--check]'
-                                    : 'icon-[heroicons-outline--clipboard-document]'
+                                    ? 'icon-[heroicons--check]'
+                                    : 'icon-[heroicons--clipboard-document]'
                                 "
                                 :size="0.875"
                               />
@@ -311,8 +311,8 @@
                           <AppIcon
                             :name="
                               copiedCell === copyKeyOf(col, row, index)
-                                ? 'icon-[heroicons-outline--check]'
-                                : 'icon-[heroicons-outline--clipboard-document]'
+                                ? 'icon-[heroicons--check]'
+                                : 'icon-[heroicons--clipboard-document]'
                             "
                             :size="0.875"
                           />
@@ -391,7 +391,7 @@
             @click="toggle"
           >
             {{ limitValue }} / {{ pageLabel }}
-            <AppIcon name="icon-[heroicons-outline--selector]" :size="0.75" />
+            <AppIcon name="icon-[heroicons--chevron-up-down]" :size="0.75" />
           </button>
         </template>
         <template #default>
@@ -757,12 +757,12 @@ const GAP = '…' as const;
 const VIEW_LABELS: Record<TableView, string> = { table: 'Table rows', cards: 'Record cards' };
 const DENSITY_LABELS: Record<TableDensity, string> = { relaxed: 'Relaxed', compact: 'Compact' };
 const VIEW_ICONS: Record<TableView, string> = {
-  table: 'icon-[heroicons-outline--table-cells]',
-  cards: 'icon-[heroicons-outline--squares-2x2]',
+  table: 'icon-[heroicons--table-cells]',
+  cards: 'icon-[heroicons--squares-2x2]',
 };
 const DENSITY_ICONS: Record<TableDensity, string> = {
-  relaxed: 'icon-[heroicons-outline--bars-2]',
-  compact: 'icon-[heroicons-outline--bars-3]',
+  relaxed: 'icon-[heroicons--bars-2]',
+  compact: 'icon-[heroicons--bars-3]',
 };
 
 const wrapRef = ref<HTMLElement | null>(null);
@@ -973,8 +973,8 @@ const sortDesc = computed(() => sortValue.value.split(':')[1] === 'desc');
 const sortFieldOf = (col: AdvancedTableColumn) => col.sortField ?? col.key;
 
 const sortIcon = (col: AdvancedTableColumn) => {
-  if (sortedKey.value !== sortFieldOf(col)) return 'icon-[heroicons-outline--selector]';
-  return sortDesc.value ? 'icon-[heroicons-outline--sort-descending]' : 'icon-[heroicons-outline--sort-ascending]';
+  if (sortedKey.value !== sortFieldOf(col)) return 'icon-[heroicons--chevron-up-down]';
+  return sortDesc.value ? 'icon-[heroicons--bars-arrow-down]' : 'icon-[heroicons--bars-arrow-up]';
 };
 
 const sortAriaLabel = (col: AdvancedTableColumn) => {

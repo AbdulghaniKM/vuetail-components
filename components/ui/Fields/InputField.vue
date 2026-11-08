@@ -27,7 +27,7 @@
  @click="showPassword = !showPassword"
  >
  <AppIcon
- :name="showPassword ? 'icon-[solar--eye-closed-linear]' : 'icon-[solar--eye-linear]'"
+ :name="showPassword ? 'icon-[heroicons--eye-slash]' : 'icon-[heroicons--eye]'"
  :size="1.125"
  aria-hidden="true"
  />

@@ -24,7 +24,7 @@
  {{ selectedLabel || placeholder || 'Select...' }}
  </span>
  <AppIcon
- name="icon-[heroicons-outline--chevron-down]"
+ name="icon-[heroicons--chevron-down]"
  :size="1.125"
  class="shrink-0 text-text-muted transition-transform duration-(--vt-duration)"
  :class="isOpen ? 'rotate-180' : ''"
@@ -50,7 +50,7 @@
  <!-- Search -->
  <div v-if="searchable" class="border-b border-border p-2">
  <div class="flex items-center gap-2 rounded-md bg-muted px-3 py-1.5">
- <AppIcon name="icon-[heroicons-outline--magnifying-glass]" :size="0.875" class="shrink-0 text-text-muted" />
+ <AppIcon name="icon-[heroicons--magnifying-glass]" :size="0.875" class="shrink-0 text-text-muted" />
  <input
  ref="searchRef"
  v-model="searchQuery"
@@ -105,7 +105,7 @@
  <span class="truncate">{{ item.label }}</span>
  <AppIcon
  v-if="isSelected(item)"
- name="icon-[heroicons-outline--check]"
+ name="icon-[heroicons--check]"
  :size="1"
  class="shrink-0 text-accent"
  />

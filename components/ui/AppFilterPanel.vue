@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between gap-3 p-3">
         <div class="flex min-w-0 items-center gap-3">
           <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-            <AppIcon name="icon-[heroicons-outline--funnel]" :size="1.125" />
+            <AppIcon name="icon-[heroicons--funnel]" :size="1.125" />
           </span>
           <div class="min-w-0">
             <div class="flex items-center gap-2">
@@ -40,7 +40,7 @@
           >
             <span>{{ open ? hideLabel : showLabel }}</span>
             <AppIcon
-              name="icon-[heroicons-outline--chevron-down]"
+              name="icon-[heroicons--chevron-down]"
               :size="0.875"
               class="shrink-0 transition-transform duration-(--vt-duration)"
               :class="open ? 'rotate-180' : ''"
@@ -66,7 +66,7 @@
             :aria-label="`Remove ${chip.label} filter`"
             @click="removeChip(chip.key)"
           >
-            <AppIcon name="icon-[heroicons-outline--x-mark]" :size="0.625" />
+            <AppIcon name="icon-[heroicons--x-mark]" :size="0.625" />
           </button>
         </span>
       </div>
@@ -188,7 +188,7 @@
                       {{ multiSelectSummary(field) || `${anyLabel} ${field.label}` }}
                     </span>
                     <AppIcon
-                      name="icon-[heroicons-outline--chevron-down]"
+                      name="icon-[heroicons--chevron-down]"
                       :size="1.125"
                       class="shrink-0 text-text-muted transition-transform duration-(--vt-duration)"
                       :class="isOpen ? 'rotate-180' : ''"
@@ -230,7 +230,7 @@
                       {{ dateRangeSummary(field.key) || `${anyLabel} ${field.label}` }}
                     </span>
                     <AppIcon
-                      name="icon-[heroicons-outline--calendar]"
+                      name="icon-[heroicons--calendar]"
                       :size="1.125"
                       class="shrink-0 text-text-muted"
                       :class="isOpen ? 'text-accent' : ''"
