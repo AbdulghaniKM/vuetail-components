@@ -94,7 +94,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
+import { useOverlay } from '@/composables/useOverlay';
 
 interface Props {
  images: string | string[];
@@ -125,7 +126,6 @@ const isDragging = ref(false);
 const dragStart = ref({ x: 0, y: 0 });
 const imagePosition = ref({ x: 0, y: 0 });
 
-let previouslyFocused: HTMLElement | null = null;
 
 const currentImage = computed(() => {
  return imagesArray.value[currentIndex.value] || '';
@@ -196,10 +196,6 @@ const handleKeyDown = (event: KeyboardEvent) => {
  if (!props.isOpen) return;
 
  switch (event.key) {
- case 'Escape':
- event.preventDefault();
- handleClose();
- break;
  case 'ArrowLeft':
  event.preventDefault();
  previousImage();
@@ -207,13 +203,6 @@ const handleKeyDown = (event: KeyboardEvent) => {
  case 'ArrowRight':
  event.preventDefault();
  nextImage();
- break;
- case 'Tab':
- // Minimal focus trap: keep focus inside the root element.
- if (rootRef.value && !rootRef.value.contains(document.activeElement)) {
- event.preventDefault();
- rootRef.value.focus();
- }
  break;
  }
 };
@@ -228,19 +217,14 @@ watch(
  }
 );
 
+// Focus trap, focus return, scroll lock and Escape from the shared overlay stack. Focus starts on
+// the lightbox itself, so the arrow keys work at once.
+useOverlay(rootRef, () => props.isOpen, { initialFocus: 'panel', onEscape: () => handleClose() });
+
 watch(
  () => props.isOpen,
  (isOpen) => {
- if (isOpen) {
- previouslyFocused = (document.activeElement as HTMLElement) ?? null;
- document.body.style.overflow = 'hidden';
- resetZoom();
- nextTick(() => rootRef.value?.focus());
- } else {
- document.body.style.overflow = '';
- previouslyFocused?.focus?.();
- previouslyFocused = null;
- }
+ if (isOpen) resetZoom();
  }
 );
 
@@ -250,6 +234,5 @@ onMounted(() => {
 
 onUnmounted(() => {
  window.removeEventListener('keydown', handleKeyDown);
- document.body.style.overflow = '';
 });
 </script>

@@ -650,6 +650,25 @@ the docs CommandPalette and DashboardLayout; Select and the docs tab and switche
 useRovingFocus. Each needs a registry entry, `dependencies`, a README section and a docs page
 (docCoverage fails without one).
 
+**9.4 status (2026-11-08): useOverlay and useRovingFocus done, uncommitted; useForm and
+useAnnouncer next.**
+- useOverlay (`useOverlay.spec.ts`, 7): one app-wide stack; the top overlay traps Tab, pulls stray
+  focus back and hears Escape (unless something inside handled it); scroll is locked once and the
+  previous `overflow` restored when the last closes; focus returns to the opener. Adopted by AppModal
+  (its Escape moved here; Enter stays on useKeyboard), AppImageModal and the docs mobile sheet.
+  Not adopted on purpose: the docs ⌘K palette is a native `<dialog>` with `showModal()`, which already
+  traps focus and handles Escape. Checked in Chrome: nested panels close one at a time, focus
+  returns, scroll stays locked until the last one closes.
+- useRovingFocus (`useRovingFocus.spec.ts`, 8): arrows by orientation, Home/End, wrap, type-ahead,
+  disabled items, sync clamp; roving-tabindex mode (`container`) or active-descendant mode.
+  Adopted by Select, the docs PreviewCodeTabs, PresetSwitcher and CommandPalette.
+- Found on the way: **Select's list had no tabindex, so `listRef.focus()` did nothing and the arrow
+  keys never reached a non-searchable Select** (old and new code behaved the same in Chrome). The
+  list is `tabindex="-1"`; with `searchable`, the search box is a `role="combobox"` with
+  `aria-activedescendant`. Guarded by `select.spec.ts` (2).
+- `demoScroll.spec.ts` accepts `aria-labelledby` as well as `aria-label` for a scroll box's name.
+- Docs: "Overlays and focus" section in docsNav with both pages and demos.
+
 ### 9.5 Checks
 
 `pnpm test` and `pnpm build` in docs; a keyboard pass through every overlay and list after 9.4;

@@ -107,11 +107,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch, onUnmounted, ref, toRef, useId, nextTick } from 'vue'
+import { computed, ref, toRef, useId } from 'vue'
 import { motion, AnimatePresence } from 'motion-v'
 import AppIcon from './AppIcon.vue'
 import AppSpinner from './AppSpinner.vue'
 import { useKeyboard } from '@/composables/useKeyboard'
+import { useOverlay } from '@/composables/useOverlay'
 import { useMotionTokens } from '@/composables/useMotionTokens'
 import { useReducedMotion } from '@/composables/useReducedMotion'
 
@@ -197,12 +198,17 @@ function handleBackdropClick() {
  if (!props.persistent) handleClose()
 }
 
-// Keyboard shortcuts ÔÇö only active while modal is open
-useKeyboard(
- {
- escape: () => {
+// Focus trap, focus return, scroll lock and Escape come from the overlay stack, so a dialog
+// opened from a dialog traps focus alone, and closing it leaves the page beneath still locked.
+useOverlay(panelRef, () => props.isOpen, {
+ onEscape: () => {
  if (!props.persistent && !props.loading) handleClose()
  },
+})
+
+// Enter confirms (only while open)
+useKeyboard(
+ {
  enter: (e: KeyboardEvent) => {
  if (props.loading) return
  // Fields keep Enter for themselves, and a focused button or link already activates on
@@ -214,71 +220,6 @@ useKeyboard(
  },
  toRef(props, 'isOpen'),
 )
-
-// Body scroll lock + focus management
-let previouslyFocused: HTMLElement | null = null
-
-const FOCUSABLE_SELECTOR = [
- 'a[href]',
- 'button:not([disabled])',
- 'input:not([disabled]):not([type="hidden"])',
- 'select:not([disabled])',
- 'textarea:not([disabled])',
- '[tabindex]:not([tabindex="-1"])',
-].join(',')
-
-function getFocusable(): HTMLElement[] {
- const el = (panelRef.value as any)?.$el || panelRef.value
- if (!el || typeof el.querySelectorAll !== 'function') return []
- return Array.from(el.querySelectorAll(FOCUSABLE_SELECTOR) as NodeListOf<HTMLElement>)
- .filter((el) => !el.hasAttribute('disabled') && el.offsetParent !== null)
-}
-
-function handleTrap(e: KeyboardEvent) {
- if (e.key !== 'Tab') return
- const focusables = getFocusable()
- if (focusables.length === 0) {
- e.preventDefault()
- return
- }
- const first = focusables[0]
- const last = focusables[focusables.length - 1]
- const active = document.activeElement as HTMLElement | null
- if (e.shiftKey && active === first) {
- e.preventDefault()
- last.focus()
- } else if (!e.shiftKey && active === last) {
- e.preventDefault()
- first.focus()
- }
-}
-
-watch(
- () => props.isOpen,
- (open) => {
- document.body.style.overflow = open ? 'hidden' : ''
- if (open) {
- previouslyFocused = (document.activeElement as HTMLElement) ?? null
- document.addEventListener('keydown', handleTrap)
- nextTick(() => {
- const focusables = getFocusable()
- const el = (panelRef.value as any)?.$el || panelRef.value
- // Prefer first focusable inside the panel; fall back to the panel itself.
- ;(focusables[0] ?? el)?.focus()
- })
- } else {
- document.removeEventListener('keydown', handleTrap)
- previouslyFocused?.focus?.()
- previouslyFocused = null
- }
- },
- { immediate: true },
-)
-
-onUnmounted(() => {
- document.body.style.overflow = ''
- document.removeEventListener('keydown', handleTrap)
-})
 
 const maxWidthClass = computed(() => {
  if (props.fullscreen) return 'max-w-none'

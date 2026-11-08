@@ -2087,3 +2087,77 @@ elements to their `initial` state for one frame when an animation ends (the moda
 does not install packages; after an install it prints `pnpm add …` for any your `package.json`
 lacks.
 
+### useOverlay
+
+Focus, scroll and Escape for anything that sits over the page. AppModal and AppImageModal use it;
+build your own sheet, drawer or lightbox on it.
+
+```ts
+const open = ref(false);
+const panel = ref<HTMLElement | null>(null);
+useOverlay(panel, open, { onEscape: () => (open.value = false) });
+// <div v-if="open" ref="panel" role="dialog" aria-modal="true" aria-labelledby="…">
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `initialFocus` | `'first'` | `'first'` focusable element, `'panel'` itself (give it `tabindex="-1"`), or `() => element` |
+| `returnFocus` | `true` | Give focus back to what had it before opening |
+| `lockScroll` | `true` | Lock page scroll while open (tokens.css reserves the scrollbar gutter, so nothing shifts) |
+| `onEscape` | — | Called on Escape while this overlay is on top |
+
+Returns `focus()` (move focus in again). `focusableIn(root)` is exported too.
+
+#### Behaviour
+
+- **One stack, app-wide.** Only the top overlay traps Tab, pulls stray focus back (a click behind
+  it, a script) and hears Escape. A dialog opened from a dialog works without either knowing.
+- **Scroll locks once.** The first overlay locks `body`, the last one to close restores the value
+  it found. Closing a nested dialog no longer unlocks the page under the outer one.
+- **Escape respects the inside.** If something in the panel handled Escape first (an open select
+  marks it with `preventDefault`), the overlay stays open.
+- The panel may be a component ref, and may only exist while open (`v-if`).
+
+#### Things that look simplifiable but are not
+
+| Looks simplifiable | Why it is not |
+|---|---|
+| `document.body.style.overflow = open ? 'hidden' : ''` per component | The inner dialog's close unlocks the page while the outer is still open, and `''` wipes a value the app set |
+| A keydown listener per overlay | Two traps fight over Tab, and Escape closes every open dialog at once |
+| Use it for the docs ⌘K palette | That is a native `<dialog>` with `showModal()`: the browser already traps focus and handles Escape |
+
+### useRovingFocus
+
+Arrow-key navigation through a group, the WAI-ARIA way: the arrows of the orientation, Home and End,
+wrap, type-ahead, disabled items skipped. Select uses it, as do the docs tabs, preset switcher and
+⌘K palette.
+
+```ts
+// Roving tabindex (tabs, toolbars, radio groups): one Tab stop, moving focuses the item.
+const bar = ref<HTMLElement | null>(null);
+const tools = useRovingFocus({ count: 3, orientation: 'horizontal', container: bar });
+// <div ref="bar" role="toolbar" @keydown="tools.onKeydown"> <button :tabindex="tools.tabindex(i)" role="radio">
+
+// Active descendant (listbox, combobox): focus stays put, the index moves.
+const list = useRovingFocus({ count: () => options.value.length, label: (i) => options.value[i].label });
+// <ul role="listbox" tabindex="0" :aria-activedescendant="`opt-${list.active.value}`" @keydown="list.onKeydown">
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `count` | — | `MaybeRefOrGetter<number>`; the index is pulled back when it shrinks |
+| `orientation` | `'vertical'` | `'horizontal'`, `'vertical'` or `'both'` |
+| `loop` | `true` | Wrap at the ends |
+| `disabled(i)` | — | Items to skip |
+| `label(i)` | — | Turns on type-ahead. Leave it off when typing goes into a search box |
+| `initial` | `0` | `-1` for none |
+| `container` | — | Roving-tabindex mode; items are found by ARIA role or `itemSelector` |
+| `onChange(i)` | — | After a key moved the index (automatic tab activation) |
+
+Returns `active`, `onKeydown(e)` (returns whether it used the key, and prevents its default only
+then), `tabindex(i)` and `set(i, { focus })`. It ignores keys with ctrl, alt or meta.
+
+Select's list now takes focus (`tabindex="-1"`): before, `listRef.focus()` did nothing, so the
+arrow keys never reached a non-searchable Select. With `searchable`, the search box is a
+`role="combobox"` carrying `aria-activedescendant`.
+

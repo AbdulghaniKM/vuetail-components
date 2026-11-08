@@ -55,6 +55,12 @@
  ref="searchRef"
  v-model="searchQuery"
  type="text"
+ role="combobox"
+ aria-autocomplete="list"
+ aria-expanded="true"
+ :aria-controls="`${inputId}-listbox`"
+ :aria-activedescendant="highlightedIndex >= 0 ? `${inputId}-opt-${highlightedIndex}` : undefined"
+ aria-label="Search options"
  class="w-full bg-transparent text-sm text-text placeholder:text-text-subtle focus-visible:-outline-offset-2"
  placeholder="Search..."
  @keydown="onListKeydown"
@@ -65,7 +71,9 @@
  <!-- Options list -->
  <ul
  ref="listRef"
+ :id="`${inputId}-listbox`"
  role="listbox"
+ tabindex="-1"
  :aria-labelledby="label ? labelId : undefined"
  :aria-activedescendant="highlightedIndex >= 0 ? `${inputId}-opt-${highlightedIndex}` : undefined"
  class="max-h-52 overflow-y-auto overscroll-contain p-1 scrollbar-thin"
@@ -122,6 +130,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount, useId } from 'vue'
 import AppIcon from '../AppIcon.vue'
+import { useRovingFocus } from '@/composables/useRovingFocus'
 
 export interface SelectItem {
  label: string
@@ -155,7 +164,6 @@ const labelId = `${inputId}-label`
 
 const isOpen = ref(false)
 const searchQuery = ref('')
-const highlightedIndex = ref(-1)
 const dropAbove = ref(false)
 const dropdownStyle = ref<Record<string, string>>({})
 
@@ -206,6 +214,15 @@ const filteredItems = computed(() => {
  item.label.toLowerCase().includes(q)
  )
 })
+
+// Active-descendant navigation: focus stays on the list (or the search box) while the arrows,
+// Home, End and, without a search box, type-ahead move the highlight.
+const nav = useRovingFocus({
+ count: () => filteredItems.value.length,
+ initial: -1,
+ label: props.searchable ? undefined : (i) => filteredItems.value[i]?.label ?? '',
+})
+const highlightedIndex = nav.active
 
 const selectedLabel = computed(() => {
  if (props.modelValue === '' || props.modelValue == null) return ''
@@ -263,16 +280,6 @@ function onListKeydown(e: KeyboardEvent) {
  if (!items.length) return
 
  switch (e.key) {
- case 'ArrowDown':
- e.preventDefault()
- highlightedIndex.value = (highlightedIndex.value + 1) % items.length
- scrollToHighlighted()
- break
- case 'ArrowUp':
- e.preventDefault()
- highlightedIndex.value = highlightedIndex.value <= 0 ? items.length - 1 : highlightedIndex.value - 1
- scrollToHighlighted()
- break
  case 'Enter':
  e.preventDefault()
  if (highlightedIndex.value >= 0 && highlightedIndex.value < items.length) {
@@ -280,9 +287,14 @@ function onListKeydown(e: KeyboardEvent) {
  }
  break
  case 'Escape':
+ // Marked handled, so a dialog around the select stays open while the list closes.
  e.preventDefault()
  close()
  break
+ default:
+ // In the search box Home and End move the caret, as in any text field.
+ if (props.searchable && (e.key === 'Home' || e.key === 'End')) return
+ if (nav.onKeydown(e)) scrollToHighlighted()
  }
 }
 
