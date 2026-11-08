@@ -20,7 +20,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { easing, presets, status } from '../styles/tokens.mjs';
+import { easing, presets, reducedMotion, status } from '../styles/tokens.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CSS_PATH = path.join(ROOT, 'styles', 'tokens.css');
@@ -81,8 +81,6 @@ export function buildCss() {
       ...Object.entries(easing).map(([k, v]) => decl(`--vt-ease${k === 'standard' ? '' : `-${k}`}`, v)),
     ]),
     '',
-    `@media (prefers-reduced-motion: reduce) {\n${indent(block(':root', [decl('--vt-press-y', '0px'), decl('--vt-press-scale', '1')]))}\n}`,
-    '',
     `@layer base {\n${indent(block(':where(:focus-visible)', [decl('outline', '2px solid var(--color-ring)'), decl('outline-offset', '2px')]))}\n}`,
     '',
     // Reserve the scrollbar's width, so locking scroll under a modal does not shift the page.
@@ -109,6 +107,11 @@ export function buildCss() {
       ...darkBlocks(sel, [...colorLines(p.dark.colors), ...shadowLines(p.dark.shadows)]),
     );
   }
+  // Last, and as specific as a preset block, so it wins in Pine and Console too.
+  out.push(
+    '',
+    `@media (prefers-reduced-motion: reduce) {\n${indent(block(':root,\n:root[data-vt-preset]', motionLines(reducedMotion)))}\n}`,
+  );
   return out.join('\n') + '\n';
 }
 

@@ -151,3 +151,16 @@ export const easing = {
   // Exits use the same ease-out curve as entrances, only shorter (--vt-duration-exit).
   exit: 'cubic-bezier(.2, 0, 0, 1)',
 };
+
+/**
+ * Under `prefers-reduced-motion: reduce`, in every preset: no press movement, and durations
+ * shortened rather than zeroed, so a fade still reads as a change and not as a flash.
+ * Components drop their movement (rise, scale, slide) themselves and keep the fade.
+ */
+export const reducedMotion = {
+  duration: '80ms',
+  'duration-enter': '100ms',
+  'duration-exit': '70ms',
+  'press-y': '0px',
+  'press-scale': '1',
+};

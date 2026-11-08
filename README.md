@@ -1530,8 +1530,10 @@ sniffs for Chromium.
 
 Everywhere else, do what glisse does: **mark the content behind the glass with
 `data-glass-backdrop`.** The pane then filters that element itself, with its lens placed where the
-pane stands, refreshed every frame so it follows scrolling and dragging. That works in every
-browser. Keep marked content reasonably small where a lens moves over it: Safari redraws the filter
+pane stands, refreshed every frame so it follows scrolling and dragging, but only while the marked
+element is on screen: an IntersectionObserver stops the loop when it scrolls away (measured in
+Chrome with a Safari user agent: about 1800 layout reads a second before, 0 off screen after). That
+works in every browser. Keep marked content reasonably small where a lens moves over it: Safari redraws the filter
 on the CPU, about 40ms a frame for 1200 × 800 at 2x. Over anything unmarked, those browsers keep
 the frost, the tint, the painted rim and the shadow.
 
@@ -1959,4 +1961,67 @@ useKeyboard({ escape: close, 'shift+/': showHelp }, isOpen, { repeat: false });
   it. Letters keep shift: `'a'` and `'shift+a'` are different shortcuts.
 - Keys pressed while an IME is composing (Japanese, Chinese input) are ignored.
 - One press fires one handler.
+
+### useDebounce and useThrottle
+
+```ts
+const query = ref('');
+const debounced = useDebounce(query, 300);   // updates 300ms after the last keystroke
+watch(debounced, (q) => search(q));
+// on Enter: debounced.flush()   on close: debounced.cancel()
+
+const scrollY = useThrottle(rawScrollY, 100); // at most every 100ms, with a trailing update
+```
+
+`useDebounce` returns the ref with `flush()` and `cancel()` attached. Both timers stop with the
+component or effect scope that created them, so nothing is written after unmount.
+
+### useClipboard
+
+```ts
+const { copy, copied, isSupported } = useClipboard({ resetAfter: 2000, toastMessage: 'Link copied' });
+await copy(url, true); // true also shows the toast
+```
+
+`navigator.clipboard` needs a secure context. Where it is missing (plain-http previews, some
+WebViews) `copy()` falls back to selecting a hidden textarea and the legacy copy command, then
+returns focus. `copy()` resolves `false` only when both fail. The `copied` timer stops on unmount.
+
+### useMotionTokens
+
+```ts
+const { state, enter, exit } = useMotionTokens();
+// <motion.div :animate="{ x, transition: state() }" :exit="{ opacity: 0, transition: exit() }">
+```
+
+| Function | Token | Use for |
+|---|---|---|
+| `state()` | `--vt-duration` | Something moving between two states: a pill sliding, a panel resizing |
+| `enter()` | `--vt-duration-enter` | Something appearing |
+| `exit()` | `--vt-duration-exit` | Something leaving (shorter than its entrance) |
+
+Each returns `{ duration, ease }` in motion-v's units (seconds, a bezier tuple) and reads the live
+token at call time, so a preset switch reaches the next animation. Under
+`prefers-reduced-motion: reduce`, tokens.css shortens every duration in every preset (80 / 100 /
+70ms); a component still drops its movement (`y`, `scale`) and keeps the fade.
+
+### useSeo
+
+```ts
+useSeo(() => ({ title: post.value?.title ?? 'Loading', description: post.value?.summary }));
+```
+
+A getter is tracked: the metadata re-applies when the data it reads changes (a post that loads
+after the page) and on every navigation. It is cleared when the page unmounts.
+
+### useFormValidation
+
+```ts
+const errors = ref<Record<string, string>>({});
+useFormValidation(form, schema, errors); // clears messages as fields become valid
+```
+
+Error keys are field paths: `email`, `address.city`. A key is cleared once nothing at or beneath it
+fails, so `address` stays while any nested field is invalid. It only clears; set errors on submit.
+Phase 9.4 adds `useForm`, which owns validation, errors, touched state and submit.
 

@@ -184,7 +184,7 @@ The field frame then needs only:
   `cubic-bezier` literals, no bounce, no overshoot (any control point above 1 or below 0).
 - Animate `transform`, `opacity` and colours. Never width, height, top or left.
 - `prefers-reduced-motion: reduce` drops movement and keeps fades. Use `useReducedMotion` or
-  `motion-reduce:` variants; durations already shrink through the tokens.
+  `motion-reduce:` variants. Durations shrink through the tokens (80 / 100 / 70ms in every preset).
 - Press feedback is the preset's press transform and nothing else.
 
 ## 11. Layout and density

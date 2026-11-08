@@ -253,8 +253,8 @@
   const pillAt = computed(() => (props.pill ? (hovered.value ?? activeLink.value) : null));
 
   // Read per render rather than cached, so a preset switch reaches the next move.
-  const { enter } = useMotionTokens();
-  const pillTransition = () => (reduced.value ? { duration: 0 } : enter());
+  const { enter, state } = useMotionTokens();
+  const pillTransition = () => (reduced.value ? { duration: 0 } : state());
   const menuTransition = () => (reduced.value ? { duration: 0 } : enter());
 
   const measure = computed(() => NAV_WIDTH[compact.value ? props.compactWidth : props.width]);

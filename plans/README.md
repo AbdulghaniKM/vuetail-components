@@ -17,7 +17,7 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 6 | Merge `redesign` into components `main`, then docs `master` and template `main` | Done 2026-11-08: live on vuetail-docs.vercel.app |
 | 7 | Docs finalisation: every page on Ink, docs read in order (below) | **In progress** |
 | 8 | Apply DESIGN-BIBLE.md to the registry (P1–P8, below) | **In progress**: P1–P7 done, P8 icons left |
-| 9 | Composables: fix the 25, add the four that components duplicate (below) | **In progress**: 9.1 done |
+| 9 | Composables: fix the 25, add the four that components duplicate (below) | **In progress**: 9.1, 9.2 done |
 
 ## Phase 4 plan
 
@@ -579,6 +579,22 @@ new "Composable reference" and an updated docs page.
 - useSeo: `watchEffect` over the config getter, so a title from fetched data updates; not only on
   `route.path`.
 - useFormValidation: superseded by `useForm` (9.4); keep as a thin wrapper for one release.
+
+**9.2 status (2026-11-08): done, uncommitted.** Docs `pnpm test` 677/677, `pnpm build` clean,
+checked in Chrome.
+- Reduced motion (user decision: shorten): `styles/tokens.mjs` exports `reducedMotion` and
+  tokens.css ends with `@media (prefers-reduced-motion: reduce) { :root, :root[data-vt-preset] }`
+  at 80 / 100 / 70ms and no press movement, in every preset (Chrome: Ink, Pine and Console all
+  read 80/100/70ms under `reducedMotion: 'reduce'`). DESIGN.md and the bible say so.
+- useMotionTokens: `state()` for `--vt-duration`; AppNavbar's pill uses it.
+- useDebounce: `flush()` / `cancel()` on the returned ref; debounce, throttle and useClipboard
+  timers stop on scope dispose. useClipboard falls back to a hidden textarea and the legacy copy
+  command, takes `toastMessage`. Spec `useDebounce.spec.ts` (6).
+- useLiquidGlass: the content-mode loop runs only while a marked surface is on screen
+  (IntersectionObserver). Chrome with a Safari user agent: about 1800 layout reads a second
+  before, on screen or not; 152 on screen and 0 off screen after; the lens still draws.
+- useSeo: `watchEffect`, so a getter follows fetched data (`useSeo.spec.ts`, 2).
+- useFormValidation: nested error keys (`address.city`) by full path (`useFormValidation.spec.ts`, 3).
 
 ### 9.3 Cleanups (about 1 h)
 

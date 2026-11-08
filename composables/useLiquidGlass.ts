@@ -699,10 +699,35 @@ function render(surface: Surface): void {
 }
 
 // One loop for every surface: lenses follow their glass however it or the content moves.
+// It reads every pane's box each frame, so it only runs while a surface is on screen: a page
+// scrolled past its glass costs nothing.
 let following = 0;
+const onScreen = new Set<HTMLElement>();
+let watcher: IntersectionObserver | null = null;
+
 function follow(): void {
-  for (const surface of surfaces.values()) render(surface);
-  following = surfaces.size ? requestAnimationFrame(follow) : 0;
+  for (const surface of surfaces.values()) if (onScreen.has(surface.content)) render(surface);
+  following = onScreen.size ? requestAnimationFrame(follow) : 0;
+}
+
+const wake = () => {
+  if (!following && onScreen.size && typeof requestAnimationFrame !== 'undefined') following = requestAnimationFrame(follow);
+};
+
+function watchVisibility(content: HTMLElement): void {
+  if (typeof IntersectionObserver === 'undefined') {
+    onScreen.add(content);
+    return;
+  }
+  watcher ??= new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      const element = entry.target as HTMLElement;
+      if (entry.isIntersecting) onScreen.add(element);
+      else onScreen.delete(element);
+    }
+    wake();
+  });
+  watcher.observe(content);
 }
 
 function joinSurface(content: HTMLElement, member: Member): () => void {
@@ -710,9 +735,10 @@ function joinSurface(content: HTMLElement, member: Member): () => void {
   if (!surface) {
     surface = { content, members: [], name: `vt-glass-lens-${made++}`, built: '', placed: '', version: 0 };
     surfaces.set(content, surface);
+    watchVisibility(content);
   }
   surface.members.push(member);
-  following ||= requestAnimationFrame(follow);
+  wake();
   const joined = surface;
   return () => {
     joined.members.splice(joined.members.indexOf(member), 1);
@@ -720,6 +746,8 @@ function joinSurface(content: HTMLElement, member: Member): () => void {
     joined.graph?.filter.remove();
     content.style.removeProperty('filter');
     surfaces.delete(content);
+    watcher?.unobserve(content);
+    onScreen.delete(content);
   };
 }
 

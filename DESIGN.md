@@ -299,7 +299,9 @@ with no rewrite.
 Exits reuse the ease-out curve and are shorter than entrances. Never ease-in on UI.
 
 Animate `transform`, `opacity` and colours only. Never bounce or overshoot. Under
-`prefers-reduced-motion: reduce`, press movement is dropped and overlays fade without moving.
+`prefers-reduced-motion: reduce`, in every preset, press movement is dropped and the durations
+shorten to 80ms (state), 100ms (enter) and 70ms (exit); components drop their rise, scale and
+slide and keep the fade.
 
 ## Components
 
