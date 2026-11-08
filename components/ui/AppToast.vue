@@ -37,6 +37,14 @@
               </p>
             </div>
             <button
+              v-if="toast.action"
+              type="button"
+              class="-my-0.5 shrink-0 rounded-md px-2 py-1 text-sm font-medium text-accent-text transition-colors hover:bg-muted"
+              @click="runAction(toast)"
+            >
+              {{ toast.action.label }}
+            </button>
+            <button
               type="button"
               class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-sm text-text-muted transition-colors hover:bg-muted hover:text-text"
               aria-label="Dismiss notification"
@@ -84,6 +92,11 @@
   }>();
   
   const removeToast = (id: string) => emit('remove', id);
+  // The action runs, then the toast closes: an Undo that leaves "Deleted" on screen reads as failed.
+  const runAction = (toast: Toast) => {
+    toast.action?.onClick();
+    removeToast(toast.id);
+  };
 
   const { enter, exit } = useMotionTokens();
   const reduced = useReducedMotion();

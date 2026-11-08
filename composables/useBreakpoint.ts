@@ -1,6 +1,7 @@
-import { computed } from 'vue';
+import { computed, type ComputedRef } from 'vue';
 import { useMediaQuery } from '@vueuse/core';
 
+/** Tailwind's breakpoints, in px. */
 const BREAKPOINTS = {
   sm: 640,
   md: 768,
@@ -11,42 +12,46 @@ const BREAKPOINTS = {
 
 type Breakpoint = keyof typeof BREAKPOINTS;
 
-export const useBreakpoint = () => {
-  const sm = useMediaQuery(`(min-width: ${BREAKPOINTS.sm}px)`);
-  const md = useMediaQuery(`(min-width: ${BREAKPOINTS.md}px)`);
-  const lg = useMediaQuery(`(min-width: ${BREAKPOINTS.lg}px)`);
-  const xl = useMediaQuery(`(min-width: ${BREAKPOINTS.xl}px)`);
-  const xxl = useMediaQuery(`(min-width: ${BREAKPOINTS['2xl']}px)`);
+// One set of media queries for the whole app, made on first use: a list of 200 rows that each
+// call useBreakpoint() would otherwise hold 1000 matchMedia listeners.
+let shared: ReturnType<typeof create> | null = null;
+
+const create = () => {
+  const at = Object.fromEntries(
+    (Object.keys(BREAKPOINTS) as Breakpoint[]).map((bp) => [bp, useMediaQuery(`(min-width: ${BREAKPOINTS[bp]}px)`)]),
+  ) as unknown as Record<Breakpoint, ComputedRef<boolean>>;
 
   const current = computed<Breakpoint | 'xs'>(() => {
-    if (xxl.value) return '2xl';
-    if (xl.value) return 'xl';
-    if (lg.value) return 'lg';
-    if (md.value) return 'md';
-    if (sm.value) return 'sm';
+    if (at['2xl'].value) return '2xl';
+    if (at.xl.value) return 'xl';
+    if (at.lg.value) return 'lg';
+    if (at.md.value) return 'md';
+    if (at.sm.value) return 'sm';
     return 'xs';
   });
 
-  const isMobile = computed(() => !md.value);
-  const isTablet = computed(() => md.value && !lg.value);
-  const isDesktop = computed(() => lg.value);
-
-  const greaterThan = (bp: Breakpoint) => {
-    const map = { sm, md, lg, xl, '2xl': xxl };
-    return map[bp];
-  };
-
-  const smallerThan = (bp: Breakpoint) => {
-    return computed(() => !greaterThan(bp).value);
-  };
+  const below = Object.fromEntries(
+    (Object.keys(BREAKPOINTS) as Breakpoint[]).map((bp) => [bp, computed(() => !at[bp].value)]),
+  ) as unknown as Record<Breakpoint, ComputedRef<boolean>>;
 
   return {
     current,
-    isMobile,
-    isTablet,
-    isDesktop,
-    greaterThan,
-    smallerThan,
+    isMobile: computed(() => !at.md.value),
+    isTablet: computed(() => at.md.value && !at.lg.value),
+    isDesktop: computed(() => at.lg.value),
+    /** Viewport is at least this wide (`min-width`), like Tailwind's `md:`. */
+    atLeast: (bp: Breakpoint) => at[bp],
+    /** Viewport is narrower than this breakpoint, like Tailwind's `max-md:`. */
+    smallerThan: (bp: Breakpoint) => below[bp],
     breakpoints: BREAKPOINTS,
+  };
+};
+
+export const useBreakpoint = () => {
+  shared ??= create();
+  return {
+    ...shared,
+    /** @deprecated Same as `atLeast`: a `min-width` query, so the breakpoint itself counts. */
+    greaterThan: shared.atLeast,
   };
 };

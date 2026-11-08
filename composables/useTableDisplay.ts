@@ -6,7 +6,8 @@ import { computed, ref, toValue, watch, type ComputedRef, type MaybeRefOrGetter,
  * Two knobs live here — how records are drawn (`table` rows vs record `cards`) and how
  * tightly they're packed (`relaxed` vs `compact`). Both are module-level refs, so a
  * change in one table's display menu retunes every list in the app at once, and both
- * are mirrored onto `<html>` as `data-view` / `data-density` so app-level CSS can react
+ * are mirrored onto `<html>` as `data-vt-table-view` / `data-vt-table-density` (namespaced, so they
+ * cannot collide with an app's own attributes) so app-level CSS can react
  * without a single component knowing about it.
  *
  * Hidden columns are per-table instead: keyed by the table's `id`, kept in one storage
@@ -65,17 +66,17 @@ const density: Ref<TableDensity> = ref(
   isDensity(storedDensity) ? storedDensity : DEFAULT_TABLE_DENSITY,
 );
 
-applyAttr('data-view', view.value);
-applyAttr('data-density', density.value);
+applyAttr('data-vt-table-view', view.value);
+applyAttr('data-vt-table-density', density.value);
 
 // The default is stored as "absent" so a reset is one removal, not a written-out default.
 watch(view, (v) => {
-  applyAttr('data-view', v);
+  applyAttr('data-vt-table-view', v);
   writeStored(VIEW_KEY, v === DEFAULT_TABLE_VIEW ? null : v);
 });
 
 watch(density, (v) => {
-  applyAttr('data-density', v);
+  applyAttr('data-vt-table-density', v);
   writeStored(DENSITY_KEY, v === DEFAULT_TABLE_DENSITY ? null : v);
 });
 

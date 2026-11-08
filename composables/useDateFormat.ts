@@ -1,27 +1,29 @@
-import { computed, type Ref } from 'vue';
+import { toValue, type MaybeRefOrGetter } from 'vue';
 import { formatDate, formatDateRange, type DateFormatOptions, type DateFormatPreset } from '@/utils/date';
 
-export const useDateFormat = (date: Ref<Date | string | number> | Date | string | number) => {
-  const dateRef = typeof date === 'object' && 'value' in date ? date : computed(() => date);
+type DateInput = Date | string | number;
+
+/** `date` may be a value, a ref or a getter; every call formats its current value. */
+export const useDateFormat = (date: MaybeRefOrGetter<DateInput>) => {
 
   const format = (options?: DateFormatOptions) => {
-    return formatDate(dateRef.value, options);
+    return formatDate(toValue(date), options);
   };
 
   const formatPreset = (preset: DateFormatPreset) => {
-    return formatDate(dateRef.value, { preset });
+    return formatDate(toValue(date), { preset });
   };
 
   const relative = () => {
-    return formatDate(dateRef.value, { preset: 'relative' });
+    return formatDate(toValue(date), { preset: 'relative' });
   };
 
   const relativeShort = () => {
-    return formatDate(dateRef.value, { preset: 'relativeShort' });
+    return formatDate(toValue(date), { preset: 'relativeShort' });
   };
 
   const custom = (formatString: string) => {
-    return formatDate(dateRef.value, { customFormat: formatString });
+    return formatDate(toValue(date), { customFormat: formatString });
   };
 
   return {
@@ -33,15 +35,10 @@ export const useDateFormat = (date: Ref<Date | string | number> | Date | string 
   };
 };
 
-export const useDateRange = (
-  startDate: Ref<Date | string | number> | Date | string | number,
-  endDate: Ref<Date | string | number> | Date | string | number
-) => {
-  const startRef = typeof startDate === 'object' && 'value' in startDate ? startDate : computed(() => startDate);
-  const endRef = typeof endDate === 'object' && 'value' in endDate ? endDate : computed(() => endDate);
+export const useDateRange = (startDate: MaybeRefOrGetter<DateInput>, endDate: MaybeRefOrGetter<DateInput>) => {
 
   const format = (options?: DateFormatOptions) => {
-    return formatDateRange(startRef.value, endRef.value, options);
+    return formatDateRange(toValue(startDate), toValue(endDate), options);
   };
 
   return {

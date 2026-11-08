@@ -1,5 +1,5 @@
 import { watch, type Ref } from 'vue';
-import { useMediaQuery } from '@vueuse/core';
+import { useReducedMotion } from './useReducedMotion';
 import type { DockPosition } from './useDockPosition';
 
 export const FLIGHT_MS = 420;
@@ -72,7 +72,7 @@ export function useDockFlight(
   /** Scale the bar was wearing when it left, so a lifted drag lands seamlessly. */
   takeLiftScale: () => number = () => 1,
 ): void {
-  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const prefersReducedMotion = useReducedMotion();
   let boxBeforeMove: DOMRect | null = null;
 
   watch(

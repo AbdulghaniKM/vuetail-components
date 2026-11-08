@@ -109,8 +109,8 @@
     "AppDock": ["AppIcon", "useDockPosition", "useDockDrag", "useDockFlight", "useKeyboard"],
     "AppNavbar": ["AppIcon", "useMotionTokens", "useReducedMotion"],
     "AppNotificationPreview": ["AppIcon", "useReducedMotion"],
-    "useDockDrag": ["useDockPosition", "useDockFlight", "useKeyboard"],
-    "useDockFlight": ["useDockPosition"]
+    "useDockDrag": ["useDockPosition", "useDockFlight", "useKeyboard", "useReducedMotion"],
+    "useDockFlight": ["useDockPosition", "useReducedMotion"]
   },
   "requires": {
     "useAuth": {
@@ -138,7 +138,7 @@
     },
     "AppTable": {
       "files": ["src/utils/display.ts"],
-      "packages": ["@vueuse/core", "zod", "motion-v", "xlsx-js-style"]
+      "packages": ["@vueuse/core", "zod", "motion-v@^2.2.1", "xlsx-js-style"]
     },
     "AppFilterPanel": {
       "files": ["src/types/form.types.ts"]
@@ -174,10 +174,10 @@
       "packages": ["@vueuse/core"]
     },
     "AppToast": {
-      "packages": ["motion-v"]
+      "packages": ["motion-v@^2.2.1"]
     },
     "AppModal": {
-      "packages": ["motion-v"]
+      "packages": ["motion-v@^2.2.1"]
     },
     "useReducedMotion": {
       "packages": ["@vueuse/core"]
@@ -186,7 +186,7 @@
       "packages": ["@vueuse/core", "vue-router"]
     },
     "AppNavbar": {
-      "packages": ["@vueuse/core", "vue-router", "motion-v"]
+      "packages": ["@vueuse/core", "vue-router", "motion-v@^2.2.1"]
     },
     "useDockDrag": {
       "packages": ["@vueuse/core"]

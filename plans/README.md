@@ -17,7 +17,7 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 6 | Merge `redesign` into components `main`, then docs `master` and template `main` | Done 2026-11-08: live on vuetail-docs.vercel.app |
 | 7 | Docs finalisation: every page on Ink, docs read in order (below) | **In progress** |
 | 8 | Apply DESIGN-BIBLE.md to the registry (P1–P8, below) | **In progress**: P1–P7 done, P8 icons left |
-| 9 | Composables: fix the 25, add the four that components duplicate (below) | **In progress**: 9.1, 9.2 done |
+| 9 | Composables: fix the 25, add the four that components duplicate (below) | **In progress**: 9.1–9.3 done, 9.4 left |
 
 ## Phase 4 plan
 
@@ -610,6 +610,31 @@ checked in Chrome.
   overshoot); read `--vt-duration-enter` and use `useReducedMotion` instead of its own media query.
 - useToast: optional `max` (oldest dropped), an `action` (Undo), `update(id)` and `promise()`.
 - Version the registry's `motion-v` requirement (`^2.2.1`); it is unversioned today and docs ran 1.x.
+
+**9.3 status (2026-11-08): done, uncommitted.** Docs `pnpm test` 693/693, `pnpm build` clean;
+template `lint` and `typecheck` pass (`format:check` flags 29 untouched files: CRLF from
+`core.autocrlf=true` on this checkout, as before). Checked in Chrome, 0 console errors.
+- useToast: `max` (default 5, oldest closes), `action` (AppToast shows the button; it runs, then
+  closes the toast), `update(id, patch)`, `promise(p, { loading, success, error })`,
+  `configureToasts()`. `useToast.spec.ts` (6). ToastBoard demo rewritten on Ink (it named a missing
+  Solar icon and used shadows and an uppercase footer).
+- useLocalStorage: follows other tabs through the `storage` event, same schema; listener stops
+  with the scope. `useLocalStorage.spec.ts` (3).
+- useTableDisplay: `<html data-vt-table-view>` / `data-vt-table-density` (nothing read the old
+  generic names; AdvancedAppTable uses its own element's attributes).
+- useBreakpoint: `atLeast()`, `greaterThan` kept as a deprecated alias; one shared set of media
+  queries. useDateFormat / useDateRange take `MaybeRefOrGetter`. useDockFlight and useDockDrag use
+  `useReducedMotion` (registry deps updated). `composableCleanups.spec.ts` (4).
+- Registry `requires.packages`: `motion-v@^2.2.1`. Template CLI (`scripts/add.js`): prints
+  `pnpm add …` for required packages missing from package.json; `run()` only when executed, so the
+  helpers are importable. `cliPackages.spec.ts` (3).
+- Template bundled copies synced with the registry and formatted with oxfmt: AppToast,
+  ThemeToggle (it still had the old ring halo with `outline-none`), AppPageLoader, AppSkeleton,
+  useToast, useMotionTokens.
+- Not done, on purpose: useAppConfig. Three template layouts read its refs, so returning the plain
+  object would break them for no gain.
+- Still open (user decision): useDockFlight's 420ms overshooting spring and AppNavbar's
+  `max-width` contraction.
 
 ### 9.4 New composables (about 5 h, then adopt)
 

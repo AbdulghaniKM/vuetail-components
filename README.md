@@ -1199,7 +1199,7 @@ The preview is `w-full`. Give it a width, about `max-w-[22rem]`, or it collapses
 A data table that also knows how to stop being a table. The same column config renders as
 pinned-header rows or as a grid of record cards, at two densities, and both switches are
 **app-wide** — flip one table's display menu and every `AdvancedAppTable` on the page follows,
-because the preference lives on `<html data-view>` / `<html data-density>` rather than in a prop.
+because the preference lives on `<html data-vt-table-view>` / `<html data-vt-table-density>` rather than in a prop.
 
 ```bash
 pnpm add-component AdvancedAppTable
@@ -1402,8 +1402,8 @@ import { useTableDisplay } from '@/composables/useTableDisplay';
 const { view, density, setView, setDensity, reset } = useTableDisplay();
 ```
 
-Module-level refs, persisted in `localStorage` and mirrored onto `<html>` as `data-view` and
-`data-density`, so your own CSS can react to the same switch. The default is stored as *absent*,
+Module-level refs, persisted in `localStorage` and mirrored onto `<html>` as `data-vt-table-view` and
+`data-vt-table-density`, so your own CSS can react to the same switch. The default is stored as *absent*,
 so clearing a preference is one removal. `useHiddenColumns(tableId)` is the per-table half.
 
 #### Behaviour contracts
@@ -2024,4 +2024,66 @@ useFormValidation(form, schema, errors); // clears messages as fields become val
 Error keys are field paths: `email`, `address.city`. A key is cleared once nothing at or beneath it
 fails, so `address` stays while any nested field is invalid. It only clears; set errors on submit.
 Phase 9.4 adds `useForm`, which owns validation, errors, touched state and submit.
+
+### useToast
+
+App-wide notifications. Mount `AppToast` once (App.vue) with `toasts`; call the methods anywhere.
+
+```ts
+configureToasts({ max: 3, duration: 4000 }); // once, in main.ts; defaults: 5 and 5000ms
+
+const toast = useToast();
+toast.success('"Q3 report.pdf" was deleted.', { action: { label: 'Undo', onClick: () => restore(file) } });
+await toast.promise(upload(files), {
+  loading: 'Uploading…',
+  success: (n) => `Uploaded ${n} files.`,
+  error: (e) => `Upload failed: ${(e as Error).message}`,
+});
+```
+
+| Method | Description |
+|---|---|
+| `success` / `error` / `warning` / `info(message, { title?, duration?, action? })` | Shows a toast, returns its id. `duration: 0` keeps it until dismissed |
+| `promise(p, { loading, success, error })` | A sticky loading toast that becomes the outcome; resolves or rejects with `p` |
+| `update(id, patch)` | Changes a toast in place; a new `duration` restarts its timer |
+| `remove(id)` / `clear()` | Closes one, or all |
+| `pause(id)` / `resume(id)` | AppToast calls these on hover and focus |
+
+- Past `max`, the oldest toast closes: a wall of toasts is unreadable and covers the page.
+- An `action` button runs, then closes the toast, so an Undo never leaves "Deleted" on screen.
+
+### useLocalStorage
+
+```ts
+const theme = useLocalStorage('theme', 'light', z.enum(['light', 'dark']));
+```
+
+A ref mirrored to `localStorage[key]` as JSON (`null` removes the key). With a schema, anything that
+does not parse falls back to the default. A change made in another tab arrives through the
+`storage` event and goes through the same schema; the listener stops with the component.
+
+### useBreakpoint
+
+```ts
+const { current, isMobile, atLeast, smallerThan } = useBreakpoint();
+const wide = atLeast('lg'); // min-width: 1024px, like Tailwind's lg:
+```
+
+`atLeast(bp)` is a `min-width` query (the breakpoint itself counts); `smallerThan(bp)` is its
+opposite. `greaterThan` is kept as a deprecated alias of `atLeast`: the old name was wrong. Every
+caller shares one set of five media queries.
+
+### useDateFormat
+
+`useDateFormat(date)` takes a value, a ref or a getter (`() => post.value.publishedAt`); `format`,
+`formatPreset`, `relative`, `relativeShort` and `custom` format its current value on each call.
+`useDateRange(start, end)` takes the same.
+
+### Package requirements and the CLI
+
+`requires.packages` in registry.json lists npm packages a component or composable needs, as a name
+or `name@range` when the version matters: motion-v is `motion-v@^2.2.1`, because 1.x resets motion
+elements to their `initial` state for one frame when an animation ends (the modal flash). The CLI
+does not install packages; after an install it prints `pnpm add …` for any your `package.json`
+lacks.
 

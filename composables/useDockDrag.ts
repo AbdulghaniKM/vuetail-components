@@ -1,5 +1,4 @@
 import { ref, computed, type Ref, type ComputedRef } from 'vue';
-import { useMediaQuery } from '@vueuse/core';
 import {
   useDockPosition,
   DOCK_POSITIONS,
@@ -8,6 +7,7 @@ import {
 } from './useDockPosition';
 import { useKeyboard } from './useKeyboard';
 import { flyHome } from './useDockFlight';
+import { useReducedMotion } from './useReducedMotion';
 
 const DRAG_THRESHOLD = 4; // device px — pointer coords are px, not a styling value
 const LIFT_SCALE = 1.04;
@@ -73,7 +73,7 @@ export function useDockDrag(
 ): DockDragApi {
   const { dockPosition, setDockPosition, cycleDockPosition } =
     options.position ?? useDockPosition();
-  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const prefersReducedMotion = useReducedMotion();
 
   const offset = options.local ? ref<Offset | null>(null) : sharedOffset;
   const previewPosition = options.local ? ref<DockPosition | null>(null) : sharedPreview;
