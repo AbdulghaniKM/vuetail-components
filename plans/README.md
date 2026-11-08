@@ -456,3 +456,15 @@ node scripts/tokens.mjs check            # tokens, contrast in all six preset ×
 node scripts/tokens.mjs check --usage    # leftover old names, raw palette, hex in components
 cd ../vuetail-docs && pnpm build && pnpm test
 ```
+
+## Phase 8: apply DESIGN-BIBLE.md (in progress, uncommitted)
+
+Guarded by docs `tests/designBible.spec.ts`. Order follows the bible's appendix.
+
+- [x] P1 focus: one ring in `tokens.css` (`@layer base`, `:where(:focus-visible)`), docs and
+  template drop their unlayered rule, 11 components lose halos and focus edge changes; fields
+  draw the ring at -1px. Checked in Ink dark, Pine light, Console dark: one 2px outline, no shadow.
+- [x] P2 navigation: AppDock chrome, tiles, badge and shadows on tokens; AppNavbar defaults to
+  `surface`, `dark` is token-built (inverse in light, raised surface in dark), CTA on accent tokens.
+- [ ] P3 AppNotificationPreview frame  - [ ] P4 RibbonField, AppLiquidGlass defaults
+- [ ] P5 motion  - [ ] P6 shape and type  - [ ] P7 elevation  - [ ] P8 icons

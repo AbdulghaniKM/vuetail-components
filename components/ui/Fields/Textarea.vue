@@ -13,8 +13,8 @@
  :aria-invalid="error ? 'true' : undefined"
  :aria-describedby="error ? errorId : undefined"
  @input="handleInput"
- class="w-full min-h-[calc(var(--spacing-control-md)*2.5)] rounded-md border border-border-strong bg-surface px-3 py-2 text-control text-text placeholder:text-text-subtle focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-50 transition-[border-color,box-shadow] duration-(--vt-duration) ease-standard resize-y"
- :class="[customClass, { 'border-danger-text focus:border-danger-text focus:ring-danger-text/25': error }]"
+ class="w-full min-h-[calc(var(--spacing-control-md)*2.5)] rounded-md border border-border-strong bg-surface px-3 py-2 text-control text-text placeholder:text-text-subtle focus-visible:-outline-offset-1 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-(--vt-duration) ease-standard resize-y"
+ :class="[customClass, { 'border-danger-text focus-visible:outline-danger-text': error }]"
  />
  <span
  :id="errorId"

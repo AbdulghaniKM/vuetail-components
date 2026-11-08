@@ -181,7 +181,7 @@
                 <template #trigger="{ toggle, isOpen }">
                   <button
                     type="button"
-                    class="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-start text-sm transition-[border-color,box-shadow] duration-(--vt-duration) ease-standard focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
+                    class="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-start text-sm transition-colors duration-(--vt-duration) ease-standard focus-visible:-outline-offset-1"
                     @click="toggle"
                   >
                     <span class="truncate" :class="multiSelectSummary(field) ? 'text-text' : 'text-text-muted'">
@@ -223,7 +223,7 @@
                 <template #trigger="{ toggle, isOpen }">
                   <button
                     type="button"
-                    class="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-start text-sm transition-[border-color,box-shadow] duration-(--vt-duration) ease-standard focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
+                    class="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-start text-sm transition-colors duration-(--vt-duration) ease-standard focus-visible:-outline-offset-1"
                     @click="toggle"
                   >
                     <span class="truncate" :class="dateRangeSummary(field.key) ? 'text-text' : 'text-text-muted'">

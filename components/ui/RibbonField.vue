@@ -156,7 +156,7 @@
       word?: string;
       /**
        * Two ramps of CSS colors, shadow → highlight, overriding the ones derived
-       * from `--color-primary` / `--color-secondary`. Any stop count works.
+       * from `--color-accent` / `--color-ring`. Any stop count works.
        */
       ramps?: readonly (readonly string[])[];
       /** Fill for the word. Defaults to the `--color-text` token. */

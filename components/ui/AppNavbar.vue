@@ -139,7 +139,7 @@
     {
       items: () => [],
       actions: () => [],
-      tone: 'dark',
+      tone: 'surface',
       floating: true,
       position: 'top',
       width: 'xl',
@@ -460,66 +460,64 @@
 </template>
 
 <style scoped>
-  /*
-   * Two palettes, both as custom properties on the root, so an app that wants a
-   * different bar overrides them from a parent rather than editing this block.
-   *
-   * `dark` is deliberately fixed in both themes. The bar crosses whatever the
-   * page is made of — a hero image, the light body, a dark footer — and a bar
-   * that restyles per surface has to know where it is. One dark capsule works
-   * over all three, and it means a lockup inside it can stay on its dark artwork
-   * everywhere instead of swapping mid-scroll.
-   */
   .nav-dark {
-    --nav-bg: rgb(10 21 18 / 0.85);
-    --nav-bg-compact: rgb(10 21 18 / 0.94);
-    --nav-border: rgb(38 44 55 / 0.7);
-    --nav-border-compact: rgb(38 44 55 / 1);
-    --nav-ink: #e8ecf3;
-    --nav-ink-muted: #9aa4b2;
-    --nav-pill: rgb(232 236 243 / 0.12);
-    --nav-hover: rgb(232 236 243 / 0.08);
-    --nav-shadow: rgb(8 12 20 / 0.35);
+    --nav-bg: color-mix(in srgb, var(--color-text) 92%, transparent);
+    --nav-bg-compact: var(--color-text);
+    --nav-border: color-mix(in srgb, var(--color-bg) 16%, transparent);
+    --nav-border-compact: color-mix(in srgb, var(--color-bg) 24%, transparent);
+    --nav-ink: var(--color-bg);
+    --nav-ink-muted: color-mix(in srgb, var(--color-bg) 72%, var(--color-text));
+    --nav-pill: color-mix(in srgb, var(--color-bg) 14%, transparent);
+    --nav-hover: color-mix(in srgb, var(--color-bg) 9%, transparent);
   }
 
+  :global(:root[data-theme='dark']) .nav-dark,
   .nav-surface {
-    --nav-bg: color-mix(in srgb, var(--color-surface) 85%, transparent);
-    --nav-bg-compact: color-mix(in srgb, var(--color-surface) 96%, transparent);
+    --nav-bg: color-mix(in srgb, var(--color-surface-raised) 88%, transparent);
+    --nav-bg-compact: var(--color-surface-raised);
     --nav-border: var(--color-border);
     --nav-border-compact: var(--color-border);
     --nav-ink: var(--color-text);
     --nav-ink-muted: var(--color-text-muted);
-    --nav-pill: color-mix(in srgb, var(--color-accent) 16%, transparent);
-    --nav-hover: color-mix(in srgb, var(--color-accent) 10%, transparent);
-    --nav-shadow: rgb(0 0 0 / 0.1);
+    --nav-pill: var(--color-accent-subtle);
+    --nav-hover: var(--color-muted);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .nav-dark {
+      --nav-bg: color-mix(in srgb, var(--color-surface-raised) 88%, transparent);
+      --nav-bg-compact: var(--color-surface-raised);
+      --nav-border: var(--color-border);
+      --nav-border-compact: var(--color-border);
+      --nav-ink: var(--color-text);
+      --nav-ink-muted: var(--color-text-muted);
+      --nav-pill: var(--color-accent-subtle);
+      --nav-hover: var(--color-muted);
+    }
   }
 
   .nav-capsule {
     background-color: var(--nav-bg);
     border-color: var(--nav-border);
     color: var(--nav-ink);
-    box-shadow: 0 0.5rem 1.5rem -0.5rem var(--nav-shadow);
-    /* Measure, fill and shadow all move together, and only these — animating
-       width would relayout the page under the bar on every scroll frame. */
+    box-shadow: var(--vt-shadow-2);
     transition:
-      max-width 320ms cubic-bezier(0.2, 0, 0, 1),
-      background-color 320ms cubic-bezier(0.2, 0, 0, 1),
-      border-color 320ms cubic-bezier(0.2, 0, 0, 1),
-      box-shadow 320ms cubic-bezier(0.2, 0, 0, 1);
+      max-width var(--vt-duration-enter) var(--vt-ease),
+      background-color var(--vt-duration-enter) var(--vt-ease),
+      border-color var(--vt-duration-enter) var(--vt-ease);
   }
 
   .nav-capsule-compact {
     background-color: var(--nav-bg-compact);
     border-color: var(--nav-border-compact);
-    box-shadow: 0 1rem 2.5rem -0.75rem var(--nav-shadow);
   }
 
   /* The fold. Only these two properties, and never `display` or `width`, so the
      label keeps its box and its accessible name the whole way down. */
   .nav-collapse {
     transition:
-      max-width 320ms cubic-bezier(0.2, 0, 0, 1),
-      opacity 200ms cubic-bezier(0.2, 0, 0, 1);
+      max-width var(--vt-duration-enter) var(--vt-ease),
+      opacity var(--vt-duration) var(--vt-ease);
   }
 
   .nav-link-off {
@@ -545,18 +543,12 @@
 
   .nav-cta {
     background-color: var(--color-accent);
-    color: var(--color-bg);
-    /* Hover brightens the fill and lays a ring outside it, so the button gains
-       presence without changing size — buttons never scale here. */
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 30%, transparent);
-    transition:
-      background-color 200ms cubic-bezier(0.2, 0, 0, 1),
-      box-shadow 200ms cubic-bezier(0.2, 0, 0, 1);
+    color: var(--color-accent-fg);
+    transition: background-color var(--vt-duration) var(--vt-ease);
   }
 
   .nav-cta:hover {
-    background-color: color-mix(in srgb, var(--color-accent) 88%, white);
-    box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--color-accent) 30%, transparent);
+    background-color: var(--color-accent-hover);
   }
 
   .nav-row-off {

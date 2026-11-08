@@ -80,7 +80,7 @@
  <button
  v-if="!hideClose"
  type="button"
- class="text-text-muted hover:bg-muted hover:text-text focus-visible:ring-ring/25 -me-1 -mt-1 flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors duration-(--vt-duration) ease-standard focus-visible:ring-2 focus-visible:outline-none"
+ class="text-text-muted hover:bg-muted hover:text-text -me-1 -mt-1 flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors duration-(--vt-duration) ease-standard focus-visible:outline-none"
  @click="handleClose"
  :aria-label="closeLabel"
  >

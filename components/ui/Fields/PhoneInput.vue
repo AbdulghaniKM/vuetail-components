@@ -4,13 +4,9 @@
  {{ label }}
  </label>
  <div
- class="relative flex h-control-md min-w-0 items-stretch rounded-md border bg-surface transition-[border-color,box-shadow] duration-(--vt-duration)"
+ class="relative flex h-control-md min-w-0 items-stretch rounded-md border bg-surface transition-colors duration-(--vt-duration) focus-within:outline-2 focus-within:-outline-offset-1 focus-within:outline-ring"
  :class="[
- isFocused && !error
- ? 'border-ring ring-3 ring-ring/25'
- : error
- ? 'border-danger-text ring-3 ring-danger-text/25'
- : 'border-border-strong',
+ error ? 'border-danger-text focus-within:outline-danger-text' : 'border-border-strong',
  readonly ? 'opacity-50 cursor-not-allowed' : '',
  ]"
  >
@@ -28,8 +24,6 @@
  class="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-text placeholder:text-text-subtle focus:outline-none disabled:cursor-not-allowed text-sm overflow-x-auto"
  :class="customClass"
  @input="handleInput"
- @focus="isFocused = true"
- @blur="isFocused = false"
  />
 
  <template v-if="showCountryCode">
@@ -156,7 +150,6 @@ const countryCodes: CountryCode[] = [
 const countryCode = ref('+1');
 const phoneNumber = ref('');
 const isOpen = ref(false);
-const isFocused = ref(false);
 const dropdownRef = ref<HTMLElement | null>(null);
 const triggerRef = ref<HTMLButtonElement | null>(null);
 const inputRef = ref<HTMLInputElement | null>(null);

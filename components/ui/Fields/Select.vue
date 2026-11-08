@@ -15,8 +15,8 @@
  :aria-haspopup="'listbox'"
  :aria-invalid="!!error"
  :aria-describedby="error ? `${inputId}-error` : undefined"
- class="flex w-full items-center justify-between gap-2 h-control-md rounded-md border border-border-strong bg-surface px-3 text-start text-text transition-[border-color,box-shadow] duration-(--vt-duration) ease-standard focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-50"
- :class="[customClass, { 'border-danger-text focus:border-danger-text focus:ring-danger-text/25': error }]"
+ class="flex w-full items-center justify-between gap-2 h-control-md rounded-md border border-border-strong bg-surface px-3 text-start text-text transition-colors duration-(--vt-duration) ease-standard focus-visible:-outline-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+ :class="[customClass, { 'border-danger-text focus-visible:outline-danger-text': error }]"
  @click="toggle"
  @keydown="onTriggerKeydown"
  >
@@ -55,7 +55,7 @@
  ref="searchRef"
  v-model="searchQuery"
  type="text"
- class="w-full bg-transparent text-sm text-text placeholder:text-text-subtle focus:outline-none"
+ class="w-full bg-transparent text-sm text-text placeholder:text-text-subtle focus-visible:-outline-offset-2"
  placeholder="Search..."
  @keydown="onListKeydown"
  />

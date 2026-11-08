@@ -33,7 +33,7 @@
           v-model="searchQuery"
           type="text"
           :placeholder="searchPlaceholder"
-          class="border-border bg-surface text-text placeholder:text-text-subtle w-full rounded-xl border py-2 pe-9 ps-9 text-sm transition-[border-color,box-shadow] duration-(--vt-duration) ease-standard focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
+          class="border-border bg-surface text-text placeholder:text-text-subtle w-full rounded-xl border py-2 pe-9 ps-9 text-sm transition-colors duration-(--vt-duration) ease-standard focus-visible:-outline-offset-1"
         />
         <button
           v-if="searchQuery"
@@ -309,7 +309,7 @@
               v-for="(row, index) in displayData"
               v-else
               :key="getRowKey(row, index)"
-              class="table-row-data border-border/40 border-b transition-[background-color,box-shadow] duration-(--vt-duration) ease-out last:border-b-0 hover:bg-accent/[0.04] hover:shadow-[inset_2px_0_0_0_var(--color-accent)]"
+              class="table-row-data border-border/40 border-b transition-colors duration-(--vt-duration) ease-out last:border-b-0 hover:bg-accent/[0.04] hover:shadow-[inset_2px_0_0_0_var(--color-accent)]"
               :class="selectable && isRowSelected(row, index) ? 'bg-accent/[0.03]' : ''"
             >
               <td
@@ -414,7 +414,7 @@
                       <template #trigger="{ toggle }">
                         <button
                           type="button"
-                          class="rounded-full transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25"
+                          class="rounded-full transition-shadow focus-visible:outline-none"
                           :class="
                             isCellEditPending(column, row, index)
                               ? 'cursor-wait opacity-60'

@@ -16,7 +16,7 @@
           type="text"
           :placeholder="searchPlaceholder"
           :aria-label="searchPlaceholder"
-          class="at-search w-full rounded-xl border border-border bg-surface py-2 pe-9 ps-9 text-sm text-text transition-colors focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
+          class="at-search w-full rounded-xl border border-border bg-surface py-2 pe-9 ps-9 text-sm text-text transition-colors focus-visible:-outline-offset-1"
           @input="onSearchInput"
         />
         <button

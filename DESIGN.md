@@ -87,7 +87,7 @@ components:
 
 # VueTail design contract
 
-Every component, the docs site and the template read this file before they style anything. A token that is not listed here does not exist yet: add it here first, then use it.
+Every component, the docs site and the template read this file before they style anything. A token that is not listed here does not exist yet: add it here first, then use it. The rules for applying these values (states, focus, elevation, families) are in [DESIGN-BIBLE.md](DESIGN-BIBLE.md).
 
 The look was chosen from five candidates in the
 [VueTail Look Book](https://claude.ai/artifact/Mfy1CALvk7zMKLN4qgSAWd). Its markup is the
@@ -327,7 +327,8 @@ The five reference components. Each one's states are pinned in the look book.
 - A visible label always, never a placeholder standing in for one. Required fields mark the
   label with `*` in `danger-text`.
 - Rest: `surface` fill, `border-strong` edge. Hover: the edge darkens 25% toward `text`.
-  Focus: `ring` edge plus a 3px `ring` halo at 24% opacity.
+  Focus: the frame draws the one 2px `ring` outline at a -1px offset, so it replaces the edge.
+  No halo and no edge colour change (DESIGN-BIBLE.md §4).
 - Error: `danger-text` edge, and the error message replaces the help text with an icon and a
   sentence that says how to fix it. Validate on blur, not on keystroke.
 - Disabled: `muted` fill, 60% opacity. Read-only stays at full opacity with no edge change.

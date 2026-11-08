@@ -80,6 +80,8 @@ export function buildCss() {
     '',
     `@media (prefers-reduced-motion: reduce) {\n${indent(block(':root', [decl('--vt-press-y', '0px'), decl('--vt-press-scale', '1')]))}\n}`,
     '',
+    `@layer base {\n${indent(block(':where(:focus-visible)', [decl('outline', '2px solid var(--color-ring)'), decl('outline-offset', '2px')]))}\n}`,
+    '',
     ...darkBlocks(':root', [...colorLines({ ...ink.dark.colors, ...status.dark }), ...shadowLines(ink.dark.shadows)]),
   ];
 

@@ -13,9 +13,9 @@
  :aria-haspopup="true"
  :aria-invalid="!!error"
  :aria-describedby="error ? `${inputId}-error` : undefined"
- class="flex w-full items-center gap-2 h-control-md rounded-md border bg-surface px-3 text-start text-control transition-[border-color,box-shadow] duration-(--vt-duration) ease-standard focus:outline-none focus:ring-3 focus:ring-ring/25 disabled:cursor-not-allowed disabled:opacity-50"
+ class="flex w-full items-center gap-2 h-control-md rounded-md border bg-surface px-3 text-start text-control transition-colors duration-(--vt-duration) ease-standard focus-visible:-outline-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
  :class="[
- error ? 'border-danger-text focus:border-danger-text focus:ring-danger-text/25' : 'border-border-strong focus:border-ring',
+ error ? 'border-danger-text focus-visible:outline-danger-text' : 'border-border-strong',
  displayValue && !readonly && 'pe-9',
  customClass,
  ]"
@@ -64,7 +64,7 @@
  <div class="relative">
  <select
  :value="viewMonth.getMonth()"
- class="appearance-none rounded-md border border-border-strong bg-surface py-1 pe-6 ps-2.5 text-sm font-semibold text-text cursor-pointer transition-[background-color,border-color,box-shadow] duration-(--vt-duration) ease-standard hover:bg-muted focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
+ class="appearance-none rounded-md border border-border-strong bg-surface py-1 pe-6 ps-2.5 text-sm font-semibold text-text cursor-pointer transition-colors duration-(--vt-duration) ease-standard hover:bg-muted focus-visible:-outline-offset-1"
  @change="setMonth(Number(($event.target as HTMLSelectElement).value))"
  >
  <option v-for="(m, i) in monthNames" :key="i" :value="i">{{ m }}</option>
@@ -79,7 +79,7 @@
  <div class="relative">
  <select
  :value="viewMonth.getFullYear()"
- class="appearance-none rounded-md border border-border-strong bg-surface py-1 pe-6 ps-2.5 text-sm font-semibold text-text cursor-pointer transition-[background-color,border-color,box-shadow] duration-(--vt-duration) ease-standard hover:bg-muted focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25"
+ class="appearance-none rounded-md border border-border-strong bg-surface py-1 pe-6 ps-2.5 text-sm font-semibold text-text cursor-pointer transition-colors duration-(--vt-duration) ease-standard hover:bg-muted focus-visible:-outline-offset-1"
  @change="setYear(Number(($event.target as HTMLSelectElement).value))"
  >
  <option v-for="y in yearRange" :key="y" :value="y">{{ y }}</option>

@@ -58,7 +58,7 @@
       </div>
     </div>
 
-    <figcaption v-if="caption || $slots.caption || showCutoff" class="flex flex-col gap-1 text-[0.8125rem] leading-snug text-text-muted">
+    <figcaption v-if="caption || $slots.caption || showCutoff" class="flex flex-col gap-1 text-sm leading-snug text-text-muted">
       <slot name="caption" :title-cut="cut.title" :message-cut="cut.message">
         <span v-if="caption">{{ caption }}</span>
       </slot>
@@ -99,7 +99,7 @@ const props = withDefaults(defineProps<{
   when?: string;
   /** How many more notifications are stacked behind this one (shows up to 2). */
   stack?: number;
-  /** Any CSS background, replacing the default deep-blue wallpaper. Keep it dark enough for white text. */
+  /** Any CSS background, replacing the default wallpaper drawn from the preset's accent. Keep it dark enough for white text. */
   wallpaper?: string;
   titlePlaceholder?: string;
   messagePlaceholder?: string;
@@ -228,9 +228,9 @@ const summary = computed(() => {
 .np-screen {
   container-type: inline-size;
   --np-wallpaper:
-    radial-gradient(120% 80% at 50% 0%, rgb(255 255 255 / 0.16), transparent 60%),
-    radial-gradient(90% 60% at 100% 100%, rgb(39 66 217 / 0.55), transparent 70%),
-    #0a2160;
+    radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--color-bg) 16%, transparent), transparent 60%),
+    radial-gradient(90% 60% at 100% 100%, color-mix(in srgb, var(--color-ring) 55%, transparent), transparent 70%),
+    color-mix(in srgb, var(--color-accent) 30%, black);
   gap: 1.75rem;
   min-height: 26rem;
   padding: 2.25rem 1rem 1.5rem;
@@ -301,8 +301,8 @@ const summary = computed(() => {
   width: 1.25rem;
   height: 1.25rem;
   border-radius: 0.3125rem;
-  background: #2742d9;
-  color: #fff;
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
 }
 
 .np-android .np-icon {

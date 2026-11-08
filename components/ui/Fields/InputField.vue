@@ -14,8 +14,8 @@
  :aria-invalid="error ? 'true' : undefined"
  :aria-describedby="error ? errorId : undefined"
  @input="handleInput"
- class="h-control-md w-full rounded-md border border-border-strong bg-surface text-control text-text placeholder:text-text-subtle transition-[border-color,box-shadow] duration-(--vt-duration) hover:border-[color-mix(in_srgb,var(--color-border-strong),var(--color-text)_25%)] focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/25 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-60"
- :class="[customClass, type === 'password' ? 'ps-3 pe-10' : 'px-3', { 'border-danger-text focus:border-danger-text focus:ring-danger-text/25': error }]"
+ class="h-control-md w-full rounded-md border border-border-strong bg-surface text-control text-text placeholder:text-text-subtle transition-colors duration-(--vt-duration) hover:border-[color-mix(in_srgb,var(--color-border-strong),var(--color-text)_25%)] focus-visible:-outline-offset-1 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-60"
+ :class="[customClass, type === 'password' ? 'ps-3 pe-10' : 'px-3', { 'border-danger-text focus-visible:outline-danger-text': error }]"
  />
  <button
  v-if="type === 'password'"

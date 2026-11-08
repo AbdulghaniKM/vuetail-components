@@ -186,19 +186,13 @@
    * to stay legible. A tint is readable against every one of them.
    */
   export const HUE_ACTIVE: Record<DockHue, string> = {
-    primary:
-      'bg-accent-subtle text-accent-text ring-1 ring-ring shadow-[0_0.375rem_1rem_-0.375rem_var(--color-accent)]',
-    secondary:
-      'bg-muted/25 text-text-muted ring-1 ring-border-strong shadow-[0_0.375rem_1rem_-0.375rem_var(--color-text-muted)]',
-    accent:
-      'bg-accent/25 text-accent ring-1 ring-accent/40 shadow-[0_0.375rem_1rem_-0.375rem_var(--color-accent)]',
-    success:
-      'bg-success/25 text-success ring-1 ring-success/40 shadow-[0_0.375rem_1rem_-0.375rem_var(--color-success)]',
-    warning:
-      'bg-warning/25 text-warning ring-1 ring-warning/40 shadow-[0_0.375rem_1rem_-0.375rem_var(--color-warning)]',
-    error:
-      'bg-danger-subtle text-danger-text ring-1 ring-danger-text/25 shadow-[0_0.375rem_1rem_-0.375rem_var(--color-danger)]',
-    info: 'bg-info/25 text-info ring-1 ring-info/40 shadow-[0_0.375rem_1rem_-0.375rem_var(--color-info)]',
+    primary: 'bg-accent-subtle text-accent-text ring-1 ring-ring',
+    secondary: 'bg-muted text-text ring-1 ring-border-strong',
+    accent: 'bg-accent-subtle text-accent-text ring-1 ring-accent',
+    success: 'bg-success-subtle text-success-text ring-1 ring-success-text',
+    warning: 'bg-warning-subtle text-warning-text ring-1 ring-warning-text',
+    error: 'bg-danger-subtle text-danger-text ring-1 ring-danger-text',
+    info: 'bg-info-subtle text-info-text ring-1 ring-info-text',
   };
 
   /** Idle icon tint — keeps the nav colourful even when nothing is selected. */
@@ -664,27 +658,16 @@
 </template>
 
 <style scoped>
-  /*
-   * The dock's own chrome, kept here rather than in the app's token file so the
-   * component stays a single fetchable file. It is deliberately dark in both
-   * themes: the pill floats over the page as a piece of system furniture rather
-   * than a surface belonging to it. The tiles are the part that follows the
-   * theme, through the `--color-*` tokens the hue maps reference.
-   *
-   * Every value is a custom property, so an app that wants a different dock can
-   * override them from a parent rather than editing this block.
-   */
   .dock-root {
-    --dock-chrome: #12151c;
-    --dock-ink: #e8ecf3;
-    --dock-muted: #99a2b3;
-    --dock-line: #262c37;
-    --dock-accent: #3fd3b6;
-    --dock-badge: #d93036;
-    --dock-badge-ink: #ffffff;
-    --dock-glass: rgb(18 21 28 / 0.9);
-    --dock-glass-line: rgb(232 236 243 / 0.12);
-    --dock-shadow: rgb(23 26 33 / 0.28);
+    --dock-chrome: var(--color-surface-raised);
+    --dock-ink: var(--color-text);
+    --dock-muted: var(--color-text-muted);
+    --dock-line: var(--color-border);
+    --dock-accent: var(--color-accent);
+    --dock-badge: var(--color-danger);
+    --dock-badge-ink: var(--color-danger-fg);
+    --dock-glass: color-mix(in srgb, var(--color-surface-raised) 88%, transparent);
+    --dock-glass-line: var(--color-border);
   }
 
   .dock-pill {
@@ -692,14 +675,11 @@
     border: 0.0625rem solid var(--dock-glass-line);
     backdrop-filter: blur(1.5rem) saturate(1.5);
     -webkit-backdrop-filter: blur(1.5rem) saturate(1.5);
-    box-shadow:
-      inset 0 0.0625rem 0 0 var(--dock-glass-line),
-      0 0.375rem 1rem -0.5rem var(--dock-shadow),
-      0 1.5rem 3rem -1rem var(--dock-shadow);
+    box-shadow: var(--vt-shadow-2);
   }
 
   .dock-lifted {
-    box-shadow: 0 2rem 4rem -1rem var(--dock-shadow);
+    box-shadow: var(--vt-shadow-3);
     outline: 0.125rem solid var(--dock-accent);
     outline-offset: -0.0625rem;
   }
@@ -715,9 +695,7 @@
     color: var(--dock-ink);
     backdrop-filter: blur(1.25rem) saturate(1.7);
     -webkit-backdrop-filter: blur(1.25rem) saturate(1.7);
-    box-shadow:
-      inset 0 0.0625rem 0 0 var(--dock-glass-line),
-      0 0.25rem 0.75rem -0.25rem var(--dock-shadow);
+    box-shadow: var(--vt-shadow-2);
   }
 
   .dock-line {
@@ -729,7 +707,7 @@
   }
 
   .dock-grip:hover {
-    background-color: rgb(232 236 243 / 0.1);
+    background-color: var(--color-muted);
   }
 
   .dock-grip:hover .dock-grip-bar {
@@ -738,7 +716,7 @@
 
   .dock-grip-held,
   .dock-grip-held:hover {
-    background-color: rgb(232 236 243 / 0.1);
+    background-color: var(--color-muted);
   }
 
   .dock-grip-held .dock-grip-bar {
@@ -746,12 +724,12 @@
   }
 
   .dock-tile-idle {
-    background-color: rgb(232 236 243 / 0.05);
+    background-color: transparent;
   }
 
   a.dock-tile-idle:hover,
   button.dock-tile-idle:hover {
-    background-color: rgb(232 236 243 / 0.1);
+    background-color: var(--color-muted);
   }
 
   .dock-tile-disabled {
