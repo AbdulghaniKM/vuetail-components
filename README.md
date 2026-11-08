@@ -1161,7 +1161,7 @@ The screen is one `role="img"` whose label is the notification itself: the platf
   <Textarea v-model="message" label="Message" />
   <AppNotificationPreview
     class="max-w-[22rem]"
-    app-name="Kashfia"
+    app-name="Acme"
     :title="title"
     :message="message"
     :platform="platform"
