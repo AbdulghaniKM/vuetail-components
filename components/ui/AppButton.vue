@@ -21,6 +21,7 @@
         ]"
         :disabled="disabled || loading"
         :aria-busy="loading || undefined"
+        :aria-label="iconOnly ? label || tooltip || undefined : undefined"
         v-bind="$attrs"
       >
         <AppSpinner v-if="loading" :size="spinnerSize" class="shrink-0" />

@@ -380,7 +380,27 @@ WP3 is done. Docs `pnpm test` 196/196, `vue-tsc -b` and `pnpm build` clean.
   inline tags and renders a stray space ("`dist/` ."). The guide pages were formatted with
   `--html-whitespace-sensitivity css`; a plain `pnpm format` would break them again.
 
-Next: WP4, starting with CodeBlock on the tokens.
+WP4 is done. Docs `pnpm test` 374/374, `vue-tsc -b` and `pnpm build` clean.
+
+- CodeBlock: syntax colours from the text-safe tokens on `bg` (all held to 4.5:1 by the checker),
+  no Prism theme, no hex. It caps at 37.5rem and becomes a focusable labelled group only when it
+  overflows. This cleared every CodeBlock contrast hit.
+- Registry: AppButton names an icon-only button from `label`, then `tooltip`; an explicit
+  `aria-label` still wins. This cleared button-name on AppButton, AppLiquidGlass and the AppTable
+  and AppFilterPanel toolbars.
+- Demos: readable text no longer faded with `opacity-*` or `/40` alpha; every scroll box is
+  focusable and labelled; useLocalStorage's delete button is named and shows on focus.
+  Guarded by `tests/demoContrast.spec.ts` and `tests/demoScroll.spec.ts`.
+- Content: 80 titles in sentence case (`tests/docContent.spec.ts`), the AppSpinner colour example's
+  code and preview agree, the AppTooltip triggers are named. No removed API is referenced.
+- Raw hex left in docs is intentional: glass and magnifier backdrops, AdvancedAppTable's categorical
+  palette, RibbonField colours, notification app icons, and hex as customizer input.
+- Site crawl (all 70 routes, Ink light, both widths) after WP4: 0 overflow, 0 console errors. The
+  serious or critical hits left are all inside registry components: AdvancedAppTable identity
+  colours (contrast), AppTable checkbox labels and `text-text/50`, Select's `text-text/50`
+  placeholder (also in AppFilterPanel), AppDock's badge contrast, DatePicker's nested interactive.
+
+Next: those registry fixes, then WP5.
 
 ## Known decisions
 
