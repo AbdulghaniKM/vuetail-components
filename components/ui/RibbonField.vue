@@ -52,9 +52,9 @@
    */
   const RAMP_MIX = [-0.55, -0.28, 0, 0.28, 0.58] as const;
 
-  /** Used only when the theme tokens are missing — matches `style.css`. */
-  const FALLBACK_BASE = ['#3b82f6', '#8b5cf6'] as const;
-  const FALLBACK_WORD = '#111827';
+  /** Used only when the theme tokens are missing — Ink light's accent, ring and text. */
+  const FALLBACK_BASE = ['#0E1014', '#2440D2'] as const;
+  const FALLBACK_WORD = '#0E1014';
 
   type RGB = [number, number, number];
 
@@ -119,7 +119,7 @@
 
   /**
    * Drain a color toward its own grey, holding its luminance. Used for the
-   * second ribbon when a theme has no distinct secondary: the pair reads as one
+   * second ribbon when the ring matches the accent: the pair reads as one
    * strong color against a quieter relative of it, not as two competing hues.
    */
   const drain = (c: RGB): RGB => {
@@ -193,7 +193,7 @@
       wordAlpha?: number;
       /** Weight the word is set in. */
       wordWeight?: number | string;
-      /** Font stack for the word. Defaults to the `--font-primary` token. */
+      /** Font stack for the word. Defaults to the `--font-sans` token. */
       wordFont?: string;
 
       /** How hard the pointer pulls the ribbon toward it. */
@@ -288,7 +288,7 @@
         const root = getComputedStyle(document.documentElement);
         const token = (name: string) => root.getPropertyValue(name).trim();
 
-        wordFace = wordFontProp || token('--font-primary') || token('--font-sans') || 'sans-serif';
+        wordFace = wordFontProp || token('--font-sans') || 'sans-serif';
         wordFill = normalizeColor(ctx, wordColor || token('--color-text'), FALLBACK_WORD);
 
         if (customRamps?.length) {
@@ -296,22 +296,17 @@
             ramp.map((stop) => toRgb(normalizeColor(ctx, stop, FALLBACK_WORD), BLACK)),
           );
         } else {
-          // Ribbon 0 takes the primary. Ribbon 1 takes the secondary where the
-          // theme defines a distinct one, and a drained primary where it does
-          // not — token sets that stop at `--color-primary` are common, and two
+          // Ribbon 0 takes the accent. Ribbon 1 takes the ring where the preset
+          // gives it a distinct colour (Ink: ink and signal blue), and a drained
+          // accent where it does not (Console's ring is its accent) — two
           // identical ribbons read as one object.
-          const primary = toRgb(
-            normalizeColor(ctx, token('--color-primary'), FALLBACK_BASE[0]),
+          const accent = toRgb(
+            normalizeColor(ctx, token('--color-accent'), FALLBACK_BASE[0]),
             toRgb(FALLBACK_BASE[0], BLACK),
           );
-          const secondaryToken = token('--color-secondary');
-          const secondary = secondaryToken
-            ? toRgb(normalizeColor(ctx, secondaryToken, FALLBACK_BASE[1]), primary)
-            : primary;
-          rampRgb = [
-            buildRamp(primary),
-            buildRamp(sameColor(secondary, primary) ? drain(primary) : secondary),
-          ];
+          const ringToken = token('--color-ring');
+          const ring = ringToken ? toRgb(normalizeColor(ctx, ringToken, FALLBACK_BASE[1]), accent) : accent;
+          rampRgb = [buildRamp(accent), buildRamp(sameColor(ring, accent) ? drain(accent) : ring)];
         }
       };
 

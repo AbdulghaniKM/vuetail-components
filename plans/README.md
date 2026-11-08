@@ -466,5 +466,12 @@ Guarded by docs `tests/designBible.spec.ts`. Order follows the bible's appendix.
   draw the ring at -1px. Checked in Ink dark, Pine light, Console dark: one 2px outline, no shadow.
 - [x] P2 navigation: AppDock chrome, tiles, badge and shadows on tokens; AppNavbar defaults to
   `surface`, `dark` is token-built (inverse in light, raised surface in dark), CTA on accent tokens.
-- [ ] P3 AppNotificationPreview frame  - [ ] P4 RibbonField, AppLiquidGlass defaults
+- [x] P3 AppNotificationPreview: wallpaper from `--color-accent`, icon fill on accent tokens, caption on
+  the type scale.
+- [x] P4 materials: RibbonField's ribbons from `--color-accent` and `--color-ring` (a drained accent
+  where they match, as in Console), word font `--font-sans`. AppLiquidGlass's default tone is
+  `--color-surface`, its high-contrast edge `--color-text`, its shadow `--shadow-lg`, and its hover
+  transition is on `--vt-duration` / `--vt-ease` (the overshoot curve is gone). The white specular
+  highlights stay as material constants. Checked in Chrome in Ink light and dark, Pine dark and
+  Console light.
 - [ ] P5 motion  - [ ] P6 shape and type  - [ ] P7 elevation  - [ ] P8 icons

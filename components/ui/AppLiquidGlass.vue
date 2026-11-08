@@ -152,7 +152,7 @@ const props = withDefaults(defineProps<Props>(), {
   dim: undefined,
   toneStrength: undefined,
   fallbackBlur: 12,
-  tone: '#ffffff',
+  tone: 'var(--color-surface)',
   tint: undefined,
   specular: true,
   rim: DEFAULT_GLASS_LIGHT.width,
@@ -234,7 +234,7 @@ const rootClass = computed(() => ({
  * once instead of tuning three layers that can drift apart.
  */
 const rootStyle = computed(() => {
-  const tone = props.tone || '#ffffff';
+  const tone = props.tone || 'var(--color-surface)';
   const strength = Math.max(0, Math.min(100, resolved.value.toneStrength));
   return {
     borderRadius: `${effectiveRadius.value}px`,
@@ -249,11 +249,7 @@ const rootStyle = computed(() => {
     '--lg-frost-heavy': `${Math.max(20, resolved.value.blur * 2)}px`,
     '--lg-rim': `${props.rim}px`,
     '--lg-angle': `${props.lightAngle}deg`,
-    boxShadow: props.shadow
-      ? '0 0.5rem 1.75rem -0.5rem rgba(0, 0, 0, 0.35),' +
-        ' 0 0.125rem 0.375rem -0.125rem rgba(0, 0, 0, 0.2),' +
-        ' 0 0.5rem 1.5rem -0.85rem var(--lg-glow)'
-      : undefined,
+    boxShadow: props.shadow ? 'var(--shadow-lg), 0 0.5rem 1.5rem -0.85rem var(--lg-glow)' : undefined,
   };
 });
 
@@ -311,15 +307,16 @@ defineExpose({ supported, mode, map, refresh, variant: computed(() => props.vari
   --lg-spec-hi: 0.9;
   --lg-spec-lo: 0.55;
   --lg-inner: 0.1;
-  --lg-contrast-edge: #000000;
+  /* The text colour flips with the theme, so the high-contrast edge needs no override. */
+  --lg-contrast-edge: var(--color-text);
   /* The painted rim's light, measured from iOS: 0.3 over a light page, 0.13 over a dark one. */
   --lg-rim-shine: 0.3;
 
   position: relative;
   isolation: isolate;
   transition:
-    transform 0.24s cubic-bezier(0.22, 1.12, 0.36, 1),
-    box-shadow 0.24s ease;
+    transform var(--vt-duration) var(--vt-ease),
+    box-shadow var(--vt-duration) var(--vt-ease);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -327,7 +324,6 @@ defineExpose({ supported, mode, map, refresh, variant: computed(() => props.vari
     --lg-spec-hi: 0.72;
     --lg-spec-lo: 0.36;
     --lg-inner: 0.07;
-    --lg-contrast-edge: #ffffff;
     --lg-rim-shine: 0.13;
   }
 }
@@ -336,7 +332,6 @@ defineExpose({ supported, mode, map, refresh, variant: computed(() => props.vari
   --lg-spec-hi: 0.72;
   --lg-spec-lo: 0.36;
   --lg-inner: 0.07;
-  --lg-contrast-edge: #ffffff;
   --lg-rim-shine: 0.13;
 }
 

@@ -740,7 +740,7 @@ Pulls in `useReducedMotion`, which needs `@vueuse/core`.
 |---|---|---|---|
 | `wordAlpha` | `number` | `0.82` | Translucency of the word, **clamped to 0.95** — see below |
 | `wordWeight` | `number \| string` | `800` | Weight the word is set in |
-| `wordFont` | `string` | `var(--font-primary)` | Font stack for the word |
+| `wordFont` | `string` | `var(--font-sans)` | Font stack for the word |
 
 **Interaction and cost**
 
@@ -767,8 +767,8 @@ The component renders a single `<canvas>`, so any `class` you pass lands on it. 
 
 With no `ramps`, each ribbon's 5-stop ramp is built at runtime from the theme tokens:
 
-- ribbon 0 ← `--color-primary`
-- ribbon 1 ← `--color-secondary`, or a drained `--color-primary` where the theme defines no distinct secondary
+- ribbon 0 ← `--color-accent`
+- ribbon 1 ← `--color-ring`, or a drained `--color-accent` where the preset's ring matches its accent
 
 The tokens are re-read on every route a theme can change through — the `data-theme` attribute, the injected `#app-theme-variables` stylesheet that `useThemeCustomizer` rewrites, the `data-vt-preset` attribute, and the OS preference while the app follows the system — so the field tracks the app instead of drifting from it.
 
@@ -1575,7 +1575,7 @@ respecting the request, and instead destroys the layer separation the whole desi
 | `source` | `GlassSource` | `'auto'` | What bends: `auto`, `backdrop` or `content`. See above |
 | `blur` / `fallbackBlur` | `number` | per variant / `12` | `fallbackBlur` applies where nothing bends — not merely before the first measurement, or a Clear pane would flash frosted on every mount |
 | `saturate` / `brightness` | `number` | per variant | Applied to the backdrop. Lifting both is what stops glass reading as grey film |
-| `tone` | `string` | `'#ffffff'` | **The colour the glass takes on.** One value in, three out — the fill, the lit rim and the glow beneath are all mixed from it. Accepts a `var()` with a fallback |
+| `tone` | `string` | `'var(--color-surface)'` | **The colour the glass takes on.** One value in, three out — the fill, the lit rim and the glow beneath are all mixed from it. Accepts a `var()` with a fallback |
 | `toneStrength` | `number` | `14` | How much of `tone` reaches the fill, as a percentage. ~8 is plain glass with a hint; past ~25 it reads as paint |
 | `tint` | `string` | derived | Overrides the derived fill outright. `''` removes the layer |
 | `specular` | `boolean` | `true` | The painted rim and the inner glow |
