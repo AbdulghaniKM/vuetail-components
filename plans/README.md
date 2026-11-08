@@ -146,20 +146,20 @@ What already holds:
 - The shell (sidebar, preset switcher, header) is on the tokens.
 
 **§9 Navigation**
-- [ ] The sidebar is three flat lists. Guide has 6 links. Components is grouped by folder, so
+- [x] The sidebar is three flat lists. Guide has 6 links. Components is grouped by folder, so
   `Fields/*` is apart and everything else is "Components". Composables is one list of 25. The home
   page already groups the registry by role (Actions and feedback, Forms, Overlays, Data, Navigation
   and layout, Materials), so the sidebar and home disagree.
 - [ ] No prev/next on any page (1 of 73 routes has a prev/next link, by accident).
 - [ ] Breadcrumbs are visible but not semantic: no `<nav aria-label="Breadcrumb">`, no
   `aria-current="page"`. They fail axe's landmark checks on 73 of 73 routes.
-- [ ] The explore pages group by folder (General / Fields) with one repeated icon on almost every
+- [x] The explore pages group by folder (General / Fields) with one repeated icon on almost every
   card. They duplicate the sidebar instead of being the overview it lacks.
-- [ ] The page scrolls inside `<main class="overflow-y-auto">`, not the window, so Back does not
+- [x] The page scrolls inside `<main class="overflow-y-auto">`, not the window, so Back does not
   restore the scroll position and `#anchor` links land under the sticky header (§9
   `state-preservation`).
-- [ ] Focus stays on the clicked link after a route change (§9 `focus-on-route-change`).
-- [ ] The header search filters the sidebar only. There is no ⌘K palette, though the input shows a
+- [x] Focus stays on the clicked link after a route change (§9 `focus-on-route-change`).
+- [x] The header search filters the sidebar only. There is no ⌘K palette, though the input shows a
   Ctrl K hint.
 
 **§5 Layout**
@@ -320,6 +320,29 @@ WP0 is done (above). WP1 is about 60% done, uncommitted, type-checks, and passed
   - home.vue's own GROUPS list (WP3) should import from docsNav so the two can't disagree.
 - Next step: the router scrollBehavior (5 min). Then the explore pages (about 1 h). Then rerun the
   WP0 crawl against the sidebar.
+
+### Status (70, 2026-11-08)
+
+The 3b, 5d and 76 sessions are gone; 70 owns every package. WP1 is done, uncommitted. Docs
+`pnpm test` 147/147 (the docCoverage failure cleared), `vue-tsc -b` clean.
+
+- `router/index.ts` scrollBehavior: `savedPosition` on Back; a hash clears the header by 4.5rem
+  (from the root font size), smooth unless reduced motion; otherwise `{ top: 0 }` with no animation.
+  Tests: `tests/routerScroll.spec.ts`.
+- `components/nav/DocsOverview.vue`: one overview for a docsNav part. h1, intro slot with the count,
+  semantic breadcrumb, a labelled filter over name, key and description with a `role="status"`
+  count, role sections with their own icon (`DocsNavSection.icon`), cards with the doc's
+  description, an empty state with Clear filter, and the pager. `explore-components.vue` and
+  `explore-composables.vue` are now 10-line wrappers. Tests: `tests/docsOverview.spec.ts`,
+  `tests/docsNav.spec.ts`.
+- Checked in all 6 preset × theme combinations at 1440px and 375px: 0 console errors, 0 overflow,
+  0 serious or critical axe issues. One moderate `region` on the layout's skip link (WP5).
+- TDD guard: docs `vite.config.ts` adds the `tdd-guard-vitest` reporter (dev dependency) only when
+  `CLAUDE_PROJECT_DIR` is set. Run tests with
+  `CLAUDE_PROJECT_DIR="C:/Users/Abdulghani/Desktop/OpenSource"` so the guard sees red and green.
+
+Next: WP2 in `pages/DocPage.vue`: Preview/Code tablist, then h2 anchors and TOC, then `ApiTable`,
+`<DocsBreadcrumbs/>` and `<DocsPager/>`. home.vue's GROUPS should import from docsNav (WP3).
 
 ## Known decisions
 
