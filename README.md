@@ -2161,3 +2161,26 @@ Select's list now takes focus (`tabindex="-1"`): before, `listRef.focus()` did n
 arrow keys never reached a non-searchable Select. With `searchable`, the search box is a
 `role="combobox"` carrying `aria-activedescendant`.
 
+### useAnnouncer
+
+```ts
+const { announce } = useAnnouncer();      // in setup
+announce('3 people shown');               // polite: waits for the reader to finish
+announce('Could not save.', 'assertive'); // interrupts: errors only
+```
+
+Two visually hidden live regions (`[data-vt-announcer="polite"]`, `"assertive"`) are added to
+`<body>` the first time `useAnnouncer()` runs, so they exist before any message. A burst collapses
+to its last message; the same message twice is read twice (the region is emptied first).
+
+AppToast announces through it: errors assertively, the rest politely, and again when a
+`promise()` toast turns into its outcome. Its stack is a labelled `region` landmark rather than
+a live region, so toasts are no longer read twice (the old stack was `aria-live="polite"` with a
+`role="alert"` inside each toast). InputField, Textarea and PhoneInput error messages keep
+`role="alert"` and drop the contradicting `aria-live="polite"`.
+
+| Looks simplifiable | Why it is not |
+|---|---|
+| Give each component its own `aria-live` element | It is removed with the component, cutting the message short, and two of them talk over each other |
+| Create the region in `announce()` | A region added with its text in the same tick is often not read |
+

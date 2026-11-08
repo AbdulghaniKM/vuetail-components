@@ -19,7 +19,6 @@
  <span
  :id="errorId"
  role="alert"
- aria-live="polite"
  class="block min-h-[1.25rem] text-sm text-danger-text"
  :class="{ invisible: !error }"
  >{{ error }}</span>

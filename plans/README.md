@@ -668,6 +668,16 @@ useAnnouncer next.**
   `aria-activedescendant`. Guarded by `select.spec.ts` (2).
 - `demoScroll.spec.ts` accepts `aria-labelledby` as well as `aria-label` for a scroll box's name.
 - Docs: "Overlays and focus" section in docsNav with both pages and demos.
+- useAnnouncer (`useAnnouncer.spec.ts`, 4): two hidden live regions made on first use, bursts
+  collapse to the last message, repeats are read again. AppToast announces through it (errors
+  assertive, a changed toast re-read) and its stack is a labelled `region`, no longer
+  `aria-live="polite"` around `role="alert"` toasts that were read twice. InputField, Textarea and
+  PhoneInput errors drop `aria-live="polite"` next to `role="alert"`. The template ships
+  useAnnouncer now (its bundled AppToast needs it). Checked in Chrome.
+- useForm: **not started, pending the user's call.** Form state already exists twice: the
+  template's `src/lib/FormModel.ts` (used by AppForm and CreateUpdateModal) and AppForm's own
+  v-model + useFormValidation path. A third API would split it further; the alternative is to
+  extend FormModel (nested paths, touched, server errors, focus the first invalid field).
 
 ### 9.5 Checks
 
