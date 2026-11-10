@@ -36,7 +36,7 @@ export const presets = {
     },
     radius: { sm: '2px', md: '3px', lg: '4px', xl: '6px', '2xl': '8px', badge: '2px', switch: '3px' },
     density: { 'control-sm': '32px', 'control-md': '40px', 'control-lg': '48px', 'control-pad': '16px', 'text-control': '0.875rem' },
-    motion: { duration: '160ms', 'duration-enter': '200ms', 'duration-exit': '130ms', 'press-y': '1px', 'press-scale': '1' },
+    motion: { duration: '160ms', 'duration-enter': '200ms', 'duration-exit': '130ms', 'press-y': '1px', 'press-scale': '1', 'toast-bounce': '0' },
     light: {
       colors: {
         bg: '#EDEFF2', surface: '#F6F7F9', 'surface-raised': '#F9FAFB', muted: '#E3E6EB', overlay: 'rgb(12 16 20 / .42)',
@@ -74,7 +74,7 @@ export const presets = {
       mono: '"JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace',
     },
     radius: { sm: '6px', md: '8px', lg: '10px', xl: '14px', '2xl': '18px', badge: '9999px', switch: '9999px' },
-    motion: { 'duration-enter': '220ms', 'duration-exit': '140ms', 'press-y': '0px', 'press-scale': '.98' },
+    motion: { 'duration-enter': '220ms', 'duration-exit': '140ms', 'press-y': '0px', 'press-scale': '.98', 'toast-bounce': '.25' },
     light: {
       colors: {
         bg: '#F5F7F6', surface: '#FFFFFF', 'surface-raised': '#FFFFFF', muted: '#ECF0EE', overlay: 'rgb(12 20 16 / .42)',
@@ -113,7 +113,7 @@ export const presets = {
     },
     radius: { sm: '3px', md: '4px', lg: '5px', xl: '8px', '2xl': '10px', badge: '3px', switch: '9999px' },
     density: { 'control-sm': '26px', 'control-md': '32px', 'control-lg': '38px', 'control-pad': '12px', 'text-control': '0.8125rem' },
-    motion: { duration: '110ms', 'duration-enter': '140ms', 'duration-exit': '90ms', 'press-y': '0px', 'press-scale': '.98' },
+    motion: { duration: '110ms', 'duration-enter': '140ms', 'duration-exit': '90ms', 'press-y': '0px', 'press-scale': '.98', 'toast-bounce': '0' },
     light: {
       colors: {
         bg: '#F4F5F8', surface: '#FFFFFF', 'surface-raised': '#FFFFFF', muted: '#ECEEF3', overlay: 'rgb(12 16 24 / .42)',
@@ -163,4 +163,5 @@ export const reducedMotion = {
   'duration-exit': '70ms',
   'press-y': '0px',
   'press-scale': '1',
+  'toast-bounce': '0',
 };

@@ -396,7 +396,9 @@ Utilities the tokens add:
 
 Motion values without a Tailwind namespace stay as `--vt-duration`, `--vt-duration-enter`,
 `--vt-duration-exit`, `--vt-press-y`, `--vt-press-scale` and `--vt-ease`, used as
-`duration-(--vt-duration)` or in `<style>` blocks.
+`duration-(--vt-duration)` or in `<style>` blocks. `--vt-toast-bounce` (0 in Ink and Console,
+.25 in Pine, 0 under reduced motion) is the spring bounce of AppToastMorph's morph: the one
+place a preset may overshoot (DESIGN-BIBLE §10).
 
 Fonts: every face is on Fontsource. Stacks name the variable family first, then the plain one,
 so self-hosting and Google Fonts both work. Ink ships `@fontsource-variable/schibsted-grotesk`

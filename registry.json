@@ -24,6 +24,7 @@
     "AppTable",
     "AppText",
     "AppToast",
+    "AppToastMorph",
     "AppTooltip",
     "ConfirmDangerModal",
     "CreateUpdateModal",
@@ -92,6 +93,7 @@
     "AppTable": ["AppButton", "AppIcon", "AppModal", "AppPopover", "AppTooltip", "AppCheckbox", "AppBadge", "AppFilterPanel", "Fields/Select", "Fields/DatePicker", "Fields/InputField", "useConfirm", "useDebounce", "useLocalStorage", "usePagination", "useMotionTokens"],
     "AppText": [],
     "AppToast": ["AppIcon", "useToast", "useMotionTokens", "useReducedMotion", "useAnnouncer"],
+    "AppToastMorph": ["AppIcon", "useToast", "useMotionTokens", "useReducedMotion", "useAnnouncer"],
     "AppTooltip": ["useBreakpoint"],
     "ConfirmDangerModal": ["AppButton", "AppModal"],
     "CreateUpdateModal": ["AppModal", "Fields/AppForm", "AppButton", "useToast"],
@@ -177,6 +179,9 @@
       "packages": ["@vueuse/core"]
     },
     "AppToast": {
+      "packages": ["motion-v@^2.2.1"]
+    },
+    "AppToastMorph": {
       "packages": ["motion-v@^2.2.1"]
     },
     "AppModal": {

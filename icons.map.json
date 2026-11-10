@@ -8,6 +8,7 @@
       "icons": {
         "arrow-down-tray": "download",
         "arrow-path": "refresh-cw",
+        "bell": "bell",
         "bars-2": "equal",
         "bars-3": "menu",
         "bars-arrow-down": "arrow-down-wide-narrow",
@@ -53,6 +54,7 @@
       "icons": {
         "arrow-down-tray": "download-simple",
         "arrow-path": "arrows-clockwise",
+        "bell": "bell",
         "bars-2": "equals",
         "bars-3": "list",
         "bars-arrow-down": "sort-descending",

@@ -18,7 +18,8 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 7 | Docs finalisation: every page on Ink, docs read in order (below) | Done 2026-11-10 (WP5 QA uncommitted) |
 | 8 | Apply DESIGN-BIBLE.md to the registry (P1–P8, below) | Done 2026-11-10 (uncommitted) |
 | 9 | Composables: fix the 25, add the four that components duplicate (below) | Done 2026-11-08 |
-| 10 | Icon set choice: Heroicons (default), Lucide, Phosphor, picked per project by the CLI (below) | Done 2026-11-10 (uncommitted); docs preview per set left as optional |
+| 10 | Icon set choice: Heroicons (default), Lucide, Phosphor, picked per project by the CLI (below) | Done 2026-11-10; docs preview per set left as optional |
+| 11 | New components: 8 basics, 5 from Pasta UI, the Sileo toast morph, interior.dev picks (below) | **Planned** 2026-11-11; 11.5 (toast morph) done, uncommitted |
 
 ## Phase 4 plan
 
@@ -491,7 +492,7 @@ node scripts/tokens.mjs check --usage    # leftover old names, raw palette, hex 
 cd ../vuetail-docs && pnpm build && pnpm test
 ```
 
-## Phase 8: apply DESIGN-BIBLE.md (in progress, uncommitted)
+## Phase 8: apply DESIGN-BIBLE.md (done 2026-11-10)
 
 Guarded by docs `tests/designBible.spec.ts`. Order follows the bible's appendix.
 
@@ -592,7 +593,151 @@ Also: AppModal's close button, ThemeToggle and AppTable's editable-cell trigger 
 `focus-visible:outline-none`, which beats the zero-specificity ring and left no focus indicator.
 Removed; guarded in `designBible.spec.ts`.
 
-## Phase 10: icon set choice (in progress, uncommitted)
+## Phase 11: new components (planned 2026-11-11)
+
+User asked 2026-11-11 after comparing with pastaui.com/docs/component. Every item lands with the
+full checklist in the component port workflow (registry file, `registry.json` deps / requires,
+README section, docs page in `src/content/docs/`, live demos, a spec) and passes the bible:
+tokens only, one focus ring, Heroicons v2 with a row in `icons.map.json` for every new glyph, no
+width or overshoot animation, reduced motion, 44px hit areas in Ink and Pine. Each gets an APG
+pattern check with the keyboard script from WP5 and a crawl of its docs page in all 6
+preset × theme combinations at both widths. Order is by dependency, then by size.
+
+### 11.1 Form basics (about 1 day)
+- [ ] **AppSwitch.** APG Switch: `<button role="switch" aria-checked>`, Space and Enter
+  toggle, label clickable, `v-model: boolean`, `disabled`, `size`, optional `description`.
+  Thumb moves on `transform`, not `left`. Works inside AppForm (`type: 'switch'` field) and
+  AppFilterPanel. About 2 h.
+- [ ] **AppRadioGroup.** APG Radio Group: native `<input type="radio">` in a `<fieldset>` with
+  a `<legend>`, so arrows and the single Tab stop come from the browser; `v-model`, `items`
+  (`{ label, value, description?, disabled? }`), `orientation`, `error` (linked with
+  `aria-describedby`). AppForm field `type: 'radio'`. About 2 h.
+- [ ] **AppSlider.** APG Slider: native `<input type="range">` styled, so keyboard and screen
+  readers come free; `v-model: number` or `[number, number]` for a range (two inputs),
+  `min` / `max` / `step`, value label, `aria-valuetext` formatter. The range needs its own
+  thumb-crossing logic. About 4 h.
+
+### 11.2 Disclosure and navigation (about 1 day)
+- [ ] **AppTabs.** Promote the docs' `PreviewCodeTabs` onto `useRovingFocus`: `role=tablist /
+  tab / tabpanel`, arrows, Home / End, automatic or manual activation, `v-model` on the key,
+  `items` or slots, the sliding pill from AppNavbar (`layoutId`, on the state tokens). Docs
+  switch to it afterwards. About 3 h.
+- [ ] **AppAccordion.** APG Accordion: heading-wrapped `<button aria-expanded aria-controls>`,
+  `multiple` or single, `v-model` on open keys. The panel opens without animating height (bible
+  §10): `<details>`-style instant open with a content fade, or a `grid-template-rows` 0fr → 1fr
+  step. Decide in the build; fade is the default. About 3 h.
+- [ ] **AppDropdownMenu.** APG Menu Button on top of AppPopover (it already moves focus in,
+  closes on Tab and Escape): `role=menu / menuitem`, arrows, Home / End, type-ahead, `items`
+  (`{ label, icon?, onSelect, danger?, disabled?, shortcut? }`), separators and groups,
+  `menuitemcheckbox` / `menuitemradio`. Replaces the hand-built menus in AdvancedAppTable's
+  column picker and the popover demo. About 4 h.
+
+### 11.3 Surfaces and display (about 1 day)
+- [ ] **AppDrawer.** A side sheet on `useOverlay` (shared stack, scroll lock, focus trap and
+  return, Escape), `side: start | end | top | bottom`, `size`, header / footer slots, `v-model`.
+  Slides on `transform`; under reduced motion it fades. RTL flips `start` / `end`. About 3 h.
+- [ ] **AppAvatar** (+ `AppAvatarGroup`). Image with initials fallback (AdvancedAppTable's
+  initials logic, its hue from the name), `size`, `shape`, optional status dot that carries a
+  word for screen readers (bible §7: status is never colour alone). Group: overlap and "+3".
+  About 2 h.
+- [ ] **AppProgress.** `role="progressbar"` with `aria-valuenow / min / max`, or indeterminate;
+  bar fills on `transform: scaleX` (as AppPageLoader does), `tone`, `size`, optional label and
+  value text. A circular variant on `stroke-dashoffset`. About 2 h.
+
+### 11.4 From Pasta UI (about 2.5 days)
+- [ ] **Select: groups and Category dropdown.** Extend Select instead of a new component: items
+  take `group`, rendered as `role=group` with a labelled header inside the listbox; search
+  keeps the headers of groups with matches; optional icon per item. About 3 h.
+- [ ] **AppColorPicker.** Saturation / value area, hue slider (AppSlider), hex and RGB inputs,
+  swatches, optional eyedropper (`EyeDropper` where supported). Keyboard: the area is a 2-D
+  slider (arrows, Shift for big steps) with `aria-valuetext` naming the colour. Adopted by the
+  `useThemeCustomizer` demo for the accent. About 1 day.
+- [ ] **AppFileTree.** APG Tree View: `role=tree / treeitem / group`, `aria-expanded`, arrows
+  (Right opens, Left closes or goes to parent), Home / End, type-ahead, one Tab stop
+  (`useRovingFocus`), `items` as nested `{ id, label, icon?, children? }`, `v-model:selected`,
+  optional lazy `load(node)`. Folder and file icons from Heroicons. About 5 h.
+- [ ] **AppLinkPreview.** A card from `{ url, title, description, image, siteName, favicon }`
+  (the fetching is the app's job: no scraping in the component); compact and large layouts,
+  the whole card one link with the title as its name, skeleton while loading. About 2 h.
+- [ ] **AppMediaPlayer** (audio and video). Native `<video>` / `<audio>` with our own controls:
+  play / pause, scrubber (AppSlider), time, volume, mute, playback rate (AppDropdownMenu),
+  fullscreen and picture-in-picture for video, captions track toggle. Every control is a named
+  button; Space / K, J / L, M, F work while the player has focus. About 1 day.
+
+### 11.5 AppToast: the Sileo morph (done 2026-11-11)
+User 2026-11-11: "it looked so cool, can't we copy it?" Yes: Sileo (github.com/hiaaryan/sileo,
+`packages/sileo`, React + motion 12) is MIT (its `package.json`; the repo has no LICENSE file),
+so it is ported the way glisse was, credited in the file header and the README. Read from the
+source:
+- **The look.** A dark pill (badge icon + title) that grows into a card holding the description
+  and a button. Two SVG `<rect>`s, pill and body, sit under one filter: `feGaussianBlur`
+  (`stdDeviation` = roundness × 0.5) → `feColorMatrix` alpha `20 −10` → `feComposite atop`.
+  That "goo" step fuses the two rects, so the pill seems to melt into the card instead of
+  sliding over it. The rects animate their SVG `height` / `width`, which is not page layout.
+- **Autopilot.** Opens itself after 150ms (2.5% of 6s) and folds back to the pill 2s before it
+  leaves; hover opens it and holds it. A state change (loading → success) cross-fades the
+  header between a `prev` and a `current` layer.
+- **Motion.** One spring, `bounce: 0.25`, 600ms, for the pill and the body opening; closing has
+  no bounce.
+- **Accessibility, where it falls short.** The whole toast is a `<button>` containing an
+  `<a href="#">` (invalid nesting, and the source says so); the SVG's title reads "sileo
+  notification"; no Escape, no focus handling. The port keeps ours: the shared live regions
+  through `useAnnouncer`, a `region` landmark with `label`, real sibling buttons for dismiss and
+  action, pause on hover and focus.
+
+**Done 2026-11-11 (uncommitted).** User picked (c), and "update the docs too to use the new toaster".
+- [x] **AppToastMorph** (`components/ui/AppToastMorph.vue`), a component of its own rather than
+  an AppToast variant (the structures share nothing; AppToast stays the plain card the template
+  ships). Six positions, one region per position in use; the stack is absolute and moves on
+  transforms; the goo is two `motion.rect`s under one filter in a fixed canvas; header swaps
+  cross-fade through a blur; hover / focus / click hold a toast open and pause it; Escape and a
+  short swipe dismiss; the pill is a disclosure button (`aria-expanded`, `aria-controls`), the
+  closed body `inert`; announced once through `useAnnouncer`. Fill is `--color-text`, ink
+  `--color-bg`, so every preset and theme inverts; radius from `--radius-2xl`.
+- [x] Token `--vt-toast-bounce` in `styles/tokens.mjs` (Pine .25; Ink, Console, reduced 0);
+  DESIGN.md and DESIGN-BIBLE §10 record the exception (and that SVG geometry inside a fixed
+  canvas is not layout).
+- [x] useToast: `description`, `icon`, `position`, `autopilot`, type `loading` (promise() uses
+  it). AppToast handles the new fields (spinner for loading, description line). Template copies
+  of useToast and AppToast synced; template typecheck clean.
+- [x] Docs: the site's toaster is AppToastMorph (App.vue); new page `apptoastmorph.ts` with the
+  `ToastMorphShowcase` playground (6 positions, autopilot toggle, promise, action, pill-only);
+  useToast and AppToast pages point at it; nav Feedback group. README section and tracker row.
+  `icons.map.json` gains `bell` (named in useToast's doc comment).
+- [x] Spec `tests/appToastMorph.spec.ts` (9): pill / body split, plain pill is no button,
+  autopilot open and fold, `autopilot: false`, action then close, Dismiss, Escape, no nested
+  controls, loading → outcome, a region per position. Docs `pnpm test` 814/814, build clean.
+- [x] Chrome (installed): Pine, Ink and Console in light and dark at top-right and
+  bottom-center; axe with toasts open: no serious, critical or nested-interactive; the pill
+  takes focus and opens, Tab reaches its buttons, Escape closes; reduced motion opens with no
+  movement. 0 page errors.
+
+### 11.6 From interior.dev (about 2 days)
+interior.dev (React + Motion, MIT, 54 "micro-interactions", copy-in like our registry: "the
+behaviour is finished; the style is yours"). Its Accordion, Drawer, Dropdown, Tabs, Tree View,
+Progress Bar and Popover overlap 11.1–11.4: read their source for behaviour before building ours.
+Not yet in our plan and worth taking:
+- [ ] **Hold to Confirm** on AppButton (`hold` prop): a destructive action fires only after a
+  held press, with the fill showing progress; keyboard holds Space / Enter; reduced motion
+  shows a count instead. Fits DeleteModal and ConfirmDangerModal. About 3 h.
+- [ ] **AppSegmentedControl**: a radio group drawn as one pill track with the sliding
+  indicator (AppNavbar's pill, the PresetSwitcher look). Native radios underneath. About 2 h.
+- [ ] **OTP input** and **Tag input** as Fields (AppForm types `otp`, `tags`). About 3 h each.
+- [ ] **Password strength** on InputField (`strength` meter, the rules listed as text, not colour
+  alone). About 2 h.
+- [ ] **AppButton loading timing** ("the spinner outliving the request"): show the spinner only
+  after 150ms, keep it at least 400ms once shown, so a fast request never flashes. About 1 h.
+- [ ] **Tooltip group**: once one AppTooltip is open, neighbours open instantly instead of
+  waiting for the delay. About 1 h.
+- Later, if wanted: Context Menu, Wizard / Task Steps, Skeleton Swap, Value Flash, Reorder List,
+  Streaming Text, Typing Indicator.
+
+### Not in this phase
+- The AI kit (Pasta's Conversation, Tools, Agent and Runs groups, about 50 components).
+- Promoting CommandPalette, CodeBlock, Breadcrumbs and Pager from the docs to the registry.
+  Tabs is the one promotion included, as 11.2.
+
+## Phase 10: icon set choice (done 2026-11-10)
 
 User asked 2026-11-10. Heroicons v2 stays the registry's only set (DESIGN-BIBLE §9: one set per
 project); a project can switch the whole install to Lucide or Phosphor. The rule holds because
