@@ -16,8 +16,9 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 5 | `useThemeCustomizer` (replaces `useColorCustomizer`): the five settings on top of any preset | Done |
 | 6 | Merge `redesign` into components `main`, then docs `master` and template `main` | Done 2026-11-08: live on vuetail-docs.vercel.app |
 | 7 | Docs finalisation: every page on Ink, docs read in order (below) | **In progress** |
-| 8 | Apply DESIGN-BIBLE.md to the registry (P1–P8, below) | **In progress**: P1–P7 done, P8 icons left |
+| 8 | Apply DESIGN-BIBLE.md to the registry (P1–P8, below) | Done 2026-11-10 (uncommitted) |
 | 9 | Composables: fix the 25, add the four that components duplicate (below) | Done 2026-11-08 |
+| 10 | Icon set choice: Heroicons (default), Lucide, Phosphor, picked per project by the CLI (below) | Done 2026-11-10 (uncommitted); docs preview per set left as optional |
 
 ## Phase 4 plan
 
@@ -508,7 +509,7 @@ Guarded by docs `tests/designBible.spec.ts`. Order follows the bible's appendix.
   outline and its private double focus ring is gone (one ring, §4). Kept: the sticky table
   header's inset 1px border line.
   Guarded by the §5 and §6/§8 blocks in docs `tests/designBible.spec.ts`.
-- [~] P8 icons, **in progress (stopped by the user 2026-11-09, committed unfinished)**. User
+- [x] P8 icons, done 2026-11-10 (stopped by the user 2026-11-09, committed unfinished, then finished). User
   decision: **Heroicons v2** (`icon-[heroicons--*]`: outline by default, `-solid` for active
   states). The bible had the sets backwards: `heroicons-outline` is the old v1 set (385 icons),
   `heroicons` is v2.2 (1288). Done: 303 swaps in 83 files across components, docs and template
@@ -519,16 +520,35 @@ Guarded by docs `tests/designBible.spec.ts`. Order follows the bible's appendix.
   `command-line`, compass and routing `map`, accessibility `window`. AppNotificationPreview's
   imitated app icons use `bell-solid` / `calendar-solid` (§13).
   Left:
-  1. Grep for icon names built from strings (`heroicons-outline--${…}`) the replace cannot see.
-  2. Fix DESIGN-BIBLE.md §9 and its appendix row to name `heroicons` (v2), and add a guard to
-     `tests/designBible.spec.ts` (only `heroicons--*`, brand marks excepted).
-  3. Chrome pass over the docs (sidebar, demos, 404) for blank icons in all presets.
-  4. Sync the template's bundled files (oxfmt) and run its typecheck.
-  5. **Docs `pnpm build` is broken** (since docs `08fab27`, pushed): `AppFormValidationDemo.vue`
+  1. ~~Grep for icon names built from strings~~ Done 2026-11-10: none in components or
+     composables (AppIcon only converts `set:name` to `set--name`). `scripts/update-apptable.js`
+     moved from `heroicons-outline--` to `heroicons--`.
+  2. ~~Fix DESIGN-BIBLE.md §9~~ Done: §9, the checklist line and appendix row name Heroicons v2
+     and point at `icons.map.json`. Guard: docs `tests/designBible.spec.ts` "§9: one icon set"
+     (registry and docs `icon-[…]` classes are `heroicons--*`, `mdi--github` / `logos--vue`
+     excepted; proven by a planted `solar--home`). Stray mentions fixed: AppDock / AppNavbar doc
+     comments, the AppIcon `name` prop row.
+  3. ~~Chrome pass~~ Done: every `icon-[…]` class in source (83) has a rule in the built CSS, and
+     installed Chrome rendered 75 routes × 3 presets × light/dark (10,032 icons): 0 blank, 0
+     zero-size. Scratchpad `iconpass.mjs` / `iconcss.cjs`.
+  4. ~~Sync the template~~ Done: decision (a), template `.oxfmtrc.json` ignores
+     `src/components/ui/**` and `src/composables/**` (the CLI's folders); the 14 bundled files
+     are copied verbatim from the registry (the drift was class order and wrapping only).
+     Template typecheck passes. Its `format:check` still fails on 22 template-owned files on
+     this Windows checkout (it failed on 38 before); not looked into.
+  5. ~~**Docs `pnpm build` is broken**~~ Fixed 2026-11-10: AppForm is now generic over its
+     values (`TValues`, inferred from `formModel`), `submit` emits `TValues`, and the text-like
+     fields bind through a type-only `getTextValue`. `pnpm build` passes, `pnpm test` 747/747.
+     History: (since docs `08fab27`, pushed): `AppFormValidationDemo.vue`
      declares `FIELDS` without the `FormFieldRow[]` type, so vue-tsc fails in AppForm's template
      (`unknown` not assignable). Fix: `import type { FormFieldRow } from '@/types/form.types'` and
      `const FIELDS: FormFieldRow[] = [...]`. `pnpm test` was 736/736 before the stop; template
      typecheck passed. The last docs Vercel deploy has likely failed.
+     **2026-11-10: still broken.** `FIELDS: FormFieldRow[]` is in place, but vue-tsc now fails
+     on three lines: AppForm.vue 53 and 63 (`getFieldValue` returns `unknown`, PhoneInput and
+     DatePicker take `string`), and AppFormValidationDemo.vue 3 (`@submit` is typed
+     `(values: unknown) => any`, so the demo's `(values: { email: string })` is rejected). The
+     generic `TSchema` on AppForm does not reach `formModel` or `submit`. `pnpm test` 746/746.
 
 **Modal flash (user report, fixed, uncommitted).** Two causes, both measured in Chrome:
 1. motion-v 1.6.1 resets every motion element to its `initial` for one frame when an animation
@@ -540,6 +560,46 @@ Guarded by docs `tests/designBible.spec.ts`. Order follows the bible's appendix.
 Also: AppModal's close button, ThemeToggle and AppTable's editable-cell trigger had
 `focus-visible:outline-none`, which beats the zero-specificity ring and left no focus indicator.
 Removed; guarded in `designBible.spec.ts`.
+
+## Phase 10: icon set choice (in progress, uncommitted)
+
+User asked 2026-11-10. Heroicons v2 stays the registry's only set (DESIGN-BIBLE §9: one set per
+project); a project can switch the whole install to Lucide or Phosphor. The rule holds because
+the switch is all-or-nothing.
+
+- [x] `icons.map.json` (registry root): `sets.<name>.icons` maps each Heroicons v2 name to the
+  set's glyph, `solidSuffix` gives the active form (`ph`: `-fill`; `lucide`: none, so `-solid`
+  falls back to outline). 39 names: the 38 the registry uses plus `ellipsis-horizontal`. Every
+  target checked against `@iconify/json`, solid forms included.
+- [x] CLI (`vuetail-template/scripts/add.js`): `pnpm add-component icons` lists the sets (✓ marks
+  the project's); `icons <set>` reinstalls every recorded file plus the unrecorded registry files
+  on disk (the template's bundled ones) in that set and saves `icons` in `vuetail.json`. Every
+  later `add-component` / `add-composable` rewrites to the saved set. `rewriteIcons` runs before
+  hashing, so `verify` and overwrite protection compare the rewritten file; an untouched
+  Heroicons original also counts as untouched. Names missing from the map stay Heroicons and are
+  printed. A `--icons` flag on `add-component` was dropped: the template always ships registry
+  files, so a per-install flag would mix sets.
+- [x] Tests: docs `tests/cliIcons.spec.ts` (10): every glyph the registry uses is mapped in each
+  set, every target exists in Iconify, rewrite of outline / solid / brand marks / unknown names.
+- [x] Docs: Getting started ("Add components") and the template README name the command.
+- [x] End-to-end in a scratch copy of the template with fetch pointed at this checkout:
+  `icons lucide` switched 3 files and skipped 11; `AppModal` then installed with `lucide--x`;
+  `verify` passed.
+- [x] **Template formatter: (a), done 2026-11-10** (see P8 step 4). After the sync, the scratch
+  run switched all 14 bundled files to `ph`, AppTable installed in `ph`, `verify` passed, and
+  `icons heroicons` restored files identical to the registry. Original note: The 11 skipped files are the template's
+  bundled copies. `oxfmt` in the template wraps at a shorter width and sorts Tailwind classes,
+  so they never match the registry byte for byte and the CLI treats them as locally edited (it
+  prompts, or skips without a TTY). This already affects plain updates, not only icons. Options:
+  (a) template `.oxfmtrc.json` ignores the registry-managed files and they are copied verbatim
+  (small; P8 step 4 becomes a plain copy), or (b) the registry adopts the template's `oxfmt`
+  config (reformats about 70 files). Recommended: (a).
+- [ ] (Default: accept.) Template-owned pages (404, offline, error pages) use `lock-closed`, `map`, `wifi`,
+  `shield-exclamation`. The CLI does not manage them, so they stay Heroicons after a switch.
+  Either map them and let `icons <set>` rewrite a fixed list of template files, or accept it.
+- [ ] Docs preview in each set (preset-switcher style toggle on demos): not started, about 2–3 h.
+- [x] `pnpm test` (747/747) and docs `pnpm build` pass.
+- [ ] Commit and push the three repos with the user's OK.
 
 ## Phase 9: composables
 

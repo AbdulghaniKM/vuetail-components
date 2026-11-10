@@ -144,7 +144,7 @@ const oldToolbar = `<div
     >
       <div v-if="searchable" class="relative min-w-0 flex-1 sm:max-w-sm">
         <AppIcon
-          name="icon-[heroicons-outline--magnifying-glass]"
+          name="icon-[heroicons--magnifying-glass]"
           :size="1.125"
           class="text-text-muted pointer-events-none absolute start-3 top-1/2 -translate-y-1/2"
         />
@@ -165,7 +165,7 @@ const oldToolbar = `<div
             searchInputRef?.focus();
           "
         >
-          <AppIcon name="icon-[heroicons-outline--x-mark]" :size="1" />
+          <AppIcon name="icon-[heroicons--x-mark]" :size="1" />
         </button>
       </div>
       <div class="flex items-center gap-2">
@@ -180,7 +180,7 @@ const newToolbar = `<div
       <div class="flex flex-wrap items-center gap-2 flex-1">
         <div v-if="searchable" class="relative min-w-0 max-w-xs flex-1">
           <AppIcon
-            name="icon-[heroicons-outline--magnifying-glass]"
+            name="icon-[heroicons--magnifying-glass]"
             :size="1.125"
             class="text-text-muted pointer-events-none absolute start-3 top-1/2 -translate-y-1/2"
           />
@@ -201,7 +201,7 @@ const newToolbar = `<div
               searchInputRef?.focus();
             "
           >
-            <AppIcon name="icon-[heroicons-outline--x-mark]" :size="1" />
+            <AppIcon name="icon-[heroicons--x-mark]" :size="1" />
           </button>
         </div>
 
@@ -215,7 +215,7 @@ const newToolbar = `<div
               <option value="">{{ filter.label }}</option>
               <option v-for="opt in filter.options" :key="opt" :value="opt">{{ opt }}</option>
             </select>
-            <AppIcon v-if="filter.type === 'select'" name="icon-[heroicons-outline--chevron-down]" :size="0.875" class="absolute end-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+            <AppIcon v-if="filter.type === 'select'" name="icon-[heroicons--chevron-down]" :size="0.875" class="absolute end-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
             <input
               v-else-if="filter.type === 'text'"
               v-model="activeFilters[filter.key]"
@@ -283,7 +283,7 @@ content = content.replace(
                 <AppPopover placement="bottom-end">
                   <template #trigger="{ toggle }">
                     <button type="button" @click.stop="toggle" class="rounded p-1 text-text-muted hover:bg-muted hover:text-text transition-colors cursor-pointer">
-                      <AppIcon name="icon-[heroicons-outline--ellipsis-horizontal]" :size="1.25" />
+                      <AppIcon name="icon-[heroicons--ellipsis-horizontal]" :size="1.25" />
                     </button>
                   </template>
                   <template #default="{ close }">

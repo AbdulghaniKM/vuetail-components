@@ -46,7 +46,7 @@
     to?: string;
     /**
      * Iconify name. Use the `icon-[heroicons--home]` form, not
-     * `solar:home-2-linear` — Tailwind's iconify plugin only emits a class it can
+     * `heroicons:home` — Tailwind's iconify plugin only emits a class it can
      * find spelled out in scanned source, and the colon form never matches
      * because `AppIcon` converts it at runtime, long after Tailwind has run. Both
      * forms render in dev off a class some other file happened to pull in; only

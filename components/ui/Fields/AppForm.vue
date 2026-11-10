@@ -16,7 +16,7 @@
         >
           <InputField
             v-if="field.type === 'text' || field.type === 'password' || field.type === 'email' || field.type === 'number' || field.type === 'datetime-local'"
-            :model-value="getFieldValue(field.key)"
+            :model-value="getTextValue(field.key)"
             :label="field.label"
             :type="field.type"
             :placeholder="field.placeholder"
@@ -27,7 +27,7 @@
 
           <Textarea
             v-else-if="field.type === 'textarea'"
-            :model-value="getFieldValue(field.key)"
+            :model-value="getTextValue(field.key)"
             :label="field.label"
             :placeholder="field.placeholder"
             :readonly="field.readonly"
@@ -38,7 +38,7 @@
 
           <Select
             v-else-if="field.type === 'select'"
-            :model-value="getFieldValue(field.key)"
+            :model-value="getTextValue(field.key)"
             :label="field.label"
             :items="field.items || []"
             :placeholder="field.placeholder"
@@ -50,7 +50,7 @@
 
           <PhoneInput
             v-else-if="field.type === 'phone'"
-            :model-value="getFieldValue(field.key)"
+            :model-value="getTextValue(field.key)"
             :label="field.label"
             :placeholder="field.placeholder"
             :readonly="field.readonly"
@@ -60,7 +60,7 @@
 
           <DatePicker
             v-else-if="field.type === 'date' || field.type === 'datetime'"
-            :model-value="getFieldValue(field.key)"
+            :model-value="getTextValue(field.key)"
             :label="field.label"
             :mode="field.type === 'datetime' ? 'datetime' : 'date'"
             :placeholder="field.placeholder"
@@ -102,7 +102,7 @@
   </form>
 </template>
 
-<script setup lang="ts" generic="TSchema extends ZodType = ZodType">
+<script setup lang="ts" generic="TValues extends Record<string, unknown> = Record<string, unknown>">
   import { computed, nextTick, ref, watch } from 'vue';
   import { z, type ZodType } from 'zod';
   import { FormModel } from '@/lib/FormModel';
@@ -115,8 +115,6 @@
   import FileInput from './FileInput.vue';
   import type { FormField, FormFieldRow } from '@/types/form.types';
 
-  type SchemaValues<T extends ZodType> = z.infer<T>;
-
   const GRID_COLS_CLASS: Record<number, string> = {
     1: 'grid-cols-1',
     2: 'grid-cols-1 md:grid-cols-2',
@@ -128,9 +126,9 @@
     /** Legacy v-model — ignored when `formModel` is provided. */
     modelValue?: Record<string, unknown>;
     /** Optional FormModel instance from `@/lib/FormModel`. */
-    formModel?: FormModel<Record<string, unknown>>;
+    formModel?: FormModel<TValues>;
     fields: FormFieldRow[];
-    schema?: TSchema;
+    schema?: ZodType;
     containerClass?: string;
     rowClass?: string;
     fieldGap?: string;
@@ -145,7 +143,8 @@
 
   const emit = defineEmits<{
     'update:modelValue': [value: Record<string, unknown>];
-    submit: [values: SchemaValues<TSchema>];
+    /** The FormModel's values (typed from it), or the v-model object. */
+    submit: [values: TValues];
   }>();
 
   const errors = ref<Record<string, string>>({});
@@ -172,6 +171,10 @@
     }
     return props.modelValue[key];
   };
+
+  // The text-like fields take a string (InputField and Select also a number). What a key holds is
+  // the schema's business, so this cast is type-only.
+  const getTextValue = (key: string) => getFieldValue(key) as string;
 
   const setFieldValue = (key: string, value: unknown) => {
     if (props.formModel) {
@@ -244,7 +247,7 @@
   const handleSubmit = async () => {
     if (props.formModel) {
       await props.formModel.submit(async (values) => {
-        emit('submit', values as SchemaValues<TSchema>);
+        emit('submit', values);
       });
       if (props.formModel.firstErrorPath.value) await focusFirstError();
       return;
@@ -255,7 +258,7 @@
       return;
     }
     isSubmitting.value = true;
-    emit('submit', props.modelValue as SchemaValues<TSchema>);
+    emit('submit', props.modelValue as TValues);
     isSubmitting.value = false;
   };
 

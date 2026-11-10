@@ -40,7 +40,7 @@
   export interface NavAction {
     label: string;
     /**
-     * Iconify name. Use the `icon-[heroicons--language]` form, not `ph:translate` —
+     * Iconify name. Use the `icon-[heroicons--language]` form, not `heroicons:language` —
      * Tailwind's iconify plugin only emits a class it can find spelled out in
      * scanned source, and the colon form never matches because `AppIcon`
      * converts it at runtime, long after Tailwind has run.

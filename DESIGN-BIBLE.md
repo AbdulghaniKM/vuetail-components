@@ -167,9 +167,12 @@ The field frame then needs only:
 
 ## 9. Icons
 
-- **One set: Heroicons outline** (`icon-[heroicons-outline--*]`), the set most components
-  already use. Heroicons solid (`icon-[heroicons--*]`) is allowed only for a selected or active
-  state of the same glyph.
+- **One set: Heroicons v2** (`icon-[heroicons--*]`, outline). Its solid form
+  (`icon-[heroicons--*-solid]`) is allowed only for a selected or active state of the same glyph.
+  Not `heroicons-outline--*`: that is the old v1 set.
+- A project may switch every file to Lucide or Phosphor with `pnpm add-component icons <set>`
+  (the CLI rewrites from `icons.map.json`). The registry itself stays on Heroicons; a new glyph
+  needs a row in `icons.map.json` for each set.
 - Brand marks (GitHub and the like) come from `simple-icons` or `mdi` and appear only as logos.
 - Sizes follow the text: 16px beside `text-sm`, 18px beside `text-control` at md, 20px at lg.
   Icons take `currentColor`.
@@ -288,7 +291,7 @@ A new or changed component ships only when every line holds.
 - [ ] Only token colours; no hex, `rgb()`, Tailwind palette or alpha on text.
 - [ ] Only `shadow-sm`, `shadow-lg`, `shadow-xl`; only `rounded-*` steps.
 - [ ] Only the Tailwind type scale; 12px minimum; sentence case.
-- [ ] Heroicons outline; decorative icons hidden; icon-only controls named.
+- [ ] Heroicons v2 only (and mapped in `icons.map.json`); decorative icons hidden; icon-only controls named.
 - [ ] Motion on duration and easing tokens; no `cubic-bezier` literals; reduced motion handled.
 - [ ] Logical properties; no `px` widths.
 - [ ] Looks right in all six preset × theme combinations at 375px and 1440px.
@@ -308,4 +311,4 @@ Measured on 2026-11-08 across `components/ui`. Work top down; each line is one f
 | 5 | Motion (§10) | AdvancedAppTable (overshoot `cubic-bezier(0.22, 1.12, 0.36, 1)`), AppNavbar (8 curves), AppLiquidGlass, AppNotificationPreview | Use `ease-standard` / `ease-exit` and the duration tokens |
 | 6 | Shape and type (§6, §8) | AdvancedAppTable (12 raw radii, 13 raw sizes), AppNotificationPreview frame, AppButton (6 raw sizes), AppToast, AppTooltip | `rounded-*` steps and the Tailwind scale |
 | 7 | Elevation (§5) | AppDock (12), AppTable (11), AdvancedAppTable, AppNavbar, AppFilterPanel | Only `shadow-sm` / `shadow-lg` / `shadow-xl` |
-| 8 | Icons (§9) | Solar, MDI, Phosphor and Heroicons solid uses in components; the docs site chrome uses Solar | Heroicons outline throughout |
+| 8 | Icons (§9) | Solar, MDI, Phosphor and Heroicons solid uses in components; the docs site chrome uses Solar | Heroicons v2 throughout (`heroicons--*`, solid for active states) |
