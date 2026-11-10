@@ -19,7 +19,8 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 8 | Apply DESIGN-BIBLE.md to the registry (P1–P8, below) | Done 2026-11-10 (uncommitted) |
 | 9 | Composables: fix the 25, add the four that components duplicate (below) | Done 2026-11-08 |
 | 10 | Icon set choice: Heroicons (default), Lucide, Phosphor, picked per project by the CLI (below) | Done 2026-11-10; docs preview per set left as optional |
-| 11 | New components: 8 basics, 5 from Pasta UI, the Sileo toast morph, interior.dev picks (below) | **Planned** 2026-11-11; 11.5 (toast morph) done, uncommitted |
+| 11 | New components: 8 basics, 5 from Pasta UI, the Sileo toast morph, interior.dev picks (below) | **Planned** 2026-11-11; 11.5 (AppToast morph, one toaster) done |
+| 12 | Blobify: the goo morph as a shared primitive (AppBlob, AppSwap, useBlob, useIndicator), then nine places it goes; ship step syncs the template and checks the docs deploy (below) | **Planned** 2026-11-11 |
 
 ## Phase 4 plan
 
@@ -686,9 +687,8 @@ source:
   action, pause on hover and focus.
 
 **Done 2026-11-11 (uncommitted).** User picked (c), and "update the docs too to use the new toaster".
-- [x] **AppToastMorph** (`components/ui/AppToastMorph.vue`), a component of its own rather than
-  an AppToast variant (the structures share nothing; AppToast stays the plain card the template
-  ships). Six positions, one region per position in use; the stack is absolute and moves on
+- [x] **AppToastMorph** (`components/ui/AppToastMorph.vue`), first a component of its own; the
+  same day it became AppToast (see the follow-up below). Six positions, one region per position in use; the stack is absolute and moves on
   transforms; the goo is two `motion.rect`s under one filter in a fixed canvas; header swaps
   cross-fade through a blur; hover / focus / click hold a toast open and pause it; Escape and a
   short swipe dismiss; the pill is a disclosure button (`aria-expanded`, `aria-controls`), the
@@ -726,7 +726,15 @@ source:
 - [ ] Open: the surface tone has no shadow (a hand-written `drop-shadow` would break §5, and
   `--shadow-lg` is a box-shadow), so on busy pages it sits flat. Option: an elevation token in
   `filter: drop-shadow()` form. User decides.
-- [ ] Agent survey (running): where else the goo morph fits; results go here.
+- [x] Bug (user report, screenshot): switching the position of a toast that is showing left it a
+  40px pill with a short body and its text spilling out. The move mounts a new copy in the other
+  region; the old copy reported 0x0 to the ResizeObserver as it left and overwrote the size, and
+  the new copy was never observed (measurement searched the DOM only when the queue changed).
+  Fix: every pill and body is tracked through its own ref as it mounts, and a detached element's
+  report is dropped. Chrome repro (scratchpad `switch.mjs`): old code 93 → 40px after the switch,
+  fixed code 93px at all five positions.
+- [x] Agent survey done (Phase 12). Fixed from it: AppToast's preset MutationObserver was never
+  disconnected; the pill's focus ring was `rounded-full` around an `rx` shape (now the same radius).
 
 ### 11.6 From interior.dev (about 2 days)
 interior.dev (React + Motion, MIT, 54 "micro-interactions", copy-in like our registry: "the
@@ -748,10 +756,166 @@ Not yet in our plan and worth taking:
 - Later, if wanted: Context Menu, Wizard / Task Steps, Skeleton Swap, Value Flash, Reorder List,
   Streaming Text, Typing Indicator.
 
+### 11.7 The morph elsewhere
+Moved to **Phase 12: blobify** (below), which plans the shared primitive and every place it goes.
+
 ### Not in this phase
 - The AI kit (Pasta's Conversation, Tools, Agent and Runs groups, about 50 components).
 - Promoting CommandPalette, CodeBlock, Breadcrumbs and Pager from the docs to the registry.
   Tabs is the one promotion included, as 11.2.
+
+## Phase 12: blobify (the morph as a shared primitive, planned 2026-11-11)
+
+User 2026-11-11: "write the whole primitive morph plan … let's blobify the stuff we can", and
+"add a step to upload docs and templates after if needed". The agent survey (2026-11-11) is the
+source for where it fits and where it does not; its findings are folded in here. "Blob" is the
+user's word, so the primitives are named for it.
+
+### What the blob is, and the limits that come with it
+Two or more SVG shapes of one colour under one filter: `feGaussianBlur` (σ = radius × 0.5) →
+`feColorMatrix` alpha row `0 0 0 20 −10` → `feComposite atop` with the source. Where shapes come
+within about 2σ of each other they fuse into one outline with a smooth inner corner. The shapes
+animate their SVG geometry inside a canvas of fixed size; text and controls are HTML laid over
+it. Limits, from the filter itself:
+- **Fills must be opaque.** The alpha curve zeroes anything under about 0.5, so a translucent
+  fill (AppNavbar's 14% pill, FilterPanel's `bg-accent/10` chips) disappears. Draw it opaque
+  and put `opacity` on the `<svg>`.
+- **One colour per blob.** Two fills that meet bridge into a blur of both (mud). Different colours
+  need separate canvases.
+- **An edge is a second pass** (AppToast's surface tone draws the shape twice, the fill 1px inside).
+- **σ follows the radius.** Ink's `--radius-md` is 3px, so σ 1.5 shows nothing. Blobs use
+  `--radius-2xl` (Ink 8, Pine 18, Console 10) or a floor of σ 4.
+- **Never filter text.** The canvas has no slot, so this cannot happen by accident.
+- **Cost.** Each canvas is one or two filter passes over its area per frame while it moves. Budget:
+  at most about 10 live canvases on a page, none bigger than about 400 × 300px, nothing in a list
+  that repeats per row or per option.
+
+### 12.0 Rules and tokens first (about 1 h)
+- [ ] DESIGN-BIBLE §10: the exception moves from "AppToast's morph" to "geometry drawn by the
+  blob primitive (`AppBlob`), inside its fixed canvas". The blur cross-fade (`filter: blur` on a
+  leaving and an entering copy, `AppSwap`) gets its own allowed line. Overshoot stays allowed only
+  through `--vt-morph-bounce`.
+- [ ] Tokens (`styles/tokens.mjs`, then `node scripts/tokens.mjs build`):
+  - `--vt-morph-bounce`: Pine .25; Ink, Console and reduced motion 0. `--vt-toast-bounce` stays as
+    an alias for one release, then goes.
+  - `--vt-morph-duration`: Ink 500ms, Pine 600ms, Console 320ms, reduced 0ms. AppToast's
+    hard-coded 600ms (`SPRING_S`) reads it; the survey found it 5 × Console's state duration.
+  - Decision for the user (open since 2026-11-11): an elevation token in `drop-shadow()` form,
+    `--vt-elevation-2-filter`, for blobs that float (surface toast, bulk bar, tooltip). Without it
+    they stay flat, with an edge.
+- [ ] DESIGN.md: the two tokens, the limits above, and the budget.
+
+### 12.1 The primitives (about 5 h, with specs and doc pages)
+- [ ] **`composables/useBlob.ts`.** `useBlob({ radius = '--radius-2xl', cap?, minBlur = 4 })`
+  returns `roundness`, `blur` (radius × 0.5, at least `minBlur`), `spring(opening)` (motion-v
+  spring on `--vt-morph-duration` and `--vt-morph-bounce`, bounce only when opening; `{duration: 0}`
+  under reduced motion), `quick()` (a `--vt-duration` tween for hover-driven moves), `reduced`.
+  One module-level MutationObserver on `<html>` (preset, theme, style) with a subscriber count,
+  disconnected at zero, so a page with ten blobs has one observer.
+- [ ] **`components/ui/AppBlob.vue`.** The canvas. Props: `width`, `height` (fixed);
+  `shapes: { key, x?, y?, width, height, radius?, opacity? }[]`; `fill` (CSS colour or var);
+  `edge?: string` (draws the shapes twice, the fill 1px inside); `blur?`, `radius?` (default
+  `useBlob`); `transition?` (default `spring`); `flipX?` (RTL), `flipY?` (growing upward);
+  `pad?` (filter margin, default 2 × blur). Renders an `aria-hidden`, `pointer-events-none`,
+  `overflow-visible` `<svg>` with one `useId` filter and a `motion.rect` per shape
+  (`:initial="false"`). No slot. Exposes `filterId`.
+- [ ] **`components/ui/AppSwap.vue`.** The blur cross-fade as a wrapper: `<AppSwap :swap-key
+  tag="span">`. The leaving copy is `position: absolute` and `aria-hidden`, so a button is never
+  named "Save Saving…" for 130ms. Reduced motion: fade only.
+- [ ] **`composables/useIndicator.ts`.** `useIndicator(container, activeKey, { axis })` measures
+  the item boxes (ResizeObserver, RTL-aware, ref-tracked like AppToast's fix) and returns the
+  canvas size and two shapes, head and tail, for AppBlob. The head moves first and the tail
+  follows, so the blob stretches between the old item and the new one and then contracts.
+- [ ] Registry entries (`registry.json` components / composables / dependencies,
+  `requires.packages: motion-v`), README sections, docs pages with live demos
+  (`appblob.ts`, `appswap.ts`, `useblob.ts`, `useindicator.ts`), specs (shapes render,
+  edge layer, flips, reduced-motion transition, observer count, swap `aria-hidden`, indicator
+  measures and follows RTL).
+
+### 12.2 AppToast onto the primitive (about 2 h)
+- [ ] AppToast draws through `AppBlob` and `useBlob`; its own filter, MutationObserver and
+  `SPRING_S` go. No behaviour change: `tests/appToast.spec.ts` unchanged and green, and the
+  Chrome playground screenshots (3 presets × light / dark, top and bottom, inverse and surface)
+  match the ones taken 2026-11-11.
+
+### 12.3 Blobify, ranked by impact for effort
+Each item: the blob in place of what it replaces, keyboard and ARIA untouched, reduced motion
+falls back to a fade or a jump, checked in all 6 preset × theme combinations at 1440 and 375px.
+1. [ ] **AppSwap in place** (S, 1–2 h): AppButton loading → label, with an optional `success`
+   state that swaps to a check for 1.2s (`AppButton.vue:27-31`); ThemeToggle sun ↔ moon
+   (`ThemeToggle.vue:9,28-35`); counts in AppFilterPanel (`:13-16`), AppDock's badge (`:583-587`),
+   AdvancedAppTable's selection count (`:357`), with `tabular-nums`. Folds in 11.6's spinner
+   timing (show after 150ms, keep at least 400ms).
+2. [ ] **Blob segmented indicator** (S, 2 h): the docs PresetSwitcher first (it sits in the header
+   and switches presets, so Pine's bounce shows itself), then TimePickerClock AM / PM
+   (`:74-89`), then AppSegmentedControl when 11.6 builds it. The old pill shrinks while the new
+   one grows and the blob bridges the gap. Radios and roving focus stay as they are. The active
+   pill's `shadow-sm` becomes the edge layer.
+3. [ ] **Tabs** (S, +1 h on 2): PreviewCodeTabs (`PreviewCodeTabs.vue:15-16`, every docs
+   component page), then AppTabs when 11.2 builds it.
+4. [ ] **AppNavbar pill** (M, 3 h): `useIndicator` over the links in place of the `layoutId`
+   pill (`AppNavbar.vue:331-337`, transition `:259`). Dark tone: opaque fill with canvas
+   opacity (`:476`). Spring and bounce only on click and route change; hover moves on `quick()`
+   so the blob never trails the pointer. The active link keeps a non-colour cue (§12).
+5. [ ] **AdvancedAppTable bulk bar** (M, 4–6 h): the "3 selected" pill melts sideways into the
+   action strip (`AdvancedAppTable.vue:350-373, 1825-1866`). The bar's box sits at its measured
+   full width; actions fade and move by transform; the count swaps through AppSwap. Drops the
+   glass (`:1835-1838`) for `surface-raised` with an edge, which is closer to §5.
+6. [ ] **AppTooltip bubble** (M, 3–4 h): the rotated-square arrow (`AppTooltip.vue:28, 88-93`)
+   becomes a nub fused to the bubble. Dark tooltip on the inverse fill (it already is `bg-text`),
+   light one with the edge layer. Enter tween, not the spring (tooltips must be quick). The canvas
+   lives inside the existing `v-if`, so one filter exists at a time. Four placements and RTL.
+   `role="tooltip"` and `aria-describedby` unchanged.
+7. [ ] **AppSwitch thumb** (S, +1 h, with 11.1): leading and trailing edges on separate springs,
+   so the thumb stretches and settles. No filter (thumb and track differ in colour). `role="switch"`.
+8. [ ] **AppNotificationPreview "island" mode** (M, 3–4 h, showcase): a Dynamic-Island pill that
+   grows into the notification, the platform's own look inside the mockup (§13). Already
+   `aria-hidden` inside `role="img"`.
+9. [ ] **Wizard / task steps** (M, 4 h, when that component exists): the done connector flows
+   into the next dot; at most 10 shapes in one canvas; progress announced as text.
+
+### Not blobbed, and why
+- Popover, Select, AppDropdownMenu, CommandPalette, AppModal growing from their trigger: the
+  trigger is the consumer's markup and cannot be in the canvas; content would wait on the shape;
+  the palette and modal would filter a region near viewport size every frame. Their `scale-95`
+  from the trigger's origin already reads as growing out of it.
+- Anything that repeats: table rows, DatePicker's 42 cells, option and palette lists, filter
+  chips (translucent as well).
+- AppDock tiles and badge (two colours that would bridge into mud; it already has lift and
+  flight), and every glass surface (`backdrop-filter` cannot pass through the blob).
+- AppAccordion and AppDrawer: in-flow content would snap while the shape grows; the sheet
+  already moves on transform.
+- ColorPicker swatches and any colour-critical UI: fused swatches blend their hues.
+
+### 12.4 QA (about 2 h)
+- [ ] Rerun the WP5 crawl (scratchpad `crawl.mjs`: axe, 375px overflow, console errors, all
+  routes × 3 presets × light / dark × 2 widths) and the keyboard script (`keyboard.mjs`).
+- [ ] Reduced motion on every blob: no geometry or transform animation, fades kept.
+- [ ] Performance: count live canvases per page (budget 10), and record a Chrome performance
+  trace while the navbar pill, tabs and a toast stack move at once; no frame over 16ms on the
+  docs home and the AdvancedAppTable page.
+- [ ] Guard in `tests/designBible.spec.ts`: an SVG `feColorMatrix` goo filter appears only inside
+  `AppBlob.vue` (and AppToast until 12.2 lands), so blobs cannot be hand-rolled elsewhere.
+
+### 12.5 Ship: sync the template, upload, check the docs deploy
+After each step that changes a registry file the template ships, and once at the end:
+- [ ] **Template**: copy the changed bundled files verbatim from the registry (today: AppToast,
+  ThemeToggle, AppIcon, the composables; plus AppBlob, AppSwap and useBlob if AppToast or
+  ThemeToggle now need them, which means adding them to the template's bundled list and its
+  README "ships by default" line), copy `styles/tokens.css`, run `pnpm typecheck`. Skip when no
+  bundled file changed.
+- [ ] **Commit and push** components `main`, docs `master`, template `main` (with the user's OK).
+- [ ] **Docs deploy**: the push to docs `master` deploys vuetail-docs on Vercel. Check the
+  deployment reached READY (Vercel MCP `list_deployments` / `get_deployment`, or the dashboard)
+  and open the AppBlob page and the toast playground on vuetail-docs.vercel.app. If the build
+  failed, read its build log, fix and push again.
+- [ ] **CLI check**: in a scratch copy of the template with fetch pointed at GitHub, `pnpm
+  add-component AppBlob` installs it with its dependencies, and `icons <set>` still rewrites
+  every glyph (`icons.map.json` gains a row for any new glyph).
+
+### Also found by the survey
+- [ ] docs `DashboardLayout.vue:13` animates `transition-[width]` on the sidebar (§10): collapse
+  with a transform or snap the width.
 
 ## Phase 10: icon set choice (done 2026-11-10)
 
