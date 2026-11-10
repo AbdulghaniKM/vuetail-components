@@ -712,6 +712,22 @@ source:
   takes focus and opens, Tab reaches its buttons, Escape closes; reduced motion opens with no
   movement. 0 page errors.
 
+**Follow-up 2026-11-11: one toaster.** User: the morph is smooth enough to serve formal apps too.
+- [x] The morph is now **AppToast**; the old card left the registry (installed copies stay
+  theirs). The template ships it (motion-v was already required).
+- [x] Formal mode: `tone: 'surface'` (raised surface, `border-strong` edge drawn as a second goo
+  layer 1px outside the fill, the card's `*-text` / `*-subtle` status colours), `expand: 'auto' |
+  'hover' | 'always'` (`always` is a card from the start and drops the disclosure button),
+  `progress` (hairline countdown, frozen while held).
+- [x] Docs: one AppToast page; the playground has Tone, Expand, Countdown and Expressive / Formal
+  presets. Spec `appToast.spec.ts` 13. Docs `pnpm test` 807/807, build clean, template
+  typecheck clean. Chrome: formal in Ink light and Pine dark, expressive in Pine; axe on the
+  toaster clean; 0 page errors.
+- [ ] Open: the surface tone has no shadow (a hand-written `drop-shadow` would break §5, and
+  `--shadow-lg` is a box-shadow), so on busy pages it sits flat. Option: an elevation token in
+  `filter: drop-shadow()` form. User decides.
+- [ ] Agent survey (running): where else the goo morph fits; results go here.
+
 ### 11.6 From interior.dev (about 2 days)
 interior.dev (React + Motion, MIT, 54 "micro-interactions", copy-in like our registry: "the
 behaviour is finished; the style is yours"). Its Accordion, Drawer, Dropdown, Tabs, Tree View,

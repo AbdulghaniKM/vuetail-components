@@ -185,10 +185,10 @@ The field frame then needs only:
   for things that appear and leave. Exits are shorter than entrances.
 - Easing: `ease-standard` (`--vt-ease`) and `ease-exit` (`--vt-ease-exit`) only. No
   `cubic-bezier` literals, no bounce, no overshoot (any control point above 1 or below 0).
-  One exception, decided by the owner 2026-11-11: AppToastMorph's morph springs with
+  One exception, decided by the owner 2026-11-11: AppToast's morph springs with
   `--vt-toast-bounce` (.25 in Pine, 0 in Ink, Console and under reduced motion).
 - Animate `transform`, `opacity` and colours. Never width, height, top or left. Shape geometry
-  inside an SVG canvas of fixed size (AppToastMorph's goo) is not page layout and may animate.
+  inside an SVG canvas of fixed size (AppToast's goo) is not page layout and may animate.
 - `prefers-reduced-motion: reduce` drops movement and keeps fades. Use `useReducedMotion` or
   `motion-reduce:` variants. Durations shrink through the tokens (80 / 100 / 70ms in every preset).
 - Press feedback is the preset's press transform and nothing else.

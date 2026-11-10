@@ -12,7 +12,6 @@ Components and composables are fetched on demand via the CLI built into the temp
     AppButton.vue
     AppModal.vue
     AppToast.vue
-    AppToastMorph.vue
     ThemeToggle.vue
     ... (all UI components)
     /Fields
@@ -839,29 +838,37 @@ Quad count follows width (~1 per 6px, clamped to 64–150) rather than a flat 15
 
 ---
 
-### AppToastMorph
+### AppToast
 
-The morph toaster: a pill that melts into a card when it has more to say. Ported from
+The toaster: a pill that melts into a card when it has more to say. Ported from
 [Sileo](https://github.com/hiaaryan/sileo) by Aaryan (MIT) onto the VueTail tokens and the
-`useToast` store. Both toasters read the same store; mount one.
+`useToast` store. The default is expressive; `tone="surface" expand="always" progress` makes it a
+quiet card for formal apps. (Until 2026-11-11 AppToast was a plain card; projects that installed
+it keep their copy.)
 
 ```bash
-pnpm add-component AppToastMorph
+pnpm add-component AppToast
 ```
 
 ```vue
 <!-- App.vue, once -->
-<AppToastMorph :toasts="toasts" position="bottom-center" @remove="remove" @pause="pause" @resume="resume" />
+<AppToast :toasts="toasts" position="bottom-center" @remove="remove" @pause="pause" @resume="resume" />
+
+<!-- Formal -->
+<AppToast :toasts="toasts" tone="surface" expand="always" progress @remove="remove" @pause="pause" @resume="resume" />
 ```
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `toasts` | `Toast[]` | `[]` | The queue from `useToast` |
 | `position` | `ToastPosition` | `'top-right'` | Six positions (`top-` / `bottom-` × `left`, `center`, `right`). A toast with its own `position` gets its own region |
-| `autopilot` | `false \| { expand?, collapse? }` | `{ expand: 150, collapse: 2000 }` | A toast with more to say opens `expand` ms after it appears and folds `collapse` ms before it leaves. Per-toast override: `toast.autopilot` |
+| `expand` | `'auto' \| 'hover' \| 'always'` | `'auto'` | When a toast with more to say opens: on its own and while held; only while hovered, focused or clicked; or always (a card from the start, never folding) |
+| `autopilot` | `false \| { expand?, collapse? }` | `{ expand: 150, collapse: 2000 }` | Timing for `expand: 'auto'`: open `expand` ms after it appears, fold `collapse` ms before it leaves. Per-toast override: `toast.autopilot` |
+| `tone` | `'inverse' \| 'surface'` | `'inverse'` | `inverse`: the page's text colour as the fill. `surface`: a raised surface with a border (the shape is drawn twice, the fill 1px inside the border colour) and the card's status colours |
+| `progress` | `boolean` | `false` | A hairline countdown along the bottom of what is showing, frozen while held |
 | `label` | `string` | `'Notifications'` | Region name; with several positions in use each region adds its position |
 
-Emits `remove(id)`, `pause(id)` (hover or focus) and `resume(id)`, as AppToast does.
+Emits `remove(id)`, `pause(id)` (hover or focus) and `resume(id)`.
 
 What goes where: the pill shows the badge and the `title` (or the `message` when there is no
 title). The `description`, or the `message` under a title, and the `action` open out of it with
@@ -2073,7 +2080,7 @@ Phase 9.4 adds `useForm`, which owns validation, errors, touched state and submi
 
 ### useToast
 
-App-wide notifications. Mount one toaster once (App.vue) with `toasts`: `AppToastMorph` (the pill that opens into a card) or `AppToast` (the plain card). Call the methods anywhere.
+App-wide notifications. Mount `AppToast` once (App.vue) with `toasts`; call the methods anywhere.
 
 ```ts
 configureToasts({ max: 3, duration: 4000 }); // once, in main.ts; defaults: 5 and 5000ms
@@ -2089,7 +2096,7 @@ await toast.promise(upload(files), {
 
 | Method | Description |
 |---|---|
-| `success` / `error` / `warning` / `info(message, { title?, description?, icon?, position?, autopilot?, duration?, action? })` | Shows a toast, returns its id. `duration: 0` keeps it until dismissed. `description` is a second, longer line; `icon` replaces the type's; `position` and `autopilot` override AppToastMorph's per toast |
+| `success` / `error` / `warning` / `info(message, { title?, description?, icon?, position?, autopilot?, duration?, action? })` | Shows a toast, returns its id. `duration: 0` keeps it until dismissed. `description` is a second, longer line; `icon` replaces the type's; `position` and `autopilot` override AppToast's per toast |
 | `promise(p, { loading, success, error })` | A sticky toast of type `loading` that becomes the outcome; resolves or rejects with `p` |
 | `update(id, patch)` | Changes a toast in place; a new `duration` restarts its timer |
 | `remove(id)` / `clear()` | Closes one, or all |
