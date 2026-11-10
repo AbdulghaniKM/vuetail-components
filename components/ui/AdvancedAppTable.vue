@@ -59,13 +59,13 @@
         :close-on-content-click="false"
         panel-class="w-56 rounded-xl border border-border bg-surface p-1.5 shadow-lg"
       >
-        <template #trigger="{ toggle, isOpen }">
+        <template #trigger="{ toggle, isOpen, triggerAttrs }">
           <button
+            v-bind="triggerAttrs"
             type="button"
             class="at-chrome-trigger"
             :class="{ 'is-open': isOpen }"
             aria-haspopup="menu"
-            :aria-expanded="isOpen"
             :title="displayMenuTitle"
             @click="toggle"
           >
@@ -382,12 +382,12 @@
         placement="top-start"
         panel-class="min-w-20 rounded-xl border border-border bg-surface p-1 shadow-lg"
       >
-        <template #trigger="{ toggle, isOpen }">
+        <template #trigger="{ toggle, triggerAttrs }">
           <button
+            v-bind="triggerAttrs"
             type="button"
             class="at-page-size"
-            :aria-expanded="isOpen"
-            aria-label="Rows per page"
+            :aria-label="`${limitValue} / ${pageLabel}, rows per page`"
             @click="toggle"
           >
             {{ limitValue }} / {{ pageLabel }}

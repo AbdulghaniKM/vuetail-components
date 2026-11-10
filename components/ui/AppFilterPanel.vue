@@ -178,8 +178,9 @@
                 match-width
                 panel-class="border border-border bg-surface rounded-xl shadow-lg p-1"
               >
-                <template #trigger="{ toggle, isOpen }">
+                <template #trigger="{ toggle, isOpen, triggerAttrs }">
                   <button
+                    v-bind="triggerAttrs"
                     type="button"
                     class="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-start text-sm transition-colors duration-(--vt-duration) ease-standard focus-visible:-outline-offset-1"
                     @click="toggle"
@@ -220,8 +221,9 @@
                 match-width
                 panel-class="border border-border bg-surface rounded-xl shadow-lg p-3 min-w-[16rem]"
               >
-                <template #trigger="{ toggle, isOpen }">
+                <template #trigger="{ toggle, isOpen, triggerAttrs }">
                   <button
+                    v-bind="triggerAttrs"
                     type="button"
                     class="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-start text-sm transition-colors duration-(--vt-duration) ease-standard focus-visible:-outline-offset-1"
                     @click="toggle"

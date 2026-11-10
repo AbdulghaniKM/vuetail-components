@@ -87,8 +87,9 @@
             :close-on-content-click="false"
             panel-class="border border-border bg-surface rounded-xl shadow-lg w-64 p-2"
           >
-            <template #trigger="{ toggle }">
+            <template #trigger="{ toggle, triggerAttrs }">
               <button
+                v-bind="triggerAttrs"
                 type="button"
                 class="flex items-center gap-1 rounded-md text-accent text-sm font-medium tabular-nums hover:underline"
                 @click="toggle"
@@ -355,8 +356,9 @@
                         :close-on-content-click="false"
                         panel-class="border border-border bg-surface rounded-xl shadow-lg py-1 min-w-[10rem]"
                       >
-                        <template #trigger="{ toggle }">
+                        <template #trigger="{ toggle, triggerAttrs }">
                           <AppButton
+                            v-bind="triggerAttrs"
                             icon="icon-[heroicons--ellipsis-vertical]"
                             icon-only
                             variant="ghost"
@@ -411,8 +413,9 @@
                       :close-on-content-click="false"
                       panel-class="border border-border bg-surface rounded-xl shadow-lg w-52 p-3"
                     >
-                      <template #trigger="{ toggle }">
+                      <template #trigger="{ toggle, triggerAttrs }">
                         <button
+                          v-bind="triggerAttrs"
                           type="button"
                           class="rounded-full transition-shadow"
                           :class="

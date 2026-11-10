@@ -7,7 +7,7 @@
  aria-label="Loading"
  >
  <svg
- class="animate-spin aspect-square w-full h-full"
+ class="animate-spin motion-reduce:animate-pulse aspect-square w-full h-full"
  xmlns="http://www.w3.org/2000/svg"
  fill="none"
  viewBox="0 0 24 24"

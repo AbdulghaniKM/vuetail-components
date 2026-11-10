@@ -1,6 +1,7 @@
 <template>
   <div ref="triggerContainerRef" class="inline-block w-fit">
-    <slot name="trigger" :toggle="toggle" :close="close" :is-open="internalOpen"></slot>
+    <!-- Bind `trigger-attrs` on the trigger button: it carries aria-expanded and aria-controls. -->
+    <slot name="trigger" :toggle="toggle" :close="close" :is-open="internalOpen" :trigger-attrs="triggerAttrs"></slot>
   </div>
 
   <Teleport :to="teleportTo">
@@ -14,11 +15,14 @@
     >
       <div
         v-if="internalOpen"
+        :id="panelId"
         ref="panelRef"
         class="fixed z-[9999]"
         :class="panelClass"
         :style="dropdownStyle"
         @click="onPanelClick"
+        @focusout="onPanelFocusOut"
+        @keydown="onPanelKeydown"
       >
         <slot :close="close"></slot>
       </div>
@@ -27,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
+import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount, useId } from 'vue';
 
 interface Props {
   open?: boolean;
@@ -64,6 +68,14 @@ const triggerContainerRef = ref<HTMLElement | null>(null);
 const panelRef = ref<HTMLElement | null>(null);
 const dropdownStyle = ref<Record<string, string>>({});
 
+const panelId = useId();
+const triggerAttrs = computed(() => ({
+  'aria-expanded': internalOpen.value,
+  'aria-controls': internalOpen.value ? panelId : undefined,
+}));
+
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select, textarea, [tabindex]:not([tabindex="-1"])';
+
 const toRem = (px: number) => `${px / 16}rem`;
 
 watch(() => props.open, (val) => {
@@ -85,8 +97,13 @@ function open() {
 }
 
 function close() {
+  dismiss();
+}
+
+// `restoreFocus` is false when focus or a click already went somewhere else on purpose.
+function dismiss(restoreFocus = true) {
   if (!internalOpen.value) return;
-  doClose();
+  doClose(restoreFocus);
   if (props.open !== undefined) emit('update:open', false);
 }
 
@@ -96,16 +113,16 @@ function doOpen() {
   nextTick(() => {
     updatePosition();
     previousFocus.value = document.activeElement as HTMLElement | null;
+    // The panel is teleported, so Tab from the trigger would never reach it: move focus in.
+    panelRef.value?.querySelector<HTMLElement>(FOCUSABLE)?.focus({ preventScroll: true });
   });
 }
 
-function doClose() {
+function doClose(restoreFocus = true) {
   internalOpen.value = false;
   emit('close');
-  if (previousFocus.value) {
-    previousFocus.value.focus();
-    previousFocus.value = null;
-  }
+  if (restoreFocus && previousFocus.value) previousFocus.value.focus();
+  previousFocus.value = null;
 }
 
 function updatePosition() {
@@ -165,7 +182,7 @@ function updatePosition() {
   dropdownStyle.value = style;
 }
 
-function onPanelClick(e: MouseEvent) {
+function onPanelClick() {
   if (props.closeOnContentClick) {
     close();
   }
@@ -178,8 +195,35 @@ function onClickOutside(e: MouseEvent) {
   const isPanel = panelRef.value?.contains(target);
   
   if (!isTrigger && !isPanel) {
-    close();
+    dismiss(false);
   }
+}
+
+// Tab past either end of the panel closes it and continues from the trigger, as if the panel sat
+// right after it in the page: Shift+Tab lands on the trigger, Tab on whatever follows it.
+function onPanelKeydown(e: KeyboardEvent) {
+  if (e.key !== 'Tab' || !panelRef.value) return;
+  const items = [...panelRef.value.querySelectorAll<HTMLElement>(FOCUSABLE)];
+  const atEdge = e.shiftKey ? document.activeElement === items[0] : document.activeElement === items[items.length - 1];
+  if (items.length && !atEdge) return;
+  e.preventDefault();
+  const trigger = previousFocus.value;
+  const panel = panelRef.value;
+  close();
+  if (e.shiftKey || !trigger) return;
+  // The panel is still in the DOM while it fades out; skip its items.
+  const order = [...document.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+    (el) => !panel.contains(el) && (el.offsetParent !== null || el === trigger),
+  );
+  order[order.indexOf(trigger) + 1]?.focus();
+}
+
+// Focus leaving the panel any other way closes it, so it never floats over content focus has moved past.
+function onPanelFocusOut(e: FocusEvent) {
+  const next = e.relatedTarget as Node | null;
+  if (!next) return;
+  if (panelRef.value?.contains(next) || triggerContainerRef.value?.contains(next)) return;
+  dismiss(false);
 }
 
 function onEscape(e: KeyboardEvent) {

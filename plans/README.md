@@ -15,7 +15,7 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 4 | vuetail-template adopts the tokens, the new `theme.ts` and the CLI `styles` entry | Done |
 | 5 | `useThemeCustomizer` (replaces `useColorCustomizer`): the five settings on top of any preset | Done |
 | 6 | Merge `redesign` into components `main`, then docs `master` and template `main` | Done 2026-11-08: live on vuetail-docs.vercel.app |
-| 7 | Docs finalisation: every page on Ink, docs read in order (below) | **In progress** |
+| 7 | Docs finalisation: every page on Ink, docs read in order (below) | Done 2026-11-10 (WP5 QA uncommitted) |
 | 8 | Apply DESIGN-BIBLE.md to the registry (P1–P8, below) | Done 2026-11-10 (uncommitted) |
 | 9 | Composables: fix the 25, add the four that components duplicate (below) | Done 2026-11-08 |
 | 10 | Icon set choice: Heroicons (default), Lucide, Phosphor, picked per project by the CLI (below) | Done 2026-11-10 (uncommitted); docs preview per set left as optional |
@@ -255,11 +255,42 @@ What already holds:
 - Raw hex and palette classes onto tokens, except the glass backdrops.
 - Stale examples in `content/docs/*.ts`.
 
-**WP5, QA.**
-- Rerun this crawl, aiming for 0 serious or critical axe issues and 0 overflow at 375px.
-- Keyboard pass through nav, palette, tabs and TOC.
-- `prefers-reduced-motion`.
-- `pnpm test` and `pnpm build`.
+**WP5, QA.** (2026-11-10, uncommitted)
+- [x] Crawl (scratchpad `crawl.mjs`, installed Chrome, axe-core 4.14, WCAG 2.0–2.2 A/AA plus best
+  practice): 77 routes × 3 presets × light/dark × 1440 / 375px. First run: 0 overflow, 0 console
+  errors, 1 serious, 3 moderate. Fixed:
+  - serious `label-content-name-mismatch`: AdvancedAppTable's page-size button showed "10 / page"
+    but was named "Rows per page" (WCAG 2.5.3); the name now starts with the visible text.
+  - moderate `region` on every route: the skip link sat after the sidebar / header. It is now
+    the first element in DashboardLayout and MarketingLayout (MarketingLayout's `<main>` also
+    takes `tabindex="-1"` and lost its `shadow-md`).
+  - moderate `landmark-unique` (demo pages): AppToast takes a `label` prop (default
+    "Notifications") and the toast showcase names its sandbox; demo navbars are named from their
+    screen title; the filter-panel showcase has its own title.
+- [x] Keyboard pass (scratchpad `keyboard.mjs`, 43 checks at 1440 and 375px), 43/43 after fixes:
+  - The skip link was not the first Tab stop on desktop (80 sidebar links came first). Fixed above.
+  - AppPopover: the trigger had no ARIA state and focus never reached the teleported panel.
+    It now passes `triggerAttrs` (`aria-expanded`, `aria-controls`) to the trigger slot, moves
+    focus into the panel on open, and Tab past the last item closes it and continues after the
+    trigger (Shift+Tab and Escape return to the trigger). A click outside no longer pulls focus
+    back to the trigger. AppTable (3), AppFilterPanel (2), AdvancedAppTable (2) and the docs demo
+    bind it. Spec: docs `tests/appPopover.spec.ts` (7).
+  - "On this page": a hash jump scrolled but left focus in the TOC, so the next Tab went on
+    through the TOC. The router now focuses the target heading (`focusHashTarget`,
+    `tabindex="-1"`, no ring); the next Tab lands in the section. Spec in `routerScroll.spec.ts`.
+  - Passing already: palette (Ctrl+K, arrows, Enter, Escape, focus return), Preview / Code tabs
+    (roving tabindex, arrows, Home), mobile menu (focus in, Escape, focus return), visible ring
+    on the first 40 Tab stops at both widths.
+- [x] Reduced motion: palette, modal, toast and popover open with no movement. AppSpinner and the
+  docs page loader spun under `reduce` (bible §10: movement goes, fades stay); they now pulse
+  (`motion-reduce:animate-pulse`).
+- [x] `pnpm test` 755/755, `pnpm build` clean, template typecheck clean. AppToast synced to the
+  template.
+- [x] Rerun on the fixed build: 77 routes × 12 combinations, **0 serious or critical, 0 overflow,
+  0 console errors**. One moderate left, accepted: `landmark-unique` on /docs/component/appnavbar
+  and /appdock, because each page renders AppNavbarBasicDemo / AppDockBasicDemo in two examples
+  (appnavbar.ts 125 and 165, appdock.ts 104 and 184), so the demo landmark name repeats. Fix if
+  wanted: give the second example its own demo or a `title` prop.
 
 Rules for every package: edit only the files your package owns, and message the owner for anything
 else. Don't commit; the user approves commits. Don't touch vuetail-template. The two registry
