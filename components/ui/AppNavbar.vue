@@ -15,9 +15,11 @@
    *
    * ## Why it contracts
    *
-   * Over the hero it is the width of the content column, so it belongs to the
-   * composition. Once the hero is behind you it is just navigation, so it pulls
-   * in and darkens. It never disappears.
+   * Over the hero it belongs to the composition. Once the hero is behind you it
+   * is just navigation, so it darkens and folds its action labels. It never
+   * disappears. Its width is not animated (bible §10: never width): it keeps its
+   * measure, or snaps to `compactWidth` if you set one, and the colour carries
+   * the change.
    *
    * This block is plain `<script>` on purpose: the class maps must be literal
    * strings in a file Tailwind scans, and they must be built once per module
@@ -122,7 +124,7 @@
       position?: NavPosition;
       /** Measure at rest. */
       width?: NavWidth;
-      /** Measure once contracted. */
+      /** Measure once contracted. Unset keeps `width`; a set value is a snap, not an animation. */
       compactWidth?: NavWidth;
       /** Set false to pin the bar at its resting size. */
       contract?: boolean;
@@ -155,7 +157,7 @@
       floating: true,
       position: 'top',
       width: 'xl',
-      compactWidth: 'md',
+      compactWidth: undefined,
       contract: true,
       pill: true,
       breakpoint: 'lg',
@@ -257,7 +259,7 @@
   const pillTransition = () => (reduced.value ? { duration: 0 } : state());
   const menuTransition = () => (reduced.value ? { duration: 0 } : enter());
 
-  const measure = computed(() => NAV_WIDTH[compact.value ? props.compactWidth : props.width]);
+  const measure = computed(() => NAV_WIDTH[(compact.value && props.compactWidth) || props.width]);
   const anchor = computed(() => NAV_ANCHOR[props.position][props.floating ? 'floating' : 'flush']);
   const desktop = computed(() => NAV_DESKTOP[props.breakpoint]);
 
@@ -376,7 +378,7 @@
               v-if="action.icon"
               :class="[
                 'nav-collapse block overflow-hidden',
-                compact && !action.keepLabel ? 'max-w-0 opacity-0' : 'max-w-32 opacity-100',
+                compact && !action.keepLabel ? 'nav-collapse-shut max-w-0 opacity-0' : 'max-w-32 opacity-100',
               ]"
             >
               <span class="block ps-2 whitespace-nowrap">{{ action.label }}</span>
@@ -516,7 +518,6 @@
     color: var(--nav-ink);
     box-shadow: var(--shadow-lg);
     transition:
-      max-width var(--vt-duration-enter) var(--vt-ease),
       background-color var(--vt-duration-enter) var(--vt-ease),
       border-color var(--vt-duration-enter) var(--vt-ease);
   }
@@ -526,12 +527,18 @@
     border-color: var(--nav-border-compact);
   }
 
-  /* The fold. Only these two properties, and never `display` or `width`, so the
-     label keeps its box and its accessible name the whole way down. */
+  /* The fold. The label fades; its box never animates (bible §10). Opening, the box
+     opens in one step and the label fades in. Shutting, the label fades out first and
+     the box closes in one step once it is invisible. It stays in the DOM throughout,
+     so the control keeps its accessible name. */
   .nav-collapse {
+    transition: opacity var(--vt-duration) var(--vt-ease);
+  }
+
+  .nav-collapse-shut {
     transition:
-      max-width var(--vt-duration-enter) var(--vt-ease),
-      opacity var(--vt-duration) var(--vt-ease);
+      opacity var(--vt-duration) var(--vt-ease),
+      max-width 0s var(--vt-duration);
   }
 
   .nav-link-off {
@@ -591,6 +598,7 @@
   @media (prefers-reduced-motion: reduce) {
     .nav-capsule,
     .nav-collapse,
+    .nav-collapse-shut,
     .nav-cta {
       transition-duration: 0ms;
     }

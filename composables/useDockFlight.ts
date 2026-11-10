@@ -1,46 +1,22 @@
 import { watch, type Ref } from 'vue';
+import { useMotionTokens } from './useMotionTokens';
 import { useReducedMotion } from './useReducedMotion';
 import type { DockPosition } from './useDockPosition';
 
-export const FLIGHT_MS = 420;
-
-const FALLBACK_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
-
 /**
- * Samples an under-damped spring into a CSS `linear()` easing, so the dock
- * settles with a real overshoot instead of a generic ease-out. Browsers without
- * `linear()` fall back to a bezier that approximates the same arrival.
+ * Flights run on the motion tokens like every other movement (bible §10): `--vt-duration-enter`
+ * and `--vt-ease`, read live so the preset and reduced motion reach them. No spring: it
+ * overshot, and the bible allows no overshoot.
  */
-function springEasing(durationMs: number, stiffness = 220, damping = 22): string {
-  const angularFrequency = Math.sqrt(stiffness);
-  const dampingRatio = damping / (2 * angularFrequency);
-  if (dampingRatio >= 1) return FALLBACK_EASING;
+const FALLBACK_EASING = 'ease-out';
 
-  const dampedFrequency = angularFrequency * Math.sqrt(1 - dampingRatio ** 2);
-  const sampleCount = 24;
-  const samples = Array.from({ length: sampleCount + 1 }, (_, index) => {
-    const seconds = (index / sampleCount) * (durationMs / 1000);
-    const envelope = Math.exp(-dampingRatio * angularFrequency * seconds);
-    const oscillation =
-      Math.cos(dampedFrequency * seconds) +
-      ((dampingRatio * angularFrequency) / dampedFrequency) * Math.sin(dampedFrequency * seconds);
-    return (1 - envelope * oscillation).toFixed(4);
-  });
+/** The flight duration in milliseconds, from `--vt-duration-enter`. */
+export const flightDuration = (): number => useMotionTokens().enter().duration * 1000;
 
-  return `linear(${samples.join(',')})`;
-}
-
-function supportsLinearEasing(): boolean {
-  if (typeof CSS === 'undefined' || typeof CSS.supports !== 'function') return false;
-  return CSS.supports('transition-timing-function', 'linear(0, 1)');
-}
-
-let cachedEasing: string | null = null;
-
-function flightEasing(): string {
-  cachedEasing ??= supportsLinearEasing() ? springEasing(FLIGHT_MS) : FALLBACK_EASING;
-  return cachedEasing;
-}
+const flightEasing = (): string => {
+  if (typeof document === 'undefined') return FALLBACK_EASING;
+  return getComputedStyle(document.documentElement).getPropertyValue('--vt-ease').trim() || FALLBACK_EASING;
+};
 
 /**
  * Animates `element` from a visual displacement back to its laid-out position.
@@ -53,7 +29,7 @@ export function flyHome(element: HTMLElement, deltaX: number, deltaY: number, li
       { transform: `translate3d(${deltaX}px, ${deltaY}px, 0) scale(${liftScale})` },
       { transform: 'translate3d(0, 0, 0) scale(1)' },
     ],
-    { duration: FLIGHT_MS, easing: flightEasing() },
+    { duration: flightDuration(), easing: flightEasing() },
   );
 }
 

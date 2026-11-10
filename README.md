@@ -840,7 +840,7 @@ Quad count follows width (~1 per 6px, clamped to 64–150) rather than a flat 15
 
 ### AppDock
 
-A floating macOS-style dock — a glass navigation pill pinned to any edge of the viewport (**bottom**, **left**, **right** or **top**). Tiles are colour-tagged route links; the bar drags between edges with a live ghost preview and FLIPs into its new place with a sampled spring.
+A floating macOS-style dock — a glass navigation pill pinned to any edge of the viewport (**bottom**, **left**, **right** or **top**). Tiles are colour-tagged route links; the bar drags between edges with a live ghost preview and FLIPs into its new place on the motion tokens.
 
 ```bash
 pnpm add-component AppDock
@@ -972,7 +972,7 @@ Use it for an embedded app frame, a settings preview, or a demo — anywhere a d
 | Drag | Grip handle, pointer-captured, 4px threshold, ghost preview on the target edge |
 | Click the grip | No drag → cycles `bottom → left → right → bottom` |
 | Escape | Cancels an in-flight drag and glides the bar home |
-| Flight | FLIP + a spring sampled into `linear()` (420ms), bezier fallback |
+| Flight | FLIP on `--vt-duration-enter` and `--vt-ease`, no overshoot; skipped under reduced motion |
 | Hover | Hovered tile lifts `0.375rem`, neighbours `0.125rem` — never a scale, so the dock cannot reflow |
 | Overflow | The tile strip scrolls when crowded; the grip never scrolls away, and labels still escape the pill |
 | Active tile | Most-specific match wins, on a `/` boundary — `/orders-archive` does not light up `/orders` |
@@ -1027,7 +1027,7 @@ Pulls in `AppIcon`, `useMotionTokens` and `useReducedMotion`. Needs `@vueuse/cor
 | `floating` | `boolean` | `true` | Inset capsule, or a flush full-width bar |
 | `position` | `'top' \| 'bottom'` | `'top'` | Which edge it pins to. The panel opens away from it |
 | `width` | `NavWidth` | `'xl'` | Measure at rest — match your content column |
-| `compactWidth` | `NavWidth` | `'md'` | Measure once contracted |
+| `compactWidth` | `NavWidth` | `width` | Measure once contracted; a set value snaps, it never animates |
 | `contract` | `boolean` | `true` | Set `false` to pin it at its resting size |
 | `contractAt` | `number` | 80% of viewport | Scroll offset, in px, at which it contracts |
 | `scrollTarget` | `HTMLElement \| null` | `window` | What it measures scroll against — see below |
@@ -1107,7 +1107,7 @@ The bar listens to `window` by default. When the page scrolls inside a container
 |---|---|
 | Unmount a label instead of folding it | It strips the control's accessible name the moment the bar contracts, leaving a screen reader with an icon and nothing else. Each label stays in the DOM at `max-width: 0` |
 | Put the label's padding on the collapsing span | Under `border-box` a padded box cannot be narrower than its own padding, so `max-w-0` on a `ps-2` span still measures 8px — which pushes the icon off centre by exactly that much. The padding goes on an inner span, where the parent's `overflow-hidden` clips it |
-| Animate `width` instead of `max-width` | Width is laid out; the page under a fixed bar would relayout on every scroll frame of the contract |
+| Animate the capsule's width or the label's `max-width` | Both are layout: every frame of the contract would relayout the bar (bible §10). Colour carries the contract; widths change in one step, a label's only after it has faded out |
 | Write the scroll handler without rAF | A fast scroll queues a state write per scroll event. The handler coalesces to one read per frame |
 | Give two navbars the same pill `layoutId` | Motion would animate one pill between the two bars. The id is minted per instance from `useId()` |
 | Read `compact` from a `scroll` listener on `document` when the page scrolls in a shell | The document's offset never changes, so the bar never contracts. That is what `scrollTarget` is for |

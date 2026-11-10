@@ -515,8 +515,8 @@ Guarded by docs `tests/designBible.spec.ts`. Order follows the bible's appendix.
   AppDock, AppImageModal, AppNotificationPreview. AppPageLoader moves on `scaleX`, not `width`.
   Exempt: infinite loading loops (`ease-in-out`) and AppToast's linear countdown. Guarded by the
   §10 block in docs `tests/designBible.spec.ts`.
-  Not changed: the capsule's `max-width` contraction in AppNavbar and `useDockFlight`'s spring,
-  which overshoots (damping ratio 0.74). Owner decides.
+  The capsule's `max-width` contraction and `useDockFlight`'s spring were left for the owner;
+  decided 2026-11-10 (see phase 9, "Still open").
 - [x] AppNavbar layout (user report, "the nav looks bad"): the full nav switches on a container
   query on the bar (`sm` 40rem … `xl` 80rem), not the viewport, so a narrow bar shows the menu
   button instead of overflowing; links don't wrap; the dark tone has an inverse CTA (Ink's accent
@@ -744,8 +744,16 @@ template `lint` and `typecheck` pass (`format:check` flags 29 untouched files: C
   useToast, useMotionTokens.
 - Not done, on purpose: useAppConfig. Three template layouts read its refs, so returning the plain
   object would break them for no gain.
-- Still open (user decision): useDockFlight's 420ms overshooting spring and AppNavbar's
-  `max-width` contraction.
+- ~~Still open (user decision): useDockFlight's 420ms overshooting spring and AppNavbar's
+  `max-width` contraction.~~ **Decided 2026-11-10 (user: "do the 2 open"), by bible §10:**
+  - useDockFlight: no spring. The flight runs on `--vt-duration-enter` and `--vt-ease`, read
+    live (`flightDuration()` replaces `FLIGHT_MS`); registry dep `useMotionTokens` added.
+  - AppNavbar: nothing animates a width. `compactWidth` defaults to `width`, so the capsule keeps
+    its measure and only its colour fades; a set `compactWidth` snaps. A folding label fades out
+    first, then its box closes in one step (`max-width 0s` after `--vt-duration`); opening, the
+    box opens and the label fades in. Sampled in Chrome on the showcase: label opacity 9 steps,
+    width 53 → 0 in one step, background 12 steps, capsule width constant.
+  - Guard: docs `designBible.spec.ts` "§10: no layout animation, no overshoot".
 
 ### 9.4 New composables (about 5 h, then adopt)
 

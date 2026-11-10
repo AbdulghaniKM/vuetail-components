@@ -113,7 +113,7 @@
     "AppNavbar": ["AppIcon", "useMotionTokens", "useReducedMotion"],
     "AppNotificationPreview": ["AppIcon", "useReducedMotion"],
     "useDockDrag": ["useDockPosition", "useDockFlight", "useKeyboard", "useReducedMotion"],
-    "useDockFlight": ["useDockPosition", "useReducedMotion"]
+    "useDockFlight": ["useDockPosition", "useMotionTokens", "useReducedMotion"]
   },
   "requires": {
     "useAuth": {
