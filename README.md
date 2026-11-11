@@ -103,6 +103,127 @@ pnpm add-component AppCheckbox
 
 ---
 
+### AppSwitch
+
+An on / off switch for a setting that applies at once (APG Switch). Inside a form with a Save
+button, use AppCheckbox instead (DESIGN.md, "Checkbox, radio and switch").
+
+```bash
+pnpm add-component AppSwitch
+```
+
+```vue
+<AppSwitch v-model="wifi" label="Wi-Fi" description="Join known networks automatically." />
+
+<!-- Label elsewhere in the row -->
+<AppSwitch v-model="row.on" aria-labelledby="digest-label" />
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `modelValue` | `boolean` | `false` | On or off (v-model) |
+| `label` | `string` | — | Visible name; a `<label for>` the switch, so clicking it toggles |
+| `description` | `string` | — | A line under the label, on `aria-describedby` |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Track size; every size has a 44px hit area |
+| `disabled` | `boolean` | `false` | Disables and dims the row |
+
+Emits `update:modelValue` and `change` with the new value. Other attributes (`aria-label`,
+`aria-labelledby`, `data-*`) reach the button.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Use a checkbox styled as a switch | `role="switch"` on a `<button>` makes screen readers say "on" / "off", and Space and Enter both toggle a button; a checkbox toggles on Space only |
+| Move the thumb with `left` or `margin` | The thumb moves on `translate` (bible §10), with `rtl:` flipping its direction, so nothing relays out and RTL needs no override |
+| Drop the `after:-inset-3` | It is the 44px hit area around a 20px track (bible §2); the label adds more when there is one |
+
+---
+
+### AppRadioGroup
+
+Pick one of a few options (APG Radio Group). Native `<input type="radio">`s in a `<fieldset>`
+with a `<legend>`.
+
+```bash
+pnpm add-component AppRadioGroup
+```
+
+```vue
+<AppRadioGroup
+  v-model="plan"
+  label="Plan"
+  :items="[
+    { label: 'Starter', value: 'starter', description: 'One project.' },
+    { label: 'Team', value: 'team' },
+    { label: 'Enterprise', value: 'enterprise', disabled: true },
+  ]"
+/>
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `modelValue` | `string \| number` | — | The selected value (v-model); the emitted value keeps the item's type |
+| `items` | `RadioItem[]` | — | `{ label, value, description?, disabled? }` |
+| `label` | `string` | — | The legend |
+| `orientation` | `'vertical' \| 'horizontal'` | `'vertical'` | Stacked or a wrapping row |
+| `error` | `string` | — | Message below with an icon; radios get a danger edge, `aria-invalid` and `aria-describedby` |
+| `disabled` | `boolean` | `false` | Disables the fieldset |
+| `name` | `string` | generated | The native `name` |
+
+Emits `update:modelValue` and `change`. Exports `RadioItem<V>`. In AppForm: `type: 'radio'`
+with `items` (plain strings work) and `orientation`.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Build it on `useRovingFocus` | Radios with one `name` already give one Tab stop, arrow keys that move and select, and "2 of 3"; a script would only copy that |
+| Put the error only on the fieldset's `aria-describedby` | Screen readers read a fieldset's description unevenly; each radio carries its own description and the error, so the focused one is always read in full |
+
+---
+
+### AppSlider
+
+A value or a range on a track (APG Slider and Multi-Thumb Slider). Each thumb is a styled native
+`<input type="range">`.
+
+```bash
+pnpm add-component AppSlider
+```
+
+```vue
+<AppSlider v-model="volume" label="Volume" :format="(v) => `${v}%`" />
+
+<!-- Range: pass [low, high] -->
+<AppSlider v-model="price" label="Price" :max="500" :step="10" :format="(v) => `$${v}`" />
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `modelValue` | `number \| [number, number]` | `0` | The value, or `[low, high]` for two thumbs |
+| `min` / `max` / `step` | `number` | `0` / `100` / `1` | The track |
+| `label` | `string` | — | Visible name; for a range it names the `role="group"` |
+| `format` | `(v: number) => string` | — | The shown value and each thumb's `aria-valuetext` |
+| `showValue` | `boolean` | `true` | Value beside the label |
+| `minLabel` / `maxLabel` | `string` | `'Minimum'` / `'Maximum'` | Names of a range's two thumbs |
+| `disabled` | `boolean` | `false` | Disables and dims it |
+
+Emits `update:modelValue` while a thumb moves and `change` when it is let go. Exports
+`SliderValue`. In AppForm: `type: 'slider'` with `min`, `max` and `step`.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Draw the thumbs as divs with pointer handlers | The native input gives arrows, Page Up / Down, Home / End, touch and the slider role for free |
+| Merge the WebKit and Gecko thumb classes | `::-webkit-slider-thumb` and `::-moz-range-thumb` must be separate rules: a selector list with one unknown pseudo-element is dropped whole. They are written out in full so Tailwind's scanner finds them |
+| Let the thumbs cross and sort the pair | A thumb that jumps past the other swaps identity under the pointer and the screen reader; each stops at the other instead, and its input is reset by hand because Vue skips an unchanged bound value |
+| Remove the `z-index` swap | Two inputs overlap; when both thumbs meet near the end only the top one is reachable, so the low one goes on top there or the pair could never move back |
+| Put the ring on the input | The input is 44px tall for the hit area; the ring goes on the thumb (`:focus-visible::-webkit-slider-thumb`) |
+
+---
+
 ### AppFilterPanel
 
 The single, schema-driven filtering component — a standalone collapsible card that owns **all** filtering logic (UI, value shapes, and the client-side predicate engine). It reuses AppForm's `FormFieldRow[]` schema and extends it with filter-only field types, so the same field definitions can drive a form and a filter bar. The parent binds `v-model`, passes the schema, and reacts to `@apply`; nothing fetches per keystroke. `AppTable` embeds it via its `filterFields` config, and it also works standalone.

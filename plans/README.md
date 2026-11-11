@@ -19,7 +19,7 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 8 | Apply DESIGN-BIBLE.md to the registry (P1–P8, below) | Done 2026-11-10 (uncommitted) |
 | 9 | Composables: fix the 25, add the four that components duplicate (below) | Done 2026-11-08 |
 | 10 | Icon set choice: Heroicons (default), Lucide, Phosphor, picked per project by the CLI (below) | Done 2026-11-10; docs preview per set left as optional |
-| 11 | New components: 8 basics, 5 from Pasta UI, the Sileo toast morph, interior.dev picks (below) | **Planned** 2026-11-11; 11.5 (AppToast morph, one toaster) done |
+| 11 | New components: 8 basics, 5 from Pasta UI, the Sileo toast morph, interior.dev picks (below) | In progress: 11.1 (switch, radio group, slider) and 11.5 (AppToast morph) done; user: finish 11 before 12 |
 | 12 | Blobify: the goo morph as a shared primitive (AppBlob, AppSwap, useBlob, useIndicator), then nine places it goes; ship step syncs the template and checks the docs deploy (below) | **Planned** 2026-11-11 |
 
 ## Phase 4 plan
@@ -604,19 +604,32 @@ width or overshoot animation, reduced motion, 44px hit areas in Ink and Pine. Ea
 pattern check with the keyboard script from WP5 and a crawl of its docs page in all 6
 preset × theme combinations at both widths. Order is by dependency, then by size.
 
-### 11.1 Form basics (about 1 day)
-- [ ] **AppSwitch.** APG Switch: `<button role="switch" aria-checked>`, Space and Enter
+### 11.1 Form basics (done 2026-11-11)
+- [x] **AppSwitch.** APG Switch: `<button role="switch" aria-checked>`, Space and Enter
   toggle, label clickable, `v-model: boolean`, `disabled`, `size`, optional `description`.
   Thumb moves on `transform`, not `left`. Works inside AppForm (`type: 'switch'` field) and
   AppFilterPanel. About 2 h.
-- [ ] **AppRadioGroup.** APG Radio Group: native `<input type="radio">` in a `<fieldset>` with
+- [x] **AppRadioGroup.** APG Radio Group: native `<input type="radio">` in a `<fieldset>` with
   a `<legend>`, so arrows and the single Tab stop come from the browser; `v-model`, `items`
   (`{ label, value, description?, disabled? }`), `orientation`, `error` (linked with
   `aria-describedby`). AppForm field `type: 'radio'`. About 2 h.
-- [ ] **AppSlider.** APG Slider: native `<input type="range">` styled, so keyboard and screen
+- [x] **AppSlider.** APG Slider: native `<input type="range">` styled, so keyboard and screen
   readers come free; `v-model: number` or `[number, number]` for a range (two inputs),
   `min` / `max` / `step`, value label, `aria-valuetext` formatter. The range needs its own
   thumb-crossing logic. About 4 h.
+
+**Done 2026-11-11 (uncommitted).** Three components with registry entries, README sections, docs
+pages and demos (Forms group), specs `appSwitch` 7, `appRadioGroup` 6, `appSlider` 7. Docs `pnpm test`
+871/871, `vue-tsc -b` clean. Chrome: 3 presets × light / dark at 1440 and 375, axe clean on all
+three pages (the disabled slider's value moved inside its `<label>`, since a disabled input's label
+is exempt from contrast); a real mouse drags both range thumbs and they stop at each other; the ring
+sits on the thumb; a click 10px above the switch track toggles it.
+- AppForm takes `type: 'radio'` (`items`, `orientation`) and `type: 'slider'` (`min`, `max`, `step`).
+  `src/types/form.types.ts` gained both types plus `step` and `orientation`, in docs and in the
+  template (user OK 2026-11-11).
+- [x] Decided 2026-11-11, user: **keep the rule.** DESIGN.md says never put a switch in a form with
+  a Save button, and AppForm always has one, so AppForm has no `switch` field. AppFilterPanel's
+  `boolean` fields stay checkboxes for the same reason (the panel has an Apply button).
 
 ### 11.2 Disclosure and navigation (about 1 day)
 - [ ] **AppTabs.** Promote the docs' `PreviewCodeTabs` onto `useRovingFocus`: `role=tablist /
@@ -723,9 +736,9 @@ source:
   presets. Spec `appToast.spec.ts` 13. Docs `pnpm test` 807/807, build clean, template
   typecheck clean. Chrome: formal in Ink light and Pine dark, expressive in Pine; axe on the
   toaster clean; 0 page errors.
-- [ ] Open: the surface tone has no shadow (a hand-written `drop-shadow` would break §5, and
+- [x] Decided 2026-11-11, **no** elevation token: the surface tone has no shadow (a hand-written `drop-shadow` would break §5, and
   `--shadow-lg` is a box-shadow), so on busy pages it sits flat. Option: an elevation token in
-  `filter: drop-shadow()` form. User decides.
+  `filter: drop-shadow()` form. User said no; the surface tone stays flat, with its edge.
 - [x] Bug (user report, screenshot): switching the position of a toast that is showing left it a
   40px pill with a short body and its text spilling out. The move mounts a new copy in the other
   region; the old copy reported 0x0 to the ResizeObserver as it left and overwrote the size, and
@@ -800,9 +813,8 @@ it. Limits, from the filter itself:
     an alias for one release, then goes.
   - `--vt-morph-duration`: Ink 500ms, Pine 600ms, Console 320ms, reduced 0ms. AppToast's
     hard-coded 600ms (`SPRING_S`) reads it; the survey found it 5 × Console's state duration.
-  - Decision for the user (open since 2026-11-11): an elevation token in `drop-shadow()` form,
-    `--vt-elevation-2-filter`, for blobs that float (surface toast, bulk bar, tooltip). Without it
-    they stay flat, with an edge.
+  - No elevation token in `drop-shadow()` form (user, 2026-11-11). Blobs that float (surface
+    toast, bulk bar, tooltip) stay flat, with an edge.
 - [ ] DESIGN.md: the two tokens, the limits above, and the budget.
 
 ### 12.1 The primitives (about 5 h, with specs and doc pages)

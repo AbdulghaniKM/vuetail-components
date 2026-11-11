@@ -71,6 +71,28 @@
             @update:model-value="setFieldValue(field.key, $event)"
           />
 
+          <AppRadioGroup
+            v-else-if="field.type === 'radio'"
+            :model-value="getTextValue(field.key)"
+            :label="field.label"
+            :items="radioItems(field)"
+            :orientation="field.orientation"
+            :disabled="field.readonly"
+            :error="displayErrors[field.key]"
+            @update:model-value="setFieldValue(field.key, $event)"
+          />
+
+          <AppSlider
+            v-else-if="field.type === 'slider'"
+            :model-value="getFieldValue(field.key) as number | [number, number]"
+            :label="field.label"
+            :min="field.min !== undefined ? Number(field.min) : undefined"
+            :max="field.max !== undefined ? Number(field.max) : undefined"
+            :step="field.step"
+            :disabled="field.readonly"
+            @update:model-value="setFieldValue(field.key, $event)"
+          />
+
           <FileInput
             v-else-if="field.type === 'file'"
             :model-value="getFieldValue(field.key)"
@@ -113,6 +135,8 @@
   import PhoneInput from './PhoneInput.vue';
   import DatePicker from './DatePicker.vue';
   import FileInput from './FileInput.vue';
+  import AppRadioGroup, { type RadioItem } from '../AppRadioGroup.vue';
+  import AppSlider from '../AppSlider.vue';
   import type { FormField, FormFieldRow } from '@/types/form.types';
 
   const GRID_COLS_CLASS: Record<number, string> = {
@@ -183,6 +207,10 @@
     }
     emit('update:modelValue', { ...props.modelValue, [key]: value });
   };
+
+  // `items` may be plain strings, as for Select; a radio needs a label and a value for each.
+  const radioItems = (field: FormField): RadioItem[] =>
+    (field.items ?? []).map((item) => (typeof item === 'string' ? { label: item, value: item } : item));
 
   const getDefaultRowClass = (row: FormField[]) => {
     const fieldCount = row.length;
