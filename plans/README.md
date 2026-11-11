@@ -19,7 +19,7 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 8 | Apply DESIGN-BIBLE.md to the registry (P1–P8, below) | Done 2026-11-10 (uncommitted) |
 | 9 | Composables: fix the 25, add the four that components duplicate (below) | Done 2026-11-08 |
 | 10 | Icon set choice: Heroicons (default), Lucide, Phosphor, picked per project by the CLI (below) | Done 2026-11-10; docs preview per set left as optional |
-| 11 | New components: 8 basics, 5 from Pasta UI, the Sileo toast morph, interior.dev picks (below) | In progress: 11.1 (switch, radio group, slider) and 11.5 (AppToast morph) done; user: finish 11 before 12 |
+| 11 | New components: 8 basics, 5 from Pasta UI, the Sileo toast morph, interior.dev picks (below) | In progress: 11.1 (switch, radio group, slider), 11.2 (tabs, accordion, dropdown menu) and 11.5 (AppToast morph) done; user: finish 11 before 12 |
 | 12 | Blobify: the goo morph as a shared primitive (AppBlob, AppSwap, useBlob, useIndicator), then nine places it goes; ship step syncs the template and checks the docs deploy (below) | **Planned** 2026-11-11 |
 
 ## Phase 4 plan
@@ -631,20 +631,41 @@ sits on the thumb; a click 10px above the switch track toggles it.
   a Save button, and AppForm always has one, so AppForm has no `switch` field. AppFilterPanel's
   `boolean` fields stay checkboxes for the same reason (the panel has an Apply button).
 
-### 11.2 Disclosure and navigation (about 1 day)
-- [ ] **AppTabs.** Promote the docs' `PreviewCodeTabs` onto `useRovingFocus`: `role=tablist /
+### 11.2 Disclosure and navigation (done 2026-11-11)
+- [x] **AppTabs.** Promote the docs' `PreviewCodeTabs` onto `useRovingFocus`: `role=tablist /
   tab / tabpanel`, arrows, Home / End, automatic or manual activation, `v-model` on the key,
   `items` or slots, the sliding pill from AppNavbar (`layoutId`, on the state tokens). Docs
   switch to it afterwards. About 3 h.
-- [ ] **AppAccordion.** APG Accordion: heading-wrapped `<button aria-expanded aria-controls>`,
+- [x] **AppAccordion.** APG Accordion: heading-wrapped `<button aria-expanded aria-controls>`,
   `multiple` or single, `v-model` on open keys. The panel opens without animating height (bible
   §10): `<details>`-style instant open with a content fade, or a `grid-template-rows` 0fr → 1fr
   step. Decide in the build; fade is the default. About 3 h.
-- [ ] **AppDropdownMenu.** APG Menu Button on top of AppPopover (it already moves focus in,
+- [x] **AppDropdownMenu.** APG Menu Button on top of AppPopover (it already moves focus in,
   closes on Tab and Escape): `role=menu / menuitem`, arrows, Home / End, type-ahead, `items`
   (`{ label, icon?, onSelect, danger?, disabled?, shortcut? }`), separators and groups,
   `menuitemcheckbox` / `menuitemradio`. Replaces the hand-built menus in AdvancedAppTable's
   column picker and the popover demo. About 4 h.
+
+**Done 2026-11-11 (uncommitted).** Docs `pnpm test` 931/931, `vue-tsc -b` clean. Specs `appTabs` 9,
+`appAccordion` 7, `appDropdownMenu` 9, `useRovingFocus` +2. Chrome: the four pages in 3 presets x light /
+dark at 1440 and 375, axe clean (the dropdown also with the menu open); keyboard driven in Ink
+light, Pine dark and Console light.
+- AppTabs: `pill` (accent-subtle, as the bible's selected tab) and `line` variants, vertical,
+  automatic or manual, `lazy`, `listClass` / `panelClass`. The Tab stop returns to the selected
+  tab when focus leaves in manual mode. The docs' PreviewCodeTabs is now a wrapper on it, so every
+  example's Preview / Code tabs moved from a `muted` fill to the accent-subtle pill.
+- useRovingFocus gained `dir` (`'auto'` reads the container): ArrowLeft moves to the next item in
+  RTL. Before, every roving widget had the arrows backwards in RTL.
+- AppAccordion: fade is the decision (no grid-rows step). Headings 2-6, `card` or `plain`, region
+  role up to six panels, Up / Down / Home / End between headers, nested accordions keep their own.
+- AppDropdownMenu: groups with headings, separators, checkbox and radio items that keep it open,
+  custom trigger through `attrs`. AdvancedAppTable's display menu (layout, density, columns) now is
+  one, so it has the menu keys; its hand-built switch rows and their CSS are gone (columns are
+  checkbox items). The AppPopover demo now shows a small share form instead of a menu, and its
+  page points menus to AppDropdownMenu.
+- [ ] Open: AdvancedAppTable's rows-per-page popover is still a hand-built list (buttons with no
+  menu or listbox role). It is a single choice, so a Select or an AppDropdownMenu with radio items
+  would fit; not changed here.
 
 ### 11.3 Surfaces and display (about 1 day)
 - [ ] **AppDrawer.** A side sheet on `useOverlay` (shared stack, scroll lock, focus trap and

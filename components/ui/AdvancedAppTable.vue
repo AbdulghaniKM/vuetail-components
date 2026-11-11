@@ -54,89 +54,19 @@
     <!-- Display menu — layout, density and columns in one control -->
     <div v-if="showDisplayMenu" class="mb-2 flex items-center justify-end gap-2">
       <slot name="surface-bar" />
-      <AppPopover
-        placement="bottom-end"
-        :close-on-content-click="false"
-        panel-class="w-56 rounded-xl border border-border bg-surface p-1.5 shadow-lg"
-      >
-        <template #trigger="{ toggle, isOpen, triggerAttrs }">
-          <button
-            v-bind="triggerAttrs"
-            type="button"
-            class="at-chrome-trigger"
-            :class="{ 'is-open': isOpen }"
-            aria-haspopup="menu"
-            :title="displayMenuTitle"
-            @click="toggle"
-          >
+      <!-- AppDropdownMenu gives the APG menu keys (arrows, Home, End, type-ahead, Escape, Tab out)
+           that the hand-built list lacked. Columns are checkbox items, not selected-row fills:
+           hiding columns is a set of on/off choices, not "pick one of these". -->
+      <AppDropdownMenu :items="displayMenuItems" placement="bottom-end">
+        <template #trigger="{ attrs, open }">
+          <button v-bind="attrs" type="button" class="at-chrome-trigger" :class="{ 'is-open': open }" :title="displayMenuTitle">
             <AppIcon name="icon-[heroicons--view-columns]" :size="1" />
             <span>{{
               hiddenCount > 0 ? `${visibleHideableCount}/${hideableColumns.length} ${columnsLabel}` : columnsLabel
             }}</span>
           </button>
         </template>
-
-        <template #default>
-          <template v-if="!view">
-            <div class="at-menu-title">{{ layoutLabel }}</div>
-            <button
-              v-for="option in TABLE_VIEWS"
-              :key="option"
-              type="button"
-              role="menuitemradio"
-              :aria-checked="activeView === option"
-              class="at-menu-item"
-              :class="{ 'is-active': activeView === option }"
-              @click="setView(option)"
-            >
-              <AppIcon :name="VIEW_ICONS[option]" :size="1" />
-              {{ VIEW_LABELS[option] }}
-            </button>
-          </template>
-
-          <template v-if="!density">
-            <div class="at-menu-title">{{ densityLabel }}</div>
-            <button
-              v-for="option in TABLE_DENSITIES"
-              :key="option"
-              type="button"
-              role="menuitemradio"
-              :aria-checked="activeDensity === option"
-              class="at-menu-item"
-              :class="{ 'is-active': activeDensity === option }"
-              @click="setDensity(option)"
-            >
-              <AppIcon :name="DENSITY_ICONS[option]" :size="1" />
-              {{ DENSITY_LABELS[option] }}
-            </button>
-          </template>
-
-          <template v-if="hideableColumns.length > 0">
-            <div class="at-menu-title">{{ columnsLabel }}</div>
-            <!-- Switch rows, not selected-row fills: hiding columns is a set of
-                 independent on/off choices, not "pick one of these". -->
-            <button
-              v-for="col in hideableColumns"
-              :key="col.key"
-              type="button"
-              role="menuitemcheckbox"
-              :aria-checked="!isHidden(col.key)"
-              class="at-menu-item at-switch-item"
-              :class="{ 'is-on': !isHidden(col.key) }"
-              :disabled="!isHidden(col.key) && visibleHideableCount === 1"
-              @click="toggleColumn(col.key)"
-            >
-              <span class="at-switch-label">{{ col.label }}</span>
-              <span class="at-switch" :data-on="!isHidden(col.key)" />
-            </button>
-
-            <button v-if="hiddenCount > 0" type="button" class="at-menu-item" @click="showAllColumns">
-              <AppIcon name="icon-[heroicons--check]" :size="1" class="text-accent" />
-              {{ showAllLabel }}
-            </button>
-          </template>
-        </template>
-      </AppPopover>
+      </AppDropdownMenu>
     </div>
 
     <div class="at-surface">
@@ -587,6 +517,7 @@ import AppIcon from './AppIcon.vue';
 import AppButton from './AppButton.vue';
 import AppCheckbox from './AppCheckbox.vue';
 import AppPopover from './AppPopover.vue';
+import AppDropdownMenu, { type MenuGroup } from './AppDropdownMenu.vue';
 import { useDebounce } from '@/composables/useDebounce';
 import { TABLE_DENSITIES, TABLE_VIEWS, useHiddenColumns, useTableDisplay } from '@/composables/useTableDisplay';
 
@@ -810,6 +741,49 @@ const toggleColumn = (key: string) => {
   setHidden(current.includes(key) ? current.filter((k) => k !== key) : [...current, key]);
 };
 const showAllColumns = () => setHidden([]);
+
+// One menu for layout, density and columns. A group whose prop pins it (`view`, `density`) is left out.
+const displayMenuItems = computed<MenuGroup[]>(() => {
+  const groups: MenuGroup[] = [];
+  if (!props.view)
+    groups.push({
+      label: props.layoutLabel,
+      items: TABLE_VIEWS.map((option) => ({
+        label: VIEW_LABELS[option],
+        icon: VIEW_ICONS[option],
+        type: 'radio' as const,
+        checked: activeView.value === option,
+        onSelect: () => setView(option),
+      })),
+    });
+  if (!props.density)
+    groups.push({
+      label: props.densityLabel,
+      items: TABLE_DENSITIES.map((option) => ({
+        label: DENSITY_LABELS[option],
+        icon: DENSITY_ICONS[option],
+        type: 'radio' as const,
+        checked: activeDensity.value === option,
+        onSelect: () => setDensity(option),
+      })),
+    });
+  if (hideableColumns.value.length > 0)
+    groups.push({
+      label: props.columnsLabel,
+      items: [
+        ...hideableColumns.value.map((col) => ({
+          label: col.label,
+          type: 'checkbox' as const,
+          checked: !isHidden(col.key),
+          // The last visible column stays: a table with no columns shows nothing to switch back.
+          disabled: !isHidden(col.key) && visibleHideableCount.value === 1,
+          onSelect: () => toggleColumn(col.key),
+        })),
+        ...(hiddenCount.value > 0 ? [{ label: props.showAllLabel, icon: 'icon-[heroicons--eye]', onSelect: showAllColumns }] : []),
+      ],
+    });
+  return groups;
+});
 
 const visibleColumns = computed(() => props.columns.filter((col) => !isHidden(col.key)));
 const visibleHideableCount = computed(() => hideableColumns.value.filter((col) => !isHidden(col.key)).length);
@@ -1724,13 +1698,6 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   border-color: var(--color-accent);
 }
 
-.at-menu-title {
-  font-size: var(--text-xs, 0.75rem);
-  font-weight: 500;
-  color: var(--color-text-muted);
-  padding: 0.5rem 0.5rem 0.25rem;
-}
-
 .at-menu-item {
   width: 100%;
   display: flex;
@@ -1760,64 +1727,6 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 .at-menu-item:disabled {
   opacity: 0.45;
   cursor: default;
-}
-
-/* Independent on/off choices, so the control carries the state instead of a
-   selected-row fill — that reads as "one of these", which columns are not. */
-.at-switch-item {
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.at-switch-item.is-on {
-  color: var(--color-text);
-}
-
-.at-switch-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.at-switch {
-  position: relative;
-  flex: 0 0 auto;
-  width: 1.75rem;
-  height: 1rem;
-  border-radius: var(--radius-switch);
-  background: color-mix(in srgb, var(--color-text) 10%, transparent);
-  border: 1px solid var(--color-border);
-  transition:
-    background var(--vt-duration) var(--vt-ease),
-    border-color var(--vt-duration) var(--vt-ease);
-}
-
-.at-switch::after {
-  content: '';
-  position: absolute;
-  top: 0.125rem;
-  inset-inline-start: 0.125rem;
-  width: 0.625rem;
-  height: 0.625rem;
-  border-radius: var(--radius-switch);
-  background: var(--color-text-muted);
-  transition:
-    transform var(--vt-duration) var(--vt-ease),
-    background var(--vt-duration) var(--vt-ease);
-}
-
-.at-switch[data-on='true'] {
-  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
-  border-color: var(--color-accent);
-}
-
-.at-switch[data-on='true']::after {
-  background: var(--color-accent);
-  transform: translateX(0.75rem);
-}
-
-[dir='rtl'] .at-switch[data-on='true']::after {
-  transform: translateX(-0.75rem);
 }
 
 /* ── Bulk bar ───────────────────────────────────────────────────────────────── */
@@ -2038,11 +1947,6 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   .at-skeleton,
   .at-bulkbar-in {
     animation: none;
-  }
-
-  .at-switch,
-  .at-switch::after {
-    transition: none;
   }
 }
 </style>

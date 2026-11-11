@@ -30,6 +30,11 @@ export interface RovingFocusOptions {
   container?: Ref<HTMLElement | null | undefined>;
   /** How items are found in `container`, in DOM order. Default: elements with an ARIA item role. */
   itemSelector?: string;
+  /**
+   * Text direction for the left and right arrows. 'auto' (default) reads it from `container`, so
+   * in RTL ArrowLeft moves to the next item, as APG asks. Without a container, 'auto' is LTR.
+   */
+  dir?: MaybeRefOrGetter<'ltr' | 'rtl' | 'auto'>;
   /** Called after the index changes from a key (automatic tab activation, select on move). */
   onChange?: (index: number) => void;
 }
@@ -95,6 +100,13 @@ export function useRovingFocus(options: RovingFocusOptions) {
     if (focus && options.container) items()[index]?.focus();
   };
 
+  const isRtl = () => {
+    const dir = toValue(options.dir) ?? 'auto';
+    if (dir !== 'auto') return dir === 'rtl';
+    const el = options.container?.value;
+    return !!el && typeof getComputedStyle === 'function' && getComputedStyle(el).direction === 'rtl';
+  };
+
   let typed = '';
   let typedAt = 0;
   const typeahead = (char: string): number => {
@@ -120,7 +132,8 @@ export function useRovingFocus(options: RovingFocusOptions) {
     let next = -1;
 
     if (move && (orientation === 'both' || orientation === move.axis)) {
-      next = active.value < 0 ? firstEnabled(move.step === 1 ? 0 : count() - 1, move.step) : step(active.value, move.step);
+      const dir = move.axis === 'horizontal' && isRtl() ? (-move.step as 1 | -1) : move.step;
+      next = active.value < 0 ? firstEnabled(dir === 1 ? 0 : count() - 1, dir) : step(active.value, dir);
     } else if (e.key === 'Home') {
       next = firstEnabled(0, 1);
     } else if (e.key === 'End') {

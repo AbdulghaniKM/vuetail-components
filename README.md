@@ -1901,6 +1901,122 @@ Adding a third wrapper later costs one more line, not another copy of the button
 
 ---
 
+### AppTabs
+
+Tabs (APG Tabs) with one indicator that travels between them. Panels come from a slot named
+after each key.
+
+```bash
+pnpm add-component AppTabs
+```
+
+```vue
+<AppTabs v-model="tab" :items="[{ key: 'overview', label: 'Overview' }, { key: 'activity', label: 'Activity' }]" label="Project">
+  <template #overview>…</template>
+  <template #activity>…</template>
+</AppTabs>
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `modelValue` | `string` | first enabled key | The selected key (v-model; works without) |
+| `items` | `TabItem[]` | — | `{ key, label, icon?, disabled? }` |
+| `label` | `string` | — | `aria-label` of the tab list |
+| `variant` | `'pill' \| 'line'` | `'pill'` | A filled shape behind the tab, or a bar under it on a rule |
+| `orientation` | `'horizontal' \| 'vertical'` | `'horizontal'` | Vertical uses Up and Down |
+| `activation` | `'automatic' \| 'manual'` | `'automatic'` | Manual: the arrows move focus, Enter or Space selects |
+| `size` | `'sm' \| 'md'` | `'md'` | Height from the density tokens |
+| `lazy` | `boolean` | `false` | Render a panel when first shown, then keep it |
+| `listClass` / `panelClass` | `string` | — | Added to the list; replaces the panels' spacing (`pt-3`, `ps-4` vertical) |
+
+Emits `change(key)`. Exports `TabItem`. Needs `motion-v` (the indicator). The docs' Preview /
+Code tabs are AppTabs.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Fade a fill in under the new tab | One element with `layout-id` moves by transform from the old tab to the new one, as AppNavbar's pill does; under reduced motion it jumps |
+| Leave the Tab stop on the tab that was last focused | In manual mode focus can wander from the selected tab; when it leaves the list, the one Tab stop goes back to the selected tab |
+| Drop `tabindex="0"` on the panels | APG: a panel whose first content is not focusable takes focus itself, or Tab jumps from the tabs past the content |
+
+---
+
+### AppAccordion
+
+Sections that open and close (APG Accordion).
+
+```bash
+pnpm add-component AppAccordion
+```
+
+```vue
+<AppAccordion v-model="open" :items="[{ key: 'plans', title: 'Can I change plans later?', content: 'Yes.' }]" />
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `modelValue` | `string[]` | `[]` | Keys of the open panels (v-model) |
+| `items` | `AccordionItem[]` | — | `{ key, title, content?, icon?, disabled? }`; a slot named after the key replaces `content` |
+| `multiple` | `boolean` | `false` | Let several stay open |
+| `headingLevel` | `2`–`6` | `3` | The heading around each header button |
+| `variant` | `'card' \| 'plain'` | `'card'` | A bordered level-1 surface, or rules only |
+
+Emits `toggle(key, open)`. Up, Down, Home and End move between headers.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Animate the panel's height | Bible §10. The panel opens at full height at once and fades its content in; closing is instant, so the page below never waits |
+| Make the headers one roving Tab stop | APG keeps every accordion header in the Tab order; the arrows are an extra |
+| Make every panel a `region` | Past six panels the landmark list fills up with them (APG), so the role is dropped then |
+
+---
+
+### AppDropdownMenu
+
+A menu button (APG Menu Button) on AppPopover.
+
+```bash
+pnpm add-component AppDropdownMenu
+```
+
+```vue
+<AppDropdownMenu label="Actions" :items="[
+  { label: 'Edit', icon: 'icon-[heroicons--pencil-square]', shortcut: 'E', onSelect: edit },
+  { label: 'Archive', disabled: true },
+  { items: [{ label: 'Delete', danger: true, onSelect: remove }] },
+]" />
+
+<!-- Custom trigger: bind attrs -->
+<AppDropdownMenu :items="items">
+  <template #trigger="{ attrs, open }"><button v-bind="attrs" aria-label="More">…</button></template>
+</AppDropdownMenu>
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `items` | `(MenuItem \| MenuGroup)[]` | — | Items, and groups `{ label?, items }` split off by separators |
+| `label` / `icon` | `string` | `'Options'` | The default trigger |
+| `placement` | `'bottom-start' \| 'bottom-end' \| 'top-start' \| 'top-end'` | `'bottom-start'` | Flips when there is no room |
+| `disabled` | `boolean` | `false` | Disables the trigger |
+
+`MenuItem`: `{ label, type?: 'item' | 'checkbox' | 'radio', icon?, shortcut?, danger?, disabled?,
+checked?, onSelect? }`. Checkbox and radio items keep the menu open; the state is yours, passed back
+as `checked`. Emits `select(item)`. Exposes `open()` and `close()`. AdvancedAppTable's display menu
+is one.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Make the items buttons | Items are `tabindex="-1"` elements with menu roles, so AppPopover's Tab handling sees nothing focusable: Tab closes the menu and moves on past the trigger, as APG asks |
+| Focus the first item in the same tick as opening | AppPopover records where to return focus one tick after it opens; moving earlier makes Escape return focus to a menu item |
+| Handle Enter and Space on the trigger | They reach the button as a click; handling the keys as well would open and close it at once |
+
+---
+
 ## Composable reference
 
 Each composable is installed with `pnpm add-composable <name>` and lands in `src/composables/`.
@@ -2326,6 +2442,7 @@ const list = useRovingFocus({ count: () => options.value.length, label: (i) => o
 | `label(i)` | — | Turns on type-ahead. Leave it off when typing goes into a search box |
 | `initial` | `0` | `-1` for none |
 | `container` | — | Roving-tabindex mode; items are found by ARIA role or `itemSelector` |
+| `dir` | `'auto'` | `'ltr'`, `'rtl'`, or `'auto'` to read it from `container`: in RTL, ArrowLeft moves to the next item |
 | `onChange(i)` | — | After a key moved the index (automatic tab activation) |
 
 Returns `active`, `onKeydown(e)` (returns whether it used the key, and prevents its default only

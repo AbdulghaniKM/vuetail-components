@@ -2,10 +2,12 @@
   "schemaVersion": 1,
   "components": [
     "AdvancedAppTable",
+    "AppAccordion",
     "AppBadge",
     "AppButton",
     "AppCheckbox",
     "AppDock",
+    "AppDropdownMenu",
     "AppEmptyState",
     "AppErrorBoundary",
     "AppFilterPanel",
@@ -25,6 +27,7 @@
     "AppSpinner",
     "AppSwitch",
     "AppTable",
+    "AppTabs",
     "AppText",
     "AppToast",
     "AppTooltip",
@@ -75,10 +78,12 @@
   ],
   "styles": ["tokens"],
   "dependencies": {
-    "AdvancedAppTable": ["AppIcon", "AppButton", "AppCheckbox", "AppPopover", "useDebounce", "useTableDisplay"],
+    "AdvancedAppTable": ["AppIcon", "AppButton", "AppCheckbox", "AppPopover", "AppDropdownMenu", "useDebounce", "useTableDisplay"],
+    "AppAccordion": ["AppIcon"],
     "AppBadge": [],
     "AppButton": ["AppIcon", "AppSpinner", "AppTooltip", "AppLiquidGlass"],
     "AppCheckbox": ["AppIcon"],
+    "AppDropdownMenu": ["AppIcon", "AppPopover", "useRovingFocus"],
     "AppEmptyState": ["AppIcon"],
     "AppErrorBoundary": ["AppIcon"],
     "AppFilterPanel": ["AppButton", "AppIcon", "AppPopover", "AppCheckbox", "AppBadge", "Fields/InputField", "Fields/Select", "Fields/PhoneInput", "Fields/DatePicker"],
@@ -96,6 +101,7 @@
     "AppSpinner": [],
     "AppSwitch": [],
     "AppTable": ["AppButton", "AppIcon", "AppModal", "AppPopover", "AppTooltip", "AppCheckbox", "AppBadge", "AppFilterPanel", "Fields/Select", "Fields/DatePicker", "Fields/InputField", "useConfirm", "useDebounce", "useLocalStorage", "usePagination", "useMotionTokens"],
+    "AppTabs": ["AppIcon", "useRovingFocus", "useMotionTokens", "useReducedMotion"],
     "AppText": [],
     "AppToast": ["AppIcon", "useToast", "useMotionTokens", "useReducedMotion", "useAnnouncer"],
     "AppTooltip": ["useBreakpoint"],
@@ -186,6 +192,9 @@
       "packages": ["motion-v@^2.2.1"]
     },
     "AppModal": {
+      "packages": ["motion-v@^2.2.1"]
+    },
+    "AppTabs": {
       "packages": ["motion-v@^2.2.1"]
     },
     "useReducedMotion": {
