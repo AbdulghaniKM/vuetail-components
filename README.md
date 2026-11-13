@@ -2273,6 +2273,8 @@ pnpm add-component AppAvatar
 | `statusLabel` | `string` | `'Online'`, `'Away'`… | The status word (screen readers and tooltip) |
 | `hue` | `AvatarHue` | from `seed` | A fixed tint |
 | `seed` | `string` | `name` | What the tint is derived from; pass a user id to keep it when the name changes |
+| `tooltip` | `boolean` | `false` | Show the name and status in an AppTooltip on hover |
+| `tooltipPlacement` | `'top' \| 'bottom' \| 'start' \| 'end'` | `'top'` | Preferred side; it flips when there is no room |
 
 Exports `AvatarSize`, `AvatarShape`, `AvatarStatus`, `AvatarHue`, `AVATAR_HUES`,
 `AVATAR_STATUS_LABELS`, `avatarHue(seed)` and `avatarInitials(name, max?)`. The dot's ring and
@@ -2359,6 +2361,15 @@ pnpm add-component AppAvatarGroup
 | `total` | `number` | — | The real count when `items` is one page; raises the "+N" |
 | `label` | `string` | — | Names the list |
 | `size` / `shape` | as AppAvatar | `'md'` / `'circle'` | For every avatar and the tile |
+| `reveal` | `'blob' \| 'tooltip' \| 'none'` | `'blob'` | What hovering a face shows: a ring and a name pill that drips out of it through [AppBlob](#appblob) and slides along the row; an AppTooltip; or nothing |
+| `revealPlacement` | `'bottom' \| 'top'` | `'bottom'` | Which side the pill drips to |
+
+With `reveal="blob"` the list is one tab stop: arrows (RTL-aware), Home and End walk the faces and
+the +N tile (which names who it hides), Escape hides the pill. The pill says the name and status
+word ("Omar Haddad · In a meeting"), cross-fades through AppSwap, springs as it appears (Pine
+bounces) and follows the pointer on a short tween. One canvas per group; it is `aria-hidden`,
+since every name is already in its avatar's accessible name. The pill stays inside the nearest
+clipping parent and the viewport.
 
 Slot `overflow` (`{ count, hidden }`) replaces the tile, for a button that opens the full list.
 Exports `AvatarGroupItem`.
@@ -2368,7 +2379,9 @@ Exports `AvatarGroupItem`.
 | Don't | Because |
 |---|---|
 | Make the group a `div` of images | A labelled `role="list"` tells screen readers how many there are; `role` is set because Safari drops list semantics from an unstyled `ul` |
-| Write "+3" as the tile's only text | The tile is `role="img"` named "3 more: Margaret Hamilton, …", so the hidden names are not lost; the names are also its tooltip |
+| Write "+3" as the tile's only text | The tile is `role="img"` named "3 more: Margaret Hamilton, …", so the hidden names are not lost; the reveal names them on hover (a native `title` only with `reveal="none"`) |
+| Give each face its own blob | One AppBlob for the row stays inside the blob budget; the hovered face lifts above its neighbours and the canvas sits between them, so the ring overlaps the faces beside it |
+| Let the pill and ring fly to a face from closed | The closed shapes jump, unseen, onto the face first, so the pill grows out of the face it names |
 | Overlap with `-ml-*` | `-ms-*` is logical, so the stack runs the other way in RTL |
 | Separate the avatars with an outline or a box-shadow | Each sits on a 2px disc of `--vt-avatar-cut`: an outline would fight the focus ring and a box-shadow is not an elevation step |
 

@@ -1,4 +1,5 @@
 <template>
+  <component :is="tooltip && named ? AppTooltip : Passthrough" v-bind="tooltip && named ? { content: accessibleName, placement: tooltipPlacement } : {}">
   <span
     class="app-avatar relative inline-flex shrink-0 align-middle"
     :class="SIZE[size]"
@@ -24,6 +25,7 @@
     <span v-if="status" class="app-avatar-status absolute -bottom-px -end-px rounded-full" :class="DOT[size]" :data-status="status" :title="statusWord" aria-hidden="true" />
     <span v-if="status && !named" class="sr-only">{{ statusWord }}</span>
   </span>
+  </component>
 </template>
 
 <script lang="ts">
@@ -68,7 +70,10 @@ export const AVATAR_STATUS_LABELS: Record<AvatarStatus, string> = {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, defineComponent, ref, watch } from 'vue';
+import AppTooltip from '@/components/ui/AppTooltip.vue';
+
+const Passthrough = defineComponent({ setup: (_, { slots }) => () => slots.default?.() });
 
 const props = withDefaults(
   defineProps<{
@@ -88,8 +93,11 @@ const props = withDefaults(
     hue?: AvatarHue;
     /** What the hue is derived from. Defaults to `name`; pass a user id to keep the colour when a name changes. */
     seed?: string;
+    /** Show the name (and status) in an AppTooltip on hover. For a group, AppAvatarGroup's `reveal`. */
+    tooltip?: boolean;
+    tooltipPlacement?: 'top' | 'bottom' | 'start' | 'end';
   }>(),
-  { size: 'md', shape: 'circle' },
+  { size: 'md', shape: 'circle', tooltip: false, tooltipPlacement: 'top' },
 );
 
 const SIZE: Record<AvatarSize, string> = { xs: 'size-6', sm: 'size-8', md: 'size-10', lg: 'size-12', xl: 'size-16' };

@@ -95,8 +95,8 @@
   "dependencies": {
     "AdvancedAppTable": ["AppIcon", "AppButton", "AppCheckbox", "AppDropdownMenu", "useDebounce", "useTableDisplay"],
     "AppAccordion": ["AppIcon"],
-    "AppAvatar": [],
-    "AppAvatarGroup": ["AppAvatar"],
+    "AppAvatar": ["AppTooltip"],
+    "AppAvatarGroup": ["AppAvatar", "AppBlob", "AppSwap", "AppTooltip", "useBlob"],
     "AppBadge": [],
     "AppBlob": ["useBlob"],
     "AppButton": ["AppIcon", "AppSpinner", "AppTooltip", "AppLiquidGlass", "useReducedMotion"],
@@ -222,6 +222,9 @@
       "packages": ["motion-v@^2.2.1"]
     },
     "AppBlob": {
+      "packages": ["motion-v@^2.2.1"]
+    },
+    "AppAvatarGroup": {
       "packages": ["motion-v@^2.2.1"]
     },
     "AppModal": {

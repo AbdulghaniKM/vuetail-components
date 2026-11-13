@@ -940,6 +940,13 @@ falls back to a fade or a jump, checked in all 6 preset × theme combinations at
 9. [ ] **Wizard / task steps** (M, 4 h, when that component exists): the done connector flows
    into the next dot; at most 10 shapes in one canvas; progress announced as text.
 
+10. [x] **AppAvatarGroup reveal** (user, 2026-11-13; done): hovering a face closes a ring of
+   ink around it and drips a name pill out of it, one AppBlob per group; the pill slides along the
+   row on `quick()`, the name swaps through AppSwap, +N names who it hides. The group is one tab
+   stop with arrow keys. `reveal: 'tooltip' | 'none'` opt out; AppAvatar gains `tooltip`.
+   Also fixed on the way (user: "tooltips is so bad"): AppTooltip on <body>, sized to its text,
+   flips and clamps, aria-describedby on the control, Escape, hoverable, one at a time.
+
 ### Not blobbed, and why
 - Popover, Select, AppDropdownMenu, CommandPalette, AppModal growing from their trigger: the
   trigger is the consumer's markup and cannot be in the canvas; content would wait on the shape;
