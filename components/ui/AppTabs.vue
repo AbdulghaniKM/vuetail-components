@@ -5,7 +5,7 @@
       role="tablist"
       :aria-label="label"
       :aria-orientation="orientation"
-      class="flex shrink-0 gap-1 p-1"
+      class="relative flex shrink-0 gap-1 p-1"
       :class="[
         orientation === 'vertical' ? 'flex-col' : 'scrollbar-thin flex-row overflow-x-auto',
         variant === 'line' ? (orientation === 'vertical' ? 'border-e border-border' : 'border-b border-border') : '',
@@ -14,6 +14,16 @@
       @keydown="onKeydown"
       @focusout="onFocusout"
     >
+      <!-- Pill: one AppBlob behind the tabs that stretches from the old tab to the new one and
+           settles. The line variant keeps its sliding bar: a 2px bar is too thin for the goo. -->
+      <AppBlob
+        v-if="variant === 'pill'"
+        class="absolute top-0 left-0"
+        v-bind="canvas"
+        :shapes="shapes"
+        fill="var(--color-accent-subtle)"
+        :blur="blob.blur.value"
+      />
       <button
         v-for="(item, index) in items"
         :id="tabId(item.key)"
@@ -22,6 +32,7 @@
         role="tab"
         :aria-selected="item.key === current"
         :aria-controls="panelId(item.key)"
+        :data-indicator="item.key"
         :tabindex="roving.tabindex(index)"
         :disabled="item.disabled"
         class="relative inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 font-medium transition-colors duration-(--vt-duration) after:absolute after:inset-x-0 disabled:cursor-not-allowed disabled:opacity-45"
@@ -35,11 +46,11 @@
         <!-- One indicator that travels between tabs (a FLIP transform through layout-id), instead
              of a fill fading out under one tab and in under the next. -->
         <motion.span
-          v-if="item.key === current"
+          v-if="variant === 'line' && item.key === current"
           :layout-id="indicatorId"
           aria-hidden="true"
           class="pointer-events-none absolute"
-          :class="INDICATOR[variant][orientation]"
+          :class="INDICATOR[orientation]"
           :transition="indicatorTransition()"
         />
         <AppIcon v-if="item.icon" :name="item.icon" :size="1" class="relative" aria-hidden="true" />
@@ -68,7 +79,10 @@
 <script setup lang="ts">
 import { computed, reactive, ref, useId, watch } from 'vue';
 import { motion } from 'motion-v';
+import AppBlob from './AppBlob.vue';
 import AppIcon from './AppIcon.vue';
+import { useBlob } from '@/composables/useBlob';
+import { useIndicator } from '@/composables/useIndicator';
 import { useRovingFocus } from '@/composables/useRovingFocus';
 import { useMotionTokens } from '@/composables/useMotionTokens';
 import { useReducedMotion } from '@/composables/useReducedMotion';
@@ -108,10 +122,11 @@ const emit = defineEmits<{ change: [key: string] }>();
 
 // The after: box takes every size to a 44px hit area (bible §2).
 const SIZE = { sm: 'min-h-control-sm text-sm after:-inset-y-1.5', md: 'min-h-control-md text-control after:-inset-y-0.5' } as const;
+// The line variant's bar; it sits on the list's rule: 4px of padding plus the 1px edge below the
+// tab. The pill variant is the AppBlob in the template.
 const INDICATOR = {
-  pill: { horizontal: 'inset-0 rounded-md bg-accent-subtle', vertical: 'inset-0 rounded-md bg-accent-subtle' },
-  // The bar sits on the list's rule: 4px of padding plus the 1px edge below the tab.
-  line: { horizontal: 'inset-x-2 -bottom-[0.3125rem] h-0.5 rounded-full bg-accent', vertical: '-end-[0.3125rem] inset-y-1.5 w-0.5 rounded-full bg-accent' },
+  horizontal: 'inset-x-2 -bottom-[0.3125rem] h-0.5 rounded-full bg-accent',
+  vertical: '-end-[0.3125rem] inset-y-1.5 w-0.5 rounded-full bg-accent',
 } as const;
 
 const id = useId();
@@ -154,4 +169,7 @@ const reduced = useReducedMotion();
 const { state } = useMotionTokens();
 // Read per move, so a preset switch reaches the next one.
 const indicatorTransition = () => (reduced.value ? { duration: 0 } : state());
+
+const blob = useBlob({ radius: '--radius-md' });
+const { canvas, shapes } = useIndicator(tablist, computed(() => current.value ?? null), { blob });
 </script>

@@ -5,13 +5,14 @@ import { useBlob, type BlobSpring, type UseBlob } from '@/composables/useBlob';
 /**
  * The sliding indicator of a segmented control or a tab list, as two blob shapes. Each item in
  * `container` carries `data-indicator="<key>"`; the one whose key is `activeKey` is measured
- * (relative to the container, in physical px, so RTL needs nothing extra). The head moves first
- * and the tail follows, so in one AppBlob the pill stretches from the old item to the new one and
- * then contracts onto it. Under reduced motion both jump.
+ * against the container's padding box, scroll included, in physical px, so RTL, a bordered track
+ * and a scrolling tab list need nothing extra. The head moves first and the tail follows, so in
+ * one AppBlob the pill stretches from the old item to the new one and then contracts onto it.
+ * Under reduced motion both jump. The container must be positioned (`relative`).
  *
  * ```vue
  * const { canvas, shapes } = useIndicator(list, active);
- * <AppBlob v-bind="canvas" :shapes="shapes" fill="var(--color-surface-raised)" class="absolute inset-0" />
+ * <AppBlob v-bind="canvas" :shapes="shapes" fill="var(--color-surface-raised)" class="absolute top-0 left-0" />
  * ```
  */
 
@@ -56,7 +57,14 @@ export function useIndicator(
     const root = container.value;
     if (!root || !root.isConnected) return;
     const outer = root.getBoundingClientRect();
-    size.value = { width: Math.round(outer.width), height: Math.round(outer.height) };
+    // Boxes are taken from the container's padding box, scroll included, so a canvas placed at
+    // `absolute top-0 left-0` lines up inside a bordered track and scrolls with a tab list.
+    const originX = outer.left + root.clientLeft - root.scrollLeft;
+    const originY = outer.top + root.clientTop - root.scrollTop;
+    size.value = {
+      width: Math.round(Math.max(root.scrollWidth, root.clientWidth) || outer.width),
+      height: Math.round(Math.max(root.scrollHeight, root.clientHeight) || outer.height),
+    };
     const key = activeKey.value;
     const item =
       key === null || key === undefined
@@ -68,8 +76,8 @@ export function useIndicator(
     }
     const r = item.getBoundingClientRect();
     box.value = {
-      x: r.left - outer.left + inset,
-      y: r.top - outer.top + inset,
+      x: r.left - originX + inset,
+      y: r.top - originY + inset,
       width: Math.max(0, r.width - inset * 2),
       height: Math.max(0, r.height - inset * 2),
     };

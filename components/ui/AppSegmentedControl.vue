@@ -1,14 +1,27 @@
 <template>
   <fieldset class="inline-flex min-w-0 max-w-full flex-col gap-1.5" :disabled="disabled">
     <legend :class="hideLabel ? 'sr-only' : 'mb-1.5 text-sm font-medium text-text'">{{ label }}</legend>
-    <!-- One track, equal segments sized to the widest label, so the indicator only translates. -->
+    <!-- One track, equal segments sized to the widest label. -->
     <div
-      class="grid min-w-0 auto-cols-fr grid-flow-col rounded-md border border-border bg-muted p-0.5"
+      ref="track"
+      class="relative grid min-w-0 auto-cols-fr grid-flow-col rounded-md border border-border bg-muted p-0.5"
       :class="SIZE[size].track"
     >
+      <!-- The indicator: one AppBlob behind the labels. Moving, it stretches from the old segment
+           to the new one and settles (the head leads, the tail follows); the edge layer takes the
+           place of the old shadow. -->
+      <AppBlob
+        class="absolute top-0 left-0"
+        v-bind="canvas"
+        :shapes="shapes"
+        fill="var(--color-surface)"
+        edge="var(--color-border-strong)"
+        :blur="blob.blur.value"
+      />
       <label
         v-for="(item, index) in items"
         :key="String(item.value)"
+        :data-indicator="String(item.value)"
         class="relative flex min-w-0 select-none items-center justify-center gap-1.5 rounded-sm px-3 font-medium transition-colors duration-(--vt-duration) after:absolute after:inset-x-0 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring"
         :class="[
           SIZE[size].segment,
@@ -28,14 +41,6 @@
           :aria-describedby="item.description ? `${id}-${index}-description` : undefined"
           @change="select(item)"
         />
-        <!-- The one indicator travels between segments (a FLIP transform through layout-id). -->
-        <motion.span
-          v-if="item.value === modelValue"
-          :layout-id="indicatorId"
-          aria-hidden="true"
-          class="pointer-events-none absolute inset-0 rounded-sm border border-border-strong bg-surface shadow-sm"
-          :transition="indicatorTransition()"
-        />
         <AppIcon v-if="item.icon" :name="item.icon" :size="SIZE[size].icon" class="relative shrink-0" aria-hidden="true" />
         <span class="relative truncate">{{ item.label }}</span>
         <span v-if="item.description" :id="`${id}-${index}-description`" hidden>{{ item.description }}</span>
@@ -45,11 +50,11 @@
 </template>
 
 <script setup lang="ts" generic="T extends string | number">
-import { useId } from 'vue';
-import { motion } from 'motion-v';
+import { computed, ref, useId } from 'vue';
+import AppBlob from './AppBlob.vue';
 import AppIcon from './AppIcon.vue';
-import { useMotionTokens } from '@/composables/useMotionTokens';
-import { useReducedMotion } from '@/composables/useReducedMotion';
+import { useBlob } from '@/composables/useBlob';
+import { useIndicator } from '@/composables/useIndicator';
 
 export interface SegmentedItem<V extends string | number = string | number> {
   label: string;
@@ -89,7 +94,6 @@ const SIZE = {
 
 const id = useId();
 const groupName = props.name ?? id;
-const indicatorId = `segmented-indicator-${id}`;
 
 const isDisabled = (item: SegmentedItem<T>) => props.disabled || !!item.disabled;
 
@@ -99,8 +103,9 @@ function select(item: SegmentedItem<T>) {
   emit('change', item.value);
 }
 
-const reduced = useReducedMotion();
-const { state } = useMotionTokens();
-// Read per move, so a preset switch reaches the next one; under reduced motion it jumps.
-const indicatorTransition = () => (reduced.value ? { duration: 0 } : state());
+// The segment's own small corner, not the blob's large default, so the pill stays a segment.
+const blob = useBlob({ radius: '--radius-sm' });
+const track = ref<HTMLElement | null>(null);
+const active = computed(() => (props.modelValue === undefined ? null : String(props.modelValue)));
+const { canvas, shapes } = useIndicator(track, active, { blob });
 </script>

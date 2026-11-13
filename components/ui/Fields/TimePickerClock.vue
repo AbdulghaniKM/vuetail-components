@@ -71,19 +71,25 @@
  </div>
 
  <!-- AM/PM -->
- <div class="ms-3 flex flex-col gap-1.5">
+ <!-- AM / PM as one track: the accent pill is an AppBlob that stretches from one to the other. -->
+ <div ref="periodTrack" class="relative ms-3 flex flex-col gap-1 rounded-xl bg-muted p-1">
+ <AppBlob class="absolute top-0 left-0" v-bind="periodCanvas" :shapes="periodShapes" fill="var(--color-accent)" :blur="periodBlob.blur.value" />
  <button
  type="button"
- class="rounded-xl px-3 py-1.5 text-xs font-bold tracking-tight transition-colors duration-(--vt-duration) ease-standard"
- :class="!isPM ? 'bg-accent text-accent-fg' : 'bg-muted text-text-muted hover:bg-muted/80 hover:text-text'"
+ data-indicator="am"
+ :aria-pressed="!isPM"
+ class="relative rounded-lg px-3 py-1.5 text-xs font-bold tracking-tight transition-colors duration-(--vt-duration) ease-standard"
+ :class="!isPM ? 'text-accent-fg' : 'text-text-muted hover:text-text'"
  @click="setPeriod(false)"
  >
  AM
  </button>
  <button
  type="button"
- class="rounded-xl px-3 py-1.5 text-xs font-bold tracking-tight transition-colors duration-(--vt-duration) ease-standard"
- :class="isPM ? 'bg-accent text-accent-fg' : 'bg-muted text-text-muted hover:bg-muted/80 hover:text-text'"
+ data-indicator="pm"
+ :aria-pressed="isPM"
+ class="relative rounded-lg px-3 py-1.5 text-xs font-bold tracking-tight transition-colors duration-(--vt-duration) ease-standard"
+ :class="isPM ? 'text-accent-fg' : 'text-text-muted hover:text-text'"
  @click="setPeriod(true)"
  >
  PM
@@ -95,6 +101,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import AppIcon from '../AppIcon.vue'
+import AppBlob from '../AppBlob.vue'
+import { useBlob } from '@/composables/useBlob'
+import { useIndicator } from '@/composables/useIndicator'
 
 interface Props {
  hours?: number
@@ -225,7 +234,13 @@ function commitMinutes(e: FocusEvent) {
  internalM.value = Math.max(0, Math.min(59, val))
  notify()
 }
+
+// The AM / PM pill.
+const periodTrack = ref<HTMLElement | null>(null)
+const periodBlob = useBlob({ radius: '--radius-lg' })
+const { canvas: periodCanvas, shapes: periodShapes } = useIndicator(
+ periodTrack,
+ computed(() => (isPM.value ? 'pm' : 'am')),
+ { blob: periodBlob },
+)
 </script>
-
-
-

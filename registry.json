@@ -120,13 +120,13 @@
     "AppPopover": [],
     "AppProgress": [],
     "AppRadioGroup": ["AppIcon"],
-    "AppSegmentedControl": ["AppIcon", "useMotionTokens", "useReducedMotion"],
+    "AppSegmentedControl": ["AppIcon", "AppBlob", "useBlob", "useIndicator"],
     "AppSkeleton": [],
     "AppSlider": [],
     "AppSpinner": [],
     "AppSwitch": [],
     "AppTable": ["AppButton", "AppIcon", "AppModal", "AppPopover", "AppTooltip", "AppCheckbox", "AppBadge", "AppFilterPanel", "Fields/Select", "Fields/DatePicker", "Fields/InputField", "useConfirm", "useDebounce", "useLocalStorage", "usePagination", "useMotionTokens"],
-    "AppTabs": ["AppIcon", "useRovingFocus", "useMotionTokens", "useReducedMotion"],
+    "AppTabs": ["AppIcon", "useRovingFocus", "useMotionTokens", "useReducedMotion", "AppBlob", "useBlob", "useIndicator"],
     "AppText": [],
     "AppSwap": [],
     "AppToast": ["AppBlob", "AppIcon", "AppSwap", "useBlob", "useToast", "useMotionTokens", "useReducedMotion", "useAnnouncer"],
@@ -145,7 +145,7 @@
     "Fields/Select": ["AppIcon", "useRovingFocus"],
     "Fields/TagInput": ["AppIcon", "useAnnouncer"],
     "Fields/Textarea": [],
-    "Fields/TimePickerClock": ["AppIcon"],
+    "Fields/TimePickerClock": ["AppIcon", "AppBlob", "useBlob", "useIndicator"],
     "useThemeCustomizer": ["useAppUi"],
     "useConfirm": ["ConfirmDangerModal", "useMotionTokens"],
     "RibbonField": ["useReducedMotion"],
@@ -222,6 +222,9 @@
       "packages": ["motion-v@^2.2.1"]
     },
     "AppBlob": {
+      "packages": ["motion-v@^2.2.1"]
+    },
+    "Fields/TimePickerClock": {
       "packages": ["motion-v@^2.2.1"]
     },
     "AppAvatarGroup": {

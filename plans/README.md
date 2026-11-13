@@ -20,7 +20,7 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 9 | Composables: fix the 25, add the four that components duplicate (below) | Done 2026-11-08 |
 | 10 | Icon set choice: Heroicons (default), Lucide, Phosphor, picked per project by the CLI (below) | Done 2026-11-10; docs preview per set left as optional |
 | 11 | New components: 8 basics, 5 from Pasta UI, the Sileo toast morph, interior.dev picks (below) | Done 2026-11-13 (11.1 to 11.6; Chrome 6-combination matrix still open); next is phase 12 |
-| 12 | Blobify: the goo morph as a shared primitive (AppBlob, AppSwap, useBlob, useIndicator), then nine places it goes; ship step syncs the template and checks the docs deploy (below) | In progress: 12.0–12.2 done 2026-11-13 (primitives, AppToast on them); 12.3 next |
+| 12 | Blobify: the goo morph as a shared primitive (AppBlob, AppSwap, useBlob, useIndicator), then nine places it goes; ship step syncs the template and checks the docs deploy (below) | In progress: 12.0–12.2 and 12.3 #1–3 done 2026-11-13, plus the AppAvatarGroup reveal; 12.3 #4 (navbar) next |
 
 ## Phase 4 plan
 
@@ -912,12 +912,12 @@ falls back to a fade or a jump, checked in all 6 preset × theme combinations at
    (`ThemeToggle.vue:9,28-35`); counts in AppFilterPanel (`:13-16`), AppDock's badge (`:583-587`),
    AdvancedAppTable's selection count (`:357`), with `tabular-nums`. Folds in 11.6's spinner
    timing (show after 150ms, keep at least 400ms).
-2. [ ] **Blob segmented indicator** (S, 2 h): the docs PresetSwitcher first (it sits in the header
+2. [x] **Blob segmented indicator** (done 2026-11-13: PresetSwitcher, TimePickerClock AM / PM, AppSegmentedControl): the docs PresetSwitcher first (it sits in the header
    and switches presets, so Pine's bounce shows itself), then TimePickerClock AM / PM
    (`:74-89`), then AppSegmentedControl when 11.6 builds it. The old pill shrinks while the new
    one grows and the blob bridges the gap. Radios and roving focus stay as they are. The active
    pill's `shadow-sm` becomes the edge layer.
-3. [ ] **Tabs** (S, +1 h on 2): PreviewCodeTabs (`PreviewCodeTabs.vue:15-16`, every docs
+3. [x] **Tabs** (done 2026-11-13: AppTabs pill variant, so PreviewCodeTabs too; the line variant keeps its bar): PreviewCodeTabs (`PreviewCodeTabs.vue:15-16`, every docs
    component page), then AppTabs when 11.2 builds it.
 4. [ ] **AppNavbar pill** (M, 3 h): `useIndicator` over the links in place of the `layoutId`
    pill (`AppNavbar.vue:331-337`, transition `:259`). Dark tone: opaque fill with canvas
