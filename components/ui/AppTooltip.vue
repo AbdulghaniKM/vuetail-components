@@ -103,6 +103,10 @@
   let hideTimer: ReturnType<typeof setTimeout> | null = null;
   // True from a leave until the tip is gone (or the pointer comes back): the group counts it closed.
   let leaving = false;
+  // Whether this tip counts toward the group. Only one the reader rested for (it waited out a real
+  // delay, or opened in a group already warm) does: a delay-0 tip opening says nothing about
+  // intent, and letting it warm the group skipped a neighbour's long delay (Instant → Slow).
+  let warms = false;
 
   const clearOpen = () => {
     if (openTimer) clearTimeout(openTimer);
@@ -113,17 +117,18 @@
     hideTimer = null;
   };
 
-  function open() {
+  function open(warming: boolean) {
     if (closeCurrent && closeCurrent !== hideNow) closeCurrent();
     closeCurrent = hideNow;
-    openCount++;
+    warms = warming;
+    if (warms) openCount++;
     show.value = true;
   }
 
   function hideNow() {
     clearOpen();
     clearHide();
-    if (show.value && !leaving) openCount = Math.max(0, openCount - 1);
+    if (show.value && !leaving && warms) openCount = Math.max(0, openCount - 1);
     leaving = false;
     show.value = false;
     if (closeCurrent === hideNow) closeCurrent = null;
@@ -138,13 +143,13 @@
     if (openTimer) return;
     if (isWarm() || props.delay <= 0) {
       warmEntry.value = isWarm();
-      open();
+      open(warmEntry.value);
       return;
     }
     warmEntry.value = false;
     openTimer = setTimeout(() => {
       openTimer = null;
-      open();
+      open(true);
     }, props.delay);
   }
 
@@ -155,8 +160,10 @@
     if (!show.value || leaving) return;
     // The group sees the leave now; the tip itself waits a moment in case the pointer is heading onto it.
     leaving = true;
-    openCount = Math.max(0, openCount - 1);
-    if (props.skipDelay > 0) warmUntil = Math.max(warmUntil, Date.now() + props.skipDelay);
+    if (warms) {
+      openCount = Math.max(0, openCount - 1);
+      if (props.skipDelay > 0) warmUntil = Math.max(warmUntil, Date.now() + props.skipDelay);
+    }
     hideTimer = setTimeout(hideNow, HIDE_GRACE);
   }
 
@@ -164,7 +171,7 @@
     if (!leaving) return;
     clearHide();
     leaving = false;
-    openCount++;
+    if (warms) openCount++;
   }
 
   /* ----------------------------- Placement ----------------------------- */

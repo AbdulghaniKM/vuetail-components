@@ -48,17 +48,25 @@ export const avatarHue = (seed: string): AvatarHue => {
   return AVATAR_HUES[hash % AVATAR_HUES.length];
 };
 
+// Scripts whose letters join their neighbours: two initials side by side would fuse into one
+// shape ("سارة أحمد" would read "سأ"), so they get a thin space between them ("س أ").
+const JOINING = /[\p{Script=Arabic}\p{Script=Syriac}\p{Script=Nko}\p{Script=Mandaic}\p{Script=Adlam}\p{Script=Mongolian}\p{Script=Hanifi_Rohingya}]/u;
+const THIN_SPACE = ' ';
+
 /**
  * Initials for a name: the first letter of the first and last word ("Ada King Lovelace" → "AL"),
  * or one letter for one word. An email uses the part before the @. Letters are taken whole, so
- * an accented or non-Latin first letter survives.
+ * an accented or non-Latin first letter survives. Letters of a joining script (Arabic and the
+ * like) are kept apart with a thin space, so they stay two letters.
  */
 export const avatarInitials = (name: string, max: 1 | 2 = 2): string => {
   const words = name.trim().replace(/@.*$/, '').split(/[\s._-]+/).filter(Boolean);
   if (!words.length) return '';
   const first = (word: string) => Array.from(word)[0] ?? '';
-  const letters = words.length > 1 && max === 2 ? first(words[0]) + first(words[words.length - 1]) : first(words[0]);
-  return letters.toLocaleUpperCase();
+  if (!(words.length > 1 && max === 2)) return first(words[0]).toLocaleUpperCase();
+  const [a, b] = [first(words[0]), first(words[words.length - 1])];
+  const gap = JOINING.test(a) || JOINING.test(b) ? THIN_SPACE : '';
+  return `${a}${gap}${b}`.toLocaleUpperCase();
 };
 
 export const AVATAR_STATUS_LABELS: Record<AvatarStatus, string> = {
