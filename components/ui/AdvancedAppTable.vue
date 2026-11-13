@@ -284,7 +284,7 @@
       leave-to-class="translate-y-2 opacity-0 motion-reduce:translate-y-0"
     >
       <div v-if="selectable && selectedCount > 0" class="at-bulkbar" :class="{ 'is-above-pager': pagerIsDocked }">
-        <span class="at-bulkbar-count">{{ selectedCount }} {{ selectedLabel }}</span>
+        <span class="at-bulkbar-count"><AppSwap :swap-key="selectedCount" class="tabular-nums">{{ selectedCount }}</AppSwap> {{ selectedLabel }}</span>
         <slot name="bulk-actions" :keys="selectedKeys" :rows="selectedRows" :clear="clearSelection">
           <AppButton
             v-for="action in bulkActions"
@@ -505,6 +505,7 @@ export interface TableBulkAction<T = any> {
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, useSlots, watch } from 'vue';
 import AppIcon from './AppIcon.vue';
+import AppSwap from './AppSwap.vue';
 import AppButton from './AppButton.vue';
 import AppCheckbox from './AppCheckbox.vue';
 import AppDropdownMenu, { type MenuGroup } from './AppDropdownMenu.vue';

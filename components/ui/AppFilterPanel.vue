@@ -13,7 +13,7 @@
               <span
                 v-if="activeCount > 0"
                 class="flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold tabular-nums text-accent-fg"
-              >{{ activeCount }}</span>
+              ><AppSwap :swap-key="activeCount">{{ activeCount }}</AppSwap></span>
             </div>
             <p class="truncate text-xs text-text-muted">
               {{ activeCount > 0 ? `${activeCount} ${activeCount === 1 ? 'filter' : 'filters'} active` : subtitle }}
@@ -467,6 +467,7 @@ export function displayFilterValue(field: FilterField, val: unknown): string {
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import AppIcon from './AppIcon.vue';
+import AppSwap from './AppSwap.vue';
 import AppButton from './AppButton.vue';
 import AppPopover from './AppPopover.vue';
 import AppCheckbox from './AppCheckbox.vue';

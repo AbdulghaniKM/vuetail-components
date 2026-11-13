@@ -2040,6 +2040,10 @@ the rim when the theme or preset changes. `lensMap(shape, params, density)` and
   no longer confirms and a line under the message explains the hold.
 - **`loading`**: `aria-busy` and `disabled` follow it at once; the spinner (and `loadingLabel`) waits
   150ms, then stays at least 400ms, so a fast request never flashes.
+- **`success`** / **`successLabel`**: turning `success` on flashes a check and `successLabel` for
+  1.2s (announced politely), then the label returns. Idle, busy and success cross-fade through
+  [AppSwap](#appswap). ThemeToggle's sun and moon, AppFilterPanel's count, AppDock's badge and
+  AdvancedAppTable's selection count swap the same way.
 
 | Don't | Because |
 |---|---|

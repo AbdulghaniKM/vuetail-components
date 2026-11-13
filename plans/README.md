@@ -907,7 +907,7 @@ console errors. Next: 12.3 item 1 (AppSwap in place).
 ### 12.3 Blobify, ranked by impact for effort
 Each item: the blob in place of what it replaces, keyboard and ARIA untouched, reduced motion
 falls back to a fade or a jump, checked in all 6 preset × theme combinations at 1440 and 375px.
-1. [ ] **AppSwap in place** (S, 1–2 h): AppButton loading → label, with an optional `success`
+1. [x] **AppSwap in place** (done 2026-11-13; AppButton `success` / `successLabel`): AppButton loading → label, with an optional `success`
    state that swaps to a check for 1.2s (`AppButton.vue:27-31`); ThemeToggle sun ↔ moon
    (`ThemeToggle.vue:9,28-35`); counts in AppFilterPanel (`:13-16`), AppDock's badge (`:583-587`),
    AdvancedAppTable's selection count (`:357`), with `tabular-nums`. Folds in 11.6's spinner

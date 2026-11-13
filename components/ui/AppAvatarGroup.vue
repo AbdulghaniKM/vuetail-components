@@ -19,7 +19,7 @@
       keeps it open (WCAG 1.4.13).
     -->
     <li v-if="reveal === 'blob' && box" class="pointer-events-none absolute z-10" :style="canvasStyle" aria-hidden="true">
-      <AppBlob :width="canvas.width" :height="canvas.height" :shapes="shapes" fill="var(--color-text)" :transition="motionFor" />
+      <AppBlob :width="canvas.width" :height="canvas.height" :shapes="shapes" fill="var(--color-text)" :blur="blobBlur" :transition="motionFor" />
       <motion.div
         class="pointer-events-auto absolute top-0 left-0 flex items-center"
         :style="{ height: `${PILL_H}px` }"
@@ -216,6 +216,9 @@ function measure() {
   box.value = { width: outer.width, height: outer.height };
   listLeft.value = outer.left;
   bounds.value = clipBounds(list);
+  // A square face's corner, read from the cut disc, so the ring and pill follow the preset.
+  const firstFace = list.querySelector<HTMLElement>(':scope > li[data-index]');
+  if (firstFace) faceRadius.value = Number.parseFloat(getComputedStyle(firstFace).borderTopLeftRadius) || 0;
   faces.value = [...list.querySelectorAll<HTMLElement>(':scope > li[data-index]')].map((li) => {
     const r = li.getBoundingClientRect();
     return { x: r.left - outer.left, y: r.top - outer.top, width: r.width, height: r.height };
@@ -235,6 +238,10 @@ const canvasStyle = computed(() => ({ left: `${-MX}px`, top: `${canvasTop.value}
 
 const face = computed(() => faces.value[active.value ?? last.value]);
 const roundFace = computed(() => props.shape !== 'square');
+const faceRadius = ref(0);
+// The goo rounds every corner by about its blur, so a square group blurs less: the ring keeps
+// the face's own corner instead of rounding it into a circle. The floor of 4 still fuses the neck.
+const blobBlur = computed(() => (roundFace.value ? undefined : Math.max(3, faceRadius.value * 0.5)));
 
 // The pill, centred on the face, kept inside the canvas.
 const pill = computed(() => {
@@ -259,14 +266,16 @@ const shapes = computed<BlobShape[]>(() => {
   const x = f.x + MX;
   const y = f.y - canvasTop.value;
   const open = active.value !== null;
-  const ringRadius = roundFace.value ? (f.height + RING * 2) / 2 : 12 + RING;
+  // Concentric with the face: its corner plus the ring's width.
+  const ringRadius = roundFace.value ? (f.height + RING * 2) / 2 : faceRadius.value + RING;
+  const pillRadius = roundFace.value ? PILL_H / 2 : Math.min(PILL_H / 2, faceRadius.value);
   const p = pill.value;
   return [
     open
       ? { key: 'ring', x: x - RING, y: y - RING, width: f.width + RING * 2, height: f.height + RING * 2, radius: ringRadius }
       : { key: 'ring', x, y, width: f.width, height: f.height, radius: ringRadius - RING, opacity: 0 },
     open
-      ? { key: 'pill', x: p.x, y: p.y, width: p.width, height: PILL_H, radius: PILL_H / 2 }
+      ? { key: 'pill', x: p.x, y: p.y, width: p.width, height: PILL_H, radius: pillRadius }
       : {
           key: 'pill',
           x: x + f.width / 2 - 8,
@@ -276,6 +285,17 @@ const shapes = computed<BlobShape[]>(() => {
           radius: 4,
           opacity: 0,
         },
+    // The neck: a short bar across the gap between ring and pill. The goo alone bridges it only
+    // when the blur is large; Ink's small square corners blur too little and left a gap.
+    (() => {
+      const w = 12;
+      const cx = x + f.width / 2 - w / 2;
+      const ringEdge = below.value ? y + f.height + RING : y - RING;
+      const top = below.value ? ringEdge - 2 : ringEdge - NECK - 2;
+      return open
+        ? { key: 'neck', x: cx, y: top, width: w, height: NECK + 4, radius: 2 }
+        : { key: 'neck', x: cx, y: below.value ? ringEdge - RING - 2 : ringEdge + RING, width: w, height: 0, radius: 0, opacity: 0 };
+    })(),
   ];
 });
 

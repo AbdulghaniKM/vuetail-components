@@ -45,11 +45,17 @@
           data-hold-count
           class="absolute inset-0 flex items-center justify-center tabular-nums"
         >{{ count }}</span>
-        <AppSpinner v-if="busy" :size="spinnerSize" class="shrink-0" :class="counting && 'invisible'" />
-        <AppIcon v-else-if="icon" :name="icon" :size="iconSize" class="shrink-0" :class="counting && 'invisible'" />
-        <span v-if="!iconOnly && (label || $slots.default)" class="truncate" :class="counting && 'invisible'">
-          <slot>{{ busy && loadingLabel ? loadingLabel : label }}</slot>
-        </span>
+        <!-- Idle, busy and success cross-fade through AppSwap instead of snapping. -->
+        <AppSwap :swap-key="face" class="min-w-0" :class="counting && 'invisible'">
+          <span class="inline-flex min-w-0 items-center" :class="gapClass">
+            <AppSpinner v-if="face === 'busy'" :size="spinnerSize" class="shrink-0" />
+            <AppIcon v-else-if="face === 'success'" name="icon-[heroicons--check]" :size="iconSize" class="shrink-0" />
+            <AppIcon v-else-if="icon" :name="icon" :size="iconSize" class="shrink-0" />
+            <span v-if="!iconOnly && (label || $slots.default)" class="truncate">
+              <slot>{{ faceLabel }}</slot>
+            </span>
+          </span>
+        </AppSwap>
         <!-- Hidden from view and from the name, still read as the description (aria-describedby). -->
         <span v-if="holdMs" :id="hintId" hidden>{{ holdHintText }}</span>
       </button>
@@ -63,6 +69,8 @@ import AppTooltip from "./AppTooltip.vue";
 import AppIcon from "./AppIcon.vue";
 import AppSpinner from "./AppSpinner.vue";
 import AppLiquidGlass from "./AppLiquidGlass.vue";
+import AppSwap from "./AppSwap.vue";
+import { useAnnouncer } from "@/composables/useAnnouncer";
 import { useReducedMotion } from "@/composables/useReducedMotion";
 
 defineOptions({ inheritAttrs: false });
@@ -96,6 +104,13 @@ const props = withDefaults(
      */
     loading?: boolean;
     loadingLabel?: string;
+    /**
+     * Turning this on flashes the success face for 1.2s: a check and `successLabel`, announced
+     * politely, then back to the label. Set it when the request behind `loading` succeeds.
+     */
+    success?: boolean;
+    /** Label while the success face shows ("Saved"). Defaults to `label`. */
+    successLabel?: string;
     type?: "button" | "submit" | "reset";
     /**
      * Hold to confirm: `@click` (and a submit) fires only after the button is held down this
@@ -138,6 +153,8 @@ const props = withDefaults(
     disabled: false,
     loading: false,
     loadingLabel: "",
+    success: false,
+    successLabel: "",
     type: "button",
     hold: false,
     holdHint: "",
@@ -190,6 +207,32 @@ watch(
   },
   { immediate: true },
 );
+
+/* ---------------------------------------------------------------- success */
+
+const SUCCESS_MS = 1200;
+const { announce } = useAnnouncer();
+const flash = ref(false);
+let flashTimer: ReturnType<typeof setTimeout> | undefined;
+
+watch(
+  () => props.success,
+  (on) => {
+    if (!on) return;
+    flash.value = true;
+    announce(props.successLabel || props.label || "Done");
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(() => (flash.value = false), SUCCESS_MS);
+  },
+);
+
+/** What the face shows. The spinner wins: a new request hides the last success at once. */
+const face = computed(() => (busy.value ? "busy" : flash.value ? "success" : "idle"));
+const faceLabel = computed(() => {
+  if (face.value === "busy" && props.loadingLabel) return props.loadingLabel;
+  if (face.value === "success" && props.successLabel) return props.successLabel;
+  return props.label;
+});
 
 /* ---------------------------------------------------------------- hold to confirm */
 
@@ -326,6 +369,7 @@ watch(
 onBeforeUnmount(() => {
   clearTimeout(showTimer);
   clearTimeout(hideTimer);
+  clearTimeout(flashTimer);
   if (raf) cancelAnimationFrame(raf);
 });
 

@@ -250,6 +250,7 @@
   import { useRoute, RouterLink } from 'vue-router';
   import { useMediaQuery } from '@vueuse/core';
   import AppIcon from './AppIcon.vue';
+  import AppSwap from './AppSwap.vue';
   import {
     useDockPosition,
     createDockPosition,
@@ -583,7 +584,7 @@
               v-if="badgeOf(entry.item)"
               class="dock-badge pointer-events-none absolute -top-0.5 -right-0.5 z-10 flex min-w-4 items-center justify-center rounded-full px-1 text-xs leading-4 font-semibold"
             >
-              {{ badgeOf(entry.item) }}
+              <AppSwap :swap-key="badgeOf(entry.item) ?? ''">{{ badgeOf(entry.item) }}</AppSwap>
             </span>
 
             <span
