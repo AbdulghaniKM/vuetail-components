@@ -20,7 +20,7 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 9 | Composables: fix the 25, add the four that components duplicate (below) | Done 2026-11-08 |
 | 10 | Icon set choice: Heroicons (default), Lucide, Phosphor, picked per project by the CLI (below) | Done 2026-11-10; docs preview per set left as optional |
 | 11 | New components: 8 basics, 5 from Pasta UI, the Sileo toast morph, interior.dev picks (below) | Done 2026-11-13 (11.1 to 11.6; Chrome 6-combination matrix still open); next is phase 12 |
-| 12 | Blobify: the goo morph as a shared primitive (AppBlob, AppSwap, useBlob, useIndicator), then nine places it goes; ship step syncs the template and checks the docs deploy (below) | In progress: 12.0–12.2 and 12.3 #1–5 done 2026-11-13, plus the AppAvatarGroup reveal; 12.3 #4–5 done; #6 (tooltip nub) next |
+| 12 | Blobify: the goo morph as a shared primitive (AppBlob, AppSwap, useBlob, useIndicator), then nine places it goes; ship step syncs the template and checks the docs deploy (below) | In progress: 12.0–12.2 and 12.3 #1–6 done 2026-11-13, plus the AppAvatarGroup reveal; 12.3 #4–6 done; #8 (island) next |
 
 ## Phase 4 plan
 
@@ -927,7 +927,7 @@ falls back to a fade or a jump, checked in all 6 preset × theme combinations at
    action strip (`AdvancedAppTable.vue:350-373, 1825-1866`). The bar's box sits at its measured
    full width; actions fade and move by transform; the count swaps through AppSwap. Drops the
    glass (`:1835-1838`) for `surface-raised` with an edge, which is closer to §5.
-6. [ ] **AppTooltip bubble** (M, 3–4 h): the rotated-square arrow (`AppTooltip.vue:28, 88-93`)
+6. [x] **AppTooltip bubble** (done 2026-11-13: one AppBlob, the nub overlaps the bubble and grows out on quick(); light tip has an edge): the rotated-square arrow (`AppTooltip.vue:28, 88-93`)
    becomes a nub fused to the bubble. Dark tooltip on the inverse fill (it already is `bg-text`),
    light one with the edge layer. Enter tween, not the spring (tooltips must be quick). The canvas
    lives inside the existing `v-if`, so one filter exists at a time. Four placements and RTL.

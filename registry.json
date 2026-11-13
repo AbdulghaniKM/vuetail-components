@@ -130,7 +130,7 @@
     "AppText": [],
     "AppSwap": [],
     "AppToast": ["AppBlob", "AppIcon", "AppSwap", "useBlob", "useToast", "useMotionTokens", "useReducedMotion", "useAnnouncer"],
-    "AppTooltip": ["useBreakpoint"],
+    "AppTooltip": ["useBreakpoint", "AppBlob", "useBlob"],
     "ConfirmDangerModal": ["AppButton", "AppModal"],
     "CreateUpdateModal": ["AppModal", "Fields/AppForm", "AppButton", "useToast"],
     "DeleteModal": ["ConfirmDangerModal", "useToast"],
@@ -228,6 +228,9 @@
       "packages": ["motion-v@^2.2.1"]
     },
     "AdvancedAppTable": {
+      "packages": ["motion-v@^2.2.1"]
+    },
+    "AppTooltip": {
       "packages": ["motion-v@^2.2.1"]
     },
     "AppAvatarGroup": {

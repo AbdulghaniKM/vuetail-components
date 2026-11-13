@@ -27,14 +27,28 @@
           :id="tipId"
           ref="tipEl"
           role="tooltip"
-          class="fixed top-0 left-0 z-[9990] w-max max-w-[min(20rem,calc(100vw-1rem))] rounded-md px-2.5 py-1.5 text-xs leading-snug font-medium break-words whitespace-normal shadow-lg"
-          :class="[themeClass, ORIGIN[side]]"
+          class="fixed top-0 left-0 isolate z-[9990] w-max max-w-[min(20rem,calc(100vw-1rem))] px-2.5 py-1.5 text-xs leading-snug font-medium break-words whitespace-normal"
+          :class="[dark ? 'text-bg' : 'text-text', ORIGIN[side]]"
           :style="{ translate: `${pos.x}px ${pos.y}px` }"
           @mouseenter="cancelHide"
           @mouseleave="onLeave"
         >
+          <!-- The bubble and its nub are one AppBlob behind the text: the nub grows out of the
+               side facing the trigger and fuses with the bubble through the goo, instead of a
+               rotated square laid against it. Flat, with an edge on the light tip (bible §5). -->
+          <AppBlob
+            class="pointer-events-none absolute -z-10"
+            :style="{ left: `${-PAD}px`, top: `${-PAD}px` }"
+            :width="size.w + PAD * 2"
+            :height="size.h + PAD * 2"
+            :shapes="tipShapes"
+            :fill="dark ? 'var(--color-text)' : 'var(--color-surface-raised)'"
+            :edge="dark ? undefined : 'var(--color-border-strong)'"
+            :radius="tipBlob.roundness.value"
+            :blur="tipBlob.blur.value"
+            :transition="tipBlob.quick()"
+          />
           {{ content }}
-          <span class="absolute size-2 rotate-45" :class="[arrowClass, ARROW_EDGES[side]]" :style="arrowStyle" aria-hidden="true" />
         </span>
       </Transition>
     </Teleport>
@@ -58,6 +72,8 @@
 
 <script setup lang="ts">
   import { computed, nextTick, onBeforeUnmount, reactive, ref, useId, watch } from 'vue';
+  import AppBlob, { type BlobShape } from './AppBlob.vue';
+  import { useBlob } from '@/composables/useBlob';
   import { useBreakpoint } from '@/composables/useBreakpoint';
 
   type Side = 'top' | 'bottom' | 'left' | 'right';
@@ -192,6 +208,8 @@
     // offset sizes ignore the entrance scale, so the first measure is the settled size.
     const w = tip.offsetWidth;
     const h = tip.offsetHeight;
+    size.w = w;
+    size.h = h;
     const vw = document.documentElement.clientWidth;
     const vh = document.documentElement.clientHeight;
     const room: Record<Side, number> = { top: t.top, bottom: vh - t.bottom, left: t.left, right: vw - t.right };
@@ -241,7 +259,11 @@
       listen(true);
       await nextTick();
       place();
+      // One frame with the nub folded into the bubble, then it grows toward the trigger.
+      nubOut.value = false;
+      requestAnimationFrame(() => requestAnimationFrame(() => (nubOut.value = show.value)));
     } else {
+      nubOut.value = false;
       if (target?.getAttribute('aria-describedby') === tipId) target.removeAttribute('aria-describedby');
       listen(false);
     }
@@ -257,8 +279,37 @@
 
   /* ------------------------------- Look -------------------------------- */
 
-  const themeClass = computed(() => (props.dark ? 'bg-text text-bg' : 'border border-border bg-surface-raised text-text'));
-  const arrowClass = computed(() => (props.dark ? 'bg-text' : 'border border-border bg-surface-raised'));
+  // The canvas reaches PAD past the bubble on every side, room for the nub and the goo's blur.
+  const PAD = 10;
+  // How far the nub stands out of the bubble, and its width; GAP leaves 2px to the trigger.
+  const NUB_OUT = 6;
+  const NUB_W = 10;
+  // How far the nub overlaps the bubble.
+  const IN = 5;
+  const tipBlob = useBlob({ radius: '--radius-md', minBlur: 3 });
+  const size = reactive({ w: 0, h: 0 });
+  const nubOut = ref(false);
+
+  const tipShapes = computed<BlobShape[]>(() => {
+    const { w, h } = size;
+    if (!w || !h) return [];
+    const bubble: BlobShape = { key: 'bubble', x: PAD, y: PAD, width: w, height: h };
+    const at = pos.arrow;
+    const out = nubOut.value ? NUB_OUT : 0;
+    // The nub reaches INTO the bubble and grows out of its edge, so it reads as growing and so
+    // the light tip's fill layer (1px inside the edge layer) still overlaps the bubble's fill:
+    // a nub that only touched the edge filled with the border colour.
+    const across = PAD + at - NUB_W / 2;
+    const long = IN + out;
+    const r = NUB_W / 2;
+    const nub: Record<Side, BlobShape> = {
+      top: { key: 'nub', x: across, y: PAD + h - IN, width: NUB_W, height: long, radius: r },
+      bottom: { key: 'nub', x: across, y: PAD - out, width: NUB_W, height: long, radius: r },
+      left: { key: 'nub', x: PAD + w - IN, y: across, width: long, height: NUB_W, radius: r },
+      right: { key: 'nub', x: PAD - out, y: across, width: long, height: NUB_W, radius: r },
+    };
+    return [bubble, nub[side.value]];
+  });
 
   // The tip grows out of the side that faces the trigger.
   const ORIGIN: Record<Side, string> = {
@@ -267,24 +318,4 @@
     left: 'origin-right',
     right: 'origin-left',
   };
-  // The arrow is a rotated square half outside the tip; only its two outer edges keep a border.
-  const ARROW_EDGES: Record<Side, string> = {
-    top: 'border-t-0 border-l-0',
-    bottom: 'border-b-0 border-r-0',
-    left: 'border-b-0 border-l-0',
-    right: 'border-t-0 border-r-0',
-  };
-  const arrowStyle = computed(() => {
-    const at = `${pos.arrow - 4}px`;
-    switch (side.value) {
-      case 'top':
-        return { left: at, bottom: '-4px' };
-      case 'bottom':
-        return { left: at, top: '-4px' };
-      case 'left':
-        return { top: at, right: '-4px' };
-      default:
-        return { top: at, left: '-4px' };
-    }
-  });
 </script>
