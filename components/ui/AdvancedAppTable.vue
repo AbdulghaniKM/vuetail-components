@@ -283,8 +283,31 @@
       leave-from-class="opacity-100"
       leave-to-class="translate-y-2 opacity-0 motion-reduce:translate-y-0"
     >
-      <div v-if="selectable && selectedCount > 0" class="at-bulkbar" :class="{ 'is-above-pager': pagerIsDocked }">
-        <span class="at-bulkbar-count"><AppSwap :swap-key="selectedCount" class="tabular-nums">{{ selectedCount }}</AppSwap> {{ selectedLabel }}</span>
+      <div
+        v-if="selectable && selectedCount > 0"
+        ref="bulkbarEl"
+        class="at-bulkbar"
+        :class="{ 'is-above-pager': pagerIsDocked }"
+        :data-open="bulkOpen"
+        @vue:mounted="openBulkbar"
+      >
+        <!-- The bar is drawn by an AppBlob: the count's pill first, then a drop beside it that
+             grows and melts into the action strip. The box keeps its full width from the first
+             frame; only the SVG shapes and the actions' transforms move. -->
+        <AppBlob
+          class="at-bulkbar-canvas absolute top-0 left-0"
+          :width="bulk.width"
+          :height="bulk.height"
+          :shapes="bulkShapes"
+          fill="var(--color-surface-raised)"
+          edge="var(--color-border-strong)"
+          :radius="bulkRadius"
+          :blur="bulkBlob.blur.value"
+          :flip-x="bulk.rtl"
+          :transition="bulkBlob.spring(true)"
+        />
+        <span ref="bulkCountEl" class="at-bulkbar-count"><AppSwap :swap-key="selectedCount" class="tabular-nums">{{ selectedCount }}</AppSwap> {{ selectedLabel }}</span>
+        <span class="at-bulkbar-actions">
         <slot name="bulk-actions" :keys="selectedKeys" :rows="selectedRows" :clear="clearSelection">
           <AppButton
             v-for="action in bulkActions"
@@ -298,6 +321,7 @@
           />
         </slot>
         <AppButton size="xs" variant="ghost" :label="clearLabel" @click="clearSelection" />
+        </span>
       </div>
     </Transition>
 
@@ -504,11 +528,13 @@ export interface TableBulkAction<T = any> {
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, useSlots, watch } from 'vue';
+import AppBlob, { type BlobShape } from './AppBlob.vue';
 import AppIcon from './AppIcon.vue';
 import AppSwap from './AppSwap.vue';
 import AppButton from './AppButton.vue';
 import AppCheckbox from './AppCheckbox.vue';
 import AppDropdownMenu, { type MenuGroup } from './AppDropdownMenu.vue';
+import { useBlob } from '@/composables/useBlob';
 import { useDebounce } from '@/composables/useDebounce';
 import { TABLE_DENSITIES, TABLE_VIEWS, useHiddenColumns, useTableDisplay } from '@/composables/useTableDisplay';
 
@@ -1096,6 +1122,68 @@ watch(
 
 const selectedKeys = computed(() => [...selectedSet.value]);
 const selectedCount = computed(() => selectedSet.value.size);
+
+/* ── Bulk bar: the count's pill melts sideways into the action strip ─────── */
+
+const bulkbarEl = ref<HTMLElement | null>(null);
+const bulkCountEl = ref<HTMLElement | null>(null);
+const bulkBlob = useBlob({ radius: '--radius-xl' });
+const bulkRadius = computed(() => bulkBlob.roundness.value);
+/** False for the first frame, so the shapes start as the pill alone and then grow. */
+const bulkOpen = ref(false);
+const bulk = ref({ width: 0, height: 0, count: 0, rtl: false });
+
+function measureBulkbar() {
+  const bar = bulkbarEl.value;
+  const count = bulkCountEl.value;
+  if (!bar || !count) return;
+  const rtl = getComputedStyle(bar).direction === 'rtl';
+  // The count's pill reaches from the bar's start edge to just past the count, in the bar's own
+  // writing direction; the canvas mirrors itself in RTL (flipX), so the shapes stay LTR.
+  const countEnd = rtl ? bar.clientWidth - count.offsetLeft : count.offsetLeft + count.offsetWidth;
+  bulk.value = { width: bar.clientWidth, height: bar.clientHeight, count: Math.min(bar.clientWidth, countEnd + 10), rtl };
+}
+
+let bulkObserver: ResizeObserver | null = null;
+let bulkFrame = 0;
+function openBulkbar() {
+  measureBulkbar();
+  bulkOpen.value = false;
+  if (typeof ResizeObserver !== 'undefined' && bulkbarEl.value) {
+    bulkObserver?.disconnect();
+    bulkObserver = new ResizeObserver(() => measureBulkbar());
+    bulkObserver.observe(bulkbarEl.value);
+  }
+  cancelAnimationFrame(bulkFrame);
+  // One frame as the pill alone, then the strip grows out of it.
+  bulkFrame = requestAnimationFrame(() => (bulkFrame = requestAnimationFrame(() => (bulkOpen.value = true))));
+}
+watch(
+  () => selectedCount.value > 0,
+  (on) => {
+    if (on) return;
+    bulkOpen.value = false;
+    bulkObserver?.disconnect();
+    bulkObserver = null;
+  },
+);
+onBeforeUnmount(() => {
+  cancelAnimationFrame(bulkFrame);
+  bulkObserver?.disconnect();
+});
+
+const bulkShapes = computed<BlobShape[]>(() => {
+  const { width, height, count } = bulk.value;
+  if (!width || !height) return [];
+  const r = Math.min(bulkRadius.value, height / 2);
+  return [
+    { key: 'count', x: 0, y: 0, width: count, height, radius: r },
+    bulkOpen.value
+      ? { key: 'strip', x: Math.max(0, count - r * 2), y: 0, width: width - Math.max(0, count - r * 2), height, radius: r }
+      : // A small drop just beside the pill, which the goo bridges as it grows.
+        { key: 'strip', x: count + 4, y: height * 0.3, width: Math.min(12, height * 0.4), height: height * 0.4, radius: height * 0.2, opacity: 0 },
+  ];
+});
 
 /** Only rows currently loaded can be handed back — a selection may span pages. */
 const selectedRows = computed(() =>
@@ -1717,11 +1805,38 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   margin: 0.875rem auto 0;
   padding: 0.5rem 0.625rem;
   padding-inline-start: 1rem;
-  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
-  backdrop-filter: blur(0.75rem) saturate(140%);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 22%, var(--color-border));
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
+  /* The surface and its edge are the AppBlob behind the content (bible §5: flat, with an edge;
+     the old glass and shadow are gone). */
+  isolation: isolate;
+}
+.at-bulkbar-canvas {
+  z-index: -1;
+}
+.at-bulkbar-count {
+  position: relative;
+}
+
+/* The actions arrive once the strip has grown under them: a fade and a short slide from the
+   count's side, by transform only. */
+.at-bulkbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  opacity: 0;
+  transform: translateX(-0.5rem);
+  transition:
+    opacity var(--vt-duration-exit) var(--vt-ease-exit),
+    transform var(--vt-duration-exit) var(--vt-ease-exit);
+}
+.at-bulkbar-actions:dir(rtl) {
+  transform: translateX(0.5rem);
+}
+.at-bulkbar[data-open='true'] .at-bulkbar-actions {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--vt-duration-enter) var(--vt-ease) calc(var(--vt-duration) * 0.6),
+    transform var(--vt-duration-enter) var(--vt-ease) calc(var(--vt-duration) * 0.6);
 }
 
 /* Stack above the docked pager rather than over it. */
@@ -1730,6 +1845,7 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 }
 
 .at-bulkbar-count {
+  padding-inline-end: 0.25rem;
   font-family: var(--font-mono);
   font-size: var(--text-xs, 0.75rem);
   color: var(--color-accent);
@@ -1922,6 +2038,10 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
   .at-skeleton,
   .at-bulkbar-in {
     animation: none;
+  }
+  .at-bulkbar-actions,
+  .at-bulkbar-actions:dir(rtl) {
+    transform: none;
   }
 }
 </style>

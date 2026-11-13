@@ -1812,6 +1812,7 @@ These are not style preferences. Break one and the table quietly stops working.
 |---|---|
 | Emit the search box's value directly | The input stays live but only the **debounced** value is emitted, so what a parent forwards to an API is never the half-typed string |
 | Let the selection checkbox toggle itself | The click handler `preventDefault()`s and owns the state outright. On a shift-range the DOM would otherwise drift out of step with the model |
+| Animate the bulk bar's width as it opens | The bar's box is at its full width from the first frame; an [AppBlob](#appblob) draws its surface, so the count's pill and a drop beside it melt into the strip in SVG, the actions fade in by transform, and the count swaps through AppSwap. Flat with an edge: no glass, no shadow (bible §5) |
 | Give the sweep to the scroll box as a `::before` | An absolutely positioned pseudo inside an `overflow: auto` box scrolls away with the content. It lives on an outer wrapper with its own clipping track |
 | Put `max-height` in CSS instead of an inline style | It is an inline style precisely so card view can drop it — a capped box would clip cards, which reflow to the page instead of scrolling |
 | Skip the `closest()` guard on row click | A click that landed on a button, a link or a checkbox is not a row click. The guard also bails when there is a text selection, so selecting text in a row does not navigate |

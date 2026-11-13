@@ -20,7 +20,7 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 9 | Composables: fix the 25, add the four that components duplicate (below) | Done 2026-11-08 |
 | 10 | Icon set choice: Heroicons (default), Lucide, Phosphor, picked per project by the CLI (below) | Done 2026-11-10; docs preview per set left as optional |
 | 11 | New components: 8 basics, 5 from Pasta UI, the Sileo toast morph, interior.dev picks (below) | Done 2026-11-13 (11.1 to 11.6; Chrome 6-combination matrix still open); next is phase 12 |
-| 12 | Blobify: the goo morph as a shared primitive (AppBlob, AppSwap, useBlob, useIndicator), then nine places it goes; ship step syncs the template and checks the docs deploy (below) | In progress: 12.0–12.2 and 12.3 #1–4 done 2026-11-13, plus the AppAvatarGroup reveal; 12.3 #4 done; #5 (bulk bar) next |
+| 12 | Blobify: the goo morph as a shared primitive (AppBlob, AppSwap, useBlob, useIndicator), then nine places it goes; ship step syncs the template and checks the docs deploy (below) | In progress: 12.0–12.2 and 12.3 #1–5 done 2026-11-13, plus the AppAvatarGroup reveal; 12.3 #4–5 done; #6 (tooltip nub) next |
 
 ## Phase 4 plan
 
@@ -923,7 +923,7 @@ falls back to a fade or a jump, checked in all 6 preset × theme combinations at
    pill (`AppNavbar.vue:331-337`, transition `:259`). Dark tone: opaque fill with canvas
    opacity (`:476`). Spring and bounce only on click and route change; hover moves on `quick()`
    so the blob never trails the pointer. The active link keeps a non-colour cue (§12).
-5. [ ] **AdvancedAppTable bulk bar** (M, 4–6 h): the "3 selected" pill melts sideways into the
+5. [x] **AdvancedAppTable bulk bar** (done 2026-11-13: count pill melts into the strip, actions by transform, flat with an edge, RTL mirrored): the "3 selected" pill melts sideways into the
    action strip (`AdvancedAppTable.vue:350-373, 1825-1866`). The bar's box sits at its measured
    full width; actions fade and move by transform; the count swaps through AppSwap. Drops the
    glass (`:1835-1838`) for `surface-raised` with an edge, which is closer to §5.

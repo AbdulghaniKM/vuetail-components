@@ -93,7 +93,7 @@
   ],
   "styles": ["tokens"],
   "dependencies": {
-    "AdvancedAppTable": ["AppIcon", "AppButton", "AppCheckbox", "AppDropdownMenu", "useDebounce", "useTableDisplay", "AppSwap"],
+    "AdvancedAppTable": ["AppIcon", "AppButton", "AppCheckbox", "AppDropdownMenu", "useDebounce", "useTableDisplay", "AppSwap", "AppBlob", "useBlob"],
     "AppAccordion": ["AppIcon"],
     "AppAvatar": ["AppTooltip"],
     "AppAvatarGroup": ["AppAvatar", "AppBlob", "AppSwap", "AppTooltip", "useBlob"],
@@ -225,6 +225,9 @@
       "packages": ["motion-v@^2.2.1"]
     },
     "Fields/TimePickerClock": {
+      "packages": ["motion-v@^2.2.1"]
+    },
+    "AdvancedAppTable": {
       "packages": ["motion-v@^2.2.1"]
     },
     "AppAvatarGroup": {
