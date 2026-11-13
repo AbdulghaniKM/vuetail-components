@@ -6,6 +6,7 @@
     "AppAvatar",
     "AppAvatarGroup",
     "AppBadge",
+    "AppBlob",
     "AppButton",
     "AppCheckbox",
     "AppColorPicker",
@@ -34,6 +35,7 @@
     "AppSkeleton",
     "AppSlider",
     "AppSpinner",
+    "AppSwap",
     "AppSwitch",
     "AppTable",
     "AppTabs",
@@ -62,6 +64,7 @@
     "useAnnouncer",
     "useAppUi",
     "useAuth",
+    "useBlob",
     "useBreakpoint",
     "useClipboard",
     "useConfirm",
@@ -71,6 +74,7 @@
     "useDockFlight",
     "useDockPosition",
     "useFormValidation",
+    "useIndicator",
     "useInfiniteScroll",
     "useKeyboard",
     "useLiquidGlass",
@@ -94,6 +98,7 @@
     "AppAvatar": [],
     "AppAvatarGroup": ["AppAvatar"],
     "AppBadge": [],
+    "AppBlob": ["useBlob"],
     "AppButton": ["AppIcon", "AppSpinner", "AppTooltip", "AppLiquidGlass", "useReducedMotion"],
     "AppCheckbox": ["AppIcon"],
     "AppColorPicker": ["AppButton", "AppIcon", "AppSlider", "useReducedMotion"],
@@ -123,7 +128,8 @@
     "AppTable": ["AppButton", "AppIcon", "AppModal", "AppPopover", "AppTooltip", "AppCheckbox", "AppBadge", "AppFilterPanel", "Fields/Select", "Fields/DatePicker", "Fields/InputField", "useConfirm", "useDebounce", "useLocalStorage", "usePagination", "useMotionTokens"],
     "AppTabs": ["AppIcon", "useRovingFocus", "useMotionTokens", "useReducedMotion"],
     "AppText": [],
-    "AppToast": ["AppIcon", "useToast", "useMotionTokens", "useReducedMotion", "useAnnouncer"],
+    "AppSwap": [],
+    "AppToast": ["AppBlob", "AppIcon", "AppSwap", "useBlob", "useToast", "useMotionTokens", "useReducedMotion", "useAnnouncer"],
     "AppTooltip": ["useBreakpoint"],
     "ConfirmDangerModal": ["AppButton", "AppModal"],
     "CreateUpdateModal": ["AppModal", "Fields/AppForm", "AppButton", "useToast"],
@@ -147,7 +153,9 @@
     "AppNavbar": ["AppIcon", "useMotionTokens", "useReducedMotion"],
     "AppNotificationPreview": ["AppIcon", "useReducedMotion"],
     "useDockDrag": ["useDockPosition", "useDockFlight", "useKeyboard", "useReducedMotion"],
-    "useDockFlight": ["useDockPosition", "useMotionTokens", "useReducedMotion"]
+    "useDockFlight": ["useDockPosition", "useMotionTokens", "useReducedMotion"],
+    "useBlob": ["useMotionTokens", "useReducedMotion"],
+    "useIndicator": ["AppBlob", "useBlob"]
   },
   "requires": {
     "useAuth": {
@@ -211,6 +219,9 @@
       "packages": ["@vueuse/core"]
     },
     "AppToast": {
+      "packages": ["motion-v@^2.2.1"]
+    },
+    "AppBlob": {
       "packages": ["motion-v@^2.2.1"]
     },
     "AppModal": {

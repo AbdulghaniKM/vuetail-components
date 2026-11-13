@@ -185,10 +185,15 @@ The field frame then needs only:
   for things that appear and leave. Exits are shorter than entrances.
 - Easing: `ease-standard` (`--vt-ease`) and `ease-exit` (`--vt-ease-exit`) only. No
   `cubic-bezier` literals, no bounce, no overshoot (any control point above 1 or below 0).
-  One exception, decided by the owner 2026-11-11: AppToast's morph springs with
-  `--vt-toast-bounce` (.25 in Pine, 0 in Ink, Console and under reduced motion).
+  One exception, decided by the owner 2026-11-11: geometry drawn by the blob primitive
+  (`AppBlob`, through `useBlob().spring()`) springs on `--vt-morph-duration` with
+  `--vt-morph-bounce` (.25 in Pine, 0 in Ink, Console and under reduced motion), and only while
+  opening. Nothing else may overshoot.
 - Animate `transform`, `opacity` and colours. Never width, height, top or left. Shape geometry
-  inside an SVG canvas of fixed size (AppToast's goo) is not page layout and may animate.
+  inside `AppBlob`'s canvas of fixed size is not page layout and may animate. The goo filter
+  (`feColorMatrix` alpha curve) lives only in `AppBlob.vue`; nothing hand-rolls it.
+- `AppSwap` may cross-fade a leaving and an entering copy through `filter: blur()`; the leaving
+  copy is `aria-hidden` and out of flow. Reduced motion keeps the fade and drops the blur.
 - `prefers-reduced-motion: reduce` drops movement and keeps fades. Use `useReducedMotion` or
   `motion-reduce:` variants. Durations shrink through the tokens (80 / 100 / 70ms in every preset).
 - Press feedback is the preset's press transform and nothing else.

@@ -396,9 +396,16 @@ Utilities the tokens add:
 
 Motion values without a Tailwind namespace stay as `--vt-duration`, `--vt-duration-enter`,
 `--vt-duration-exit`, `--vt-press-y`, `--vt-press-scale` and `--vt-ease`, used as
-`duration-(--vt-duration)` or in `<style>` blocks. `--vt-toast-bounce` (0 in Ink and Console,
-.25 in Pine, 0 under reduced motion) is the spring bounce of AppToast's morph: the one
-place a preset may overshoot (DESIGN-BIBLE §10).
+`duration-(--vt-duration)` or in `<style>` blocks. `--vt-morph-bounce` (0 in Ink and Console,
+.25 in Pine, 0 under reduced motion) and `--vt-morph-duration` (500 / 600 / 320ms, 0 under
+reduced motion) are the spring of the blob primitive (`AppBlob`, `useBlob`): the one place a
+preset may overshoot (DESIGN-BIBLE §10). `--vt-toast-bounce` is kept for one release as an alias.
+
+Blob limits, from the goo filter itself (blur σ = radius × 0.5, then alpha `× 20 − 10`):
+fills must be opaque (put `opacity` on the canvas instead), one colour per canvas, an edge is a
+second pass drawn 1px outside the fill, σ follows `--radius-2xl` with a floor of 4, text is never
+filtered (the canvas has no slot). Budget: about 10 live canvases a page, none larger than about
+400 × 300px, none inside anything that repeats per row or per option.
 
 Fonts: every face is on Fontsource. Stacks name the variable family first, then the plain one,
 so self-hosting and Google Fonts both work. Ink ships `@fontsource-variable/schibsted-grotesk`

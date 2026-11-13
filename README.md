@@ -1209,8 +1209,9 @@ its outcome.
 Interaction: hover, focus or a click on the pill holds it open (and pauses its timer); Escape
 inside a toast or a short vertical swipe dismisses it. One toast is open at a time.
 
-Motion: `--vt-toast-bounce` is the spring's bounce (.25 in Pine, 0 in Ink, Console and under
-reduced motion), the one overshoot DESIGN-BIBLE §10 allows. The corner radius is the preset's
+Motion: the shapes draw through [AppBlob](#appblob) and spring on `--vt-morph-duration` with
+`--vt-morph-bounce` (.25 in Pine, 0 in Ink, Console and under reduced motion), the one overshoot
+DESIGN-BIBLE §10 allows. The header swaps state through [AppSwap](#appswap). The corner radius is the preset's
 `--radius-2xl`. Under reduced motion a toast with more shows open and only fades.
 
 #### Things that look simplifiable but are not
@@ -2536,6 +2537,82 @@ pnpm add-component AppProgress
 | Let the value text be read as well | It is `aria-hidden`: the progressbar already reads its value (or `aria-valuetext`) |
 | Drop the sweep and spin under reduced motion | They become a slow fade, so the work still reads as under way without movement |
 
+### AppBlob
+
+The morph canvas: shapes of one colour that fuse where they meet (the goo from Sileo, MIT). The
+only place the goo filter lives; AppToast draws through it. Text and controls are never inside it:
+it has no slot, so lay your HTML over it.
+
+```bash
+pnpm add-component AppBlob
+```
+
+```vue
+<div class="relative">
+  <AppBlob
+    class="absolute inset-0"
+    :width="320" :height="120"
+    :shapes="[
+      { key: 'pill', x: 0, y: 0, width: open ? 320 : 120, height: 40 },
+      { key: 'body', x: 0, y: 40, width: 320, height: open ? 80 : 0, opacity: open ? 1 : 0 },
+    ]"
+    fill="var(--color-text)"
+  />
+  <span class="relative">Laid over the blob</span>
+</div>
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `width` / `height` | `number` | required | Canvas size in px; fixed, the shapes move inside it |
+| `shapes` | `BlobShape[]` | required | `{ key, x?, y?, width, height, radius?, opacity?, transition? }` |
+| `fill` | `string` | `currentColor` | One **opaque** colour; put translucency on the canvas's `opacity` |
+| `edge` | `string` | — | Border colour: the shapes draw again underneath, the fill 1px inside |
+| `blur` | `number` | radius × 0.5, ≥ 4 | The goo's σ |
+| `radius` | `number` | `--radius-2xl` | Corner radius |
+| `transition` | motion-v transition | `useBlob().spring()` | How the shapes move; a shape's own `transition` wins |
+| `flipX` / `flipY` | `boolean` | `false` | Mirror for RTL, or for a shape growing upward |
+| `pad` | `number` | 2 × blur | Room the filter keeps outside the canvas |
+
+Exposes `filterId`. Exports `BlobShape`.
+
+Limits, from the filter: fills under about 50% alpha vanish; two colours in one canvas bridge into
+mud (use two canvases); budget about 10 live canvases a page, none bigger than about 400 × 300px,
+none per table row or list option.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Animate a `div`'s width and border-radius | Two boxes overlap with a seam; the filter fuses them into one outline with a smooth inner corner, and SVG geometry in a fixed canvas never relays out the page |
+| Add a slot for the label | Filtered text turns to blobs; the canvas is `aria-hidden` and decoration only |
+| Copy the `<filter>` into a component | The design-bible spec fails on a goo filter outside AppBlob.vue, so radius, blur and the spring stay one system |
+
+### AppSwap
+
+Content that changes cross-fades through a blur instead of snapping: Save → Saving… → Saved,
+sun → moon, 3 → 4.
+
+```bash
+pnpm add-component AppSwap
+```
+
+```vue
+<AppSwap :swap-key="state">{{ state === 'saving' ? 'Saving…' : 'Save' }}</AppSwap>
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `swapKey` | `string \| number \| boolean` | required | A new value swaps the copy |
+| `tag` | `string` | `span` | Element for the wrapper and each copy |
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Use `mode="out-in"` | The new copy waits for the old one to leave, so the change reads as lag |
+| Keep the leaving copy in flow | It is absolute and `aria-hidden`, so the box does not jump and a button is never named "Save Saving…" |
+
 ---
 
 ## Composable reference
@@ -2543,6 +2620,31 @@ pnpm add-component AppProgress
 Each composable is installed with `pnpm add-composable <name>` and lands in `src/composables/`.
 Sections follow the component format: what it does, options, what it returns, and the behaviour
 that is easy to break.
+
+### useBlob
+
+The blob's numbers from the tokens: `useBlob({ radius = '--radius-2xl', cap?, minBlur = 4 })`.
+
+| Returns | Description |
+|---|---|
+| `roundness` | Corner radius in px (capped by `cap`) |
+| `blur` | radius × 0.5, at least `minBlur`, so Ink's 8px corners still fuse |
+| `spring(opening = true)` | motion-v spring on `--vt-morph-duration` with `--vt-morph-bounce`, bounce only while opening; `{ duration: 0 }` under reduced motion |
+| `quick()` | A `--vt-duration` tween, for moves that follow the pointer |
+| `reduced`, `tick` | Reduced motion; a counter that bumps on a preset or theme switch |
+
+Every caller shares one MutationObserver on `<html>`, counted and disconnected when the last blob
+unmounts, so ten blobs cost one observer.
+
+### useIndicator
+
+A sliding segmented or tab indicator as two blob shapes:
+`useIndicator(container, activeKey, { inset?, quick?, blob? })`. Items carry
+`data-indicator="<key>"`. Returns `canvas` (for AppBlob's size), `shapes` (head and tail), `box`
+(the active item, for HTML laid over it) and `measure()`. The head moves first and the tail follows,
+so the pill stretches from the old item to the new one and settles. Boxes are measured with a
+ResizeObserver in physical px, so RTL needs nothing. With `quick` true (hover) both move on a short
+tween.
 
 ### useInfiniteScroll
 

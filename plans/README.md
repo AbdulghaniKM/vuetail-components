@@ -20,7 +20,7 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 9 | Composables: fix the 25, add the four that components duplicate (below) | Done 2026-11-08 |
 | 10 | Icon set choice: Heroicons (default), Lucide, Phosphor, picked per project by the CLI (below) | Done 2026-11-10; docs preview per set left as optional |
 | 11 | New components: 8 basics, 5 from Pasta UI, the Sileo toast morph, interior.dev picks (below) | Done 2026-11-13 (11.1 to 11.6; Chrome 6-combination matrix still open); next is phase 12 |
-| 12 | Blobify: the goo morph as a shared primitive (AppBlob, AppSwap, useBlob, useIndicator), then nine places it goes; ship step syncs the template and checks the docs deploy (below) | **Planned** 2026-11-11 |
+| 12 | Blobify: the goo morph as a shared primitive (AppBlob, AppSwap, useBlob, useIndicator), then nine places it goes; ship step syncs the template and checks the docs deploy (below) | In progress: 12.0–12.2 done 2026-11-13 (primitives, AppToast on them); 12.3 next |
 
 ## Phase 4 plan
 
@@ -848,49 +848,58 @@ it. Limits, from the filter itself:
   at most about 10 live canvases on a page, none bigger than about 400 × 300px, nothing in a list
   that repeats per row or per option.
 
-### 12.0 Rules and tokens first (about 1 h)
-- [ ] DESIGN-BIBLE §10: the exception moves from "AppToast's morph" to "geometry drawn by the
+**Status 2026-11-13 (no agents).** 12.0 to 12.2 done: tokens `--vt-morph-bounce` /
+`--vt-morph-duration` (toast-bounce kept as alias), bible §10 and DESIGN.md updated, AppBlob,
+AppSwap, useBlob, useIndicator with registry entries, README sections, doc pages and
+`tests/appBlob.spec.ts`; AppToast draws through AppBlob and AppSwap (its filter, observer and
+`SPRING_S` gone; appToast.spec unchanged and green). The design-bible guard from 12.4 landed early
+(goo only in AppBlob.vue). Template now bundles AppBlob, AppSwap and useBlob (12.5 template step
+for this change). Chrome: blob and toast pages clean in all 3 presets × 2 themes at 1440, no
+console errors. Next: 12.3 item 1 (AppSwap in place).
+
+### 12.0 Rules and tokens first (done 2026-11-13)
+- [x] DESIGN-BIBLE §10: the exception moves from "AppToast's morph" to "geometry drawn by the
   blob primitive (`AppBlob`), inside its fixed canvas". The blur cross-fade (`filter: blur` on a
   leaving and an entering copy, `AppSwap`) gets its own allowed line. Overshoot stays allowed only
   through `--vt-morph-bounce`.
-- [ ] Tokens (`styles/tokens.mjs`, then `node scripts/tokens.mjs build`):
+- [x] Tokens (`styles/tokens.mjs`, then `node scripts/tokens.mjs build`):
   - `--vt-morph-bounce`: Pine .25; Ink, Console and reduced motion 0. `--vt-toast-bounce` stays as
     an alias for one release, then goes.
   - `--vt-morph-duration`: Ink 500ms, Pine 600ms, Console 320ms, reduced 0ms. AppToast's
     hard-coded 600ms (`SPRING_S`) reads it; the survey found it 5 × Console's state duration.
   - No elevation token in `drop-shadow()` form (user, 2026-11-11). Blobs that float (surface
     toast, bulk bar, tooltip) stay flat, with an edge.
-- [ ] DESIGN.md: the two tokens, the limits above, and the budget.
+- [x] DESIGN.md: the two tokens, the limits above, and the budget.
 
-### 12.1 The primitives (about 5 h, with specs and doc pages)
-- [ ] **`composables/useBlob.ts`.** `useBlob({ radius = '--radius-2xl', cap?, minBlur = 4 })`
+### 12.1 The primitives (done 2026-11-13)
+- [x] **`composables/useBlob.ts`.** `useBlob({ radius = '--radius-2xl', cap?, minBlur = 4 })`
   returns `roundness`, `blur` (radius × 0.5, at least `minBlur`), `spring(opening)` (motion-v
   spring on `--vt-morph-duration` and `--vt-morph-bounce`, bounce only when opening; `{duration: 0}`
   under reduced motion), `quick()` (a `--vt-duration` tween for hover-driven moves), `reduced`.
   One module-level MutationObserver on `<html>` (preset, theme, style) with a subscriber count,
   disconnected at zero, so a page with ten blobs has one observer.
-- [ ] **`components/ui/AppBlob.vue`.** The canvas. Props: `width`, `height` (fixed);
+- [x] **`components/ui/AppBlob.vue`.** The canvas. Props: `width`, `height` (fixed);
   `shapes: { key, x?, y?, width, height, radius?, opacity? }[]`; `fill` (CSS colour or var);
   `edge?: string` (draws the shapes twice, the fill 1px inside); `blur?`, `radius?` (default
   `useBlob`); `transition?` (default `spring`); `flipX?` (RTL), `flipY?` (growing upward);
   `pad?` (filter margin, default 2 × blur). Renders an `aria-hidden`, `pointer-events-none`,
   `overflow-visible` `<svg>` with one `useId` filter and a `motion.rect` per shape
   (`:initial="false"`). No slot. Exposes `filterId`.
-- [ ] **`components/ui/AppSwap.vue`.** The blur cross-fade as a wrapper: `<AppSwap :swap-key
+- [x] **`components/ui/AppSwap.vue`.** The blur cross-fade as a wrapper: `<AppSwap :swap-key
   tag="span">`. The leaving copy is `position: absolute` and `aria-hidden`, so a button is never
   named "Save Saving…" for 130ms. Reduced motion: fade only.
-- [ ] **`composables/useIndicator.ts`.** `useIndicator(container, activeKey, { axis })` measures
+- [x] **`composables/useIndicator.ts`.** `useIndicator(container, activeKey, { axis })` measures
   the item boxes (ResizeObserver, RTL-aware, ref-tracked like AppToast's fix) and returns the
   canvas size and two shapes, head and tail, for AppBlob. The head moves first and the tail
   follows, so the blob stretches between the old item and the new one and then contracts.
-- [ ] Registry entries (`registry.json` components / composables / dependencies,
+- [x] Registry entries (`registry.json` components / composables / dependencies,
   `requires.packages: motion-v`), README sections, docs pages with live demos
   (`appblob.ts`, `appswap.ts`, `useblob.ts`, `useindicator.ts`), specs (shapes render,
   edge layer, flips, reduced-motion transition, observer count, swap `aria-hidden`, indicator
   measures and follows RTL).
 
-### 12.2 AppToast onto the primitive (about 2 h)
-- [ ] AppToast draws through `AppBlob` and `useBlob`; its own filter, MutationObserver and
+### 12.2 AppToast onto the primitive (done 2026-11-13)
+- [x] AppToast draws through `AppBlob` and `useBlob`; its own filter, MutationObserver and
   `SPRING_S` go. No behaviour change: `tests/appToast.spec.ts` unchanged and green, and the
   Chrome playground screenshots (3 presets × light / dark, top and bottom, inverse and surface)
   match the ones taken 2026-11-11.
