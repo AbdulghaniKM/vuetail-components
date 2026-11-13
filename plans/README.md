@@ -20,7 +20,7 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 9 | Composables: fix the 25, add the four that components duplicate (below) | Done 2026-11-08 |
 | 10 | Icon set choice: Heroicons (default), Lucide, Phosphor, picked per project by the CLI (below) | Done 2026-11-10; docs preview per set left as optional |
 | 11 | New components: 8 basics, 5 from Pasta UI, the Sileo toast morph, interior.dev picks (below) | Done 2026-11-13 (11.1 to 11.6; Chrome 6-combination matrix still open); next is phase 12 |
-| 12 | Blobify: the goo morph as a shared primitive (AppBlob, AppSwap, useBlob, useIndicator), then nine places it goes; ship step syncs the template and checks the docs deploy (below) | In progress: 12.0–12.2 and 12.3 #1–3 done 2026-11-13, plus the AppAvatarGroup reveal; 12.3 #4 (navbar) next |
+| 12 | Blobify: the goo morph as a shared primitive (AppBlob, AppSwap, useBlob, useIndicator), then nine places it goes; ship step syncs the template and checks the docs deploy (below) | In progress: 12.0–12.2 and 12.3 #1–4 done 2026-11-13, plus the AppAvatarGroup reveal; 12.3 #4 done; #5 (bulk bar) next |
 
 ## Phase 4 plan
 
@@ -919,7 +919,7 @@ falls back to a fade or a jump, checked in all 6 preset × theme combinations at
    pill's `shadow-sm` becomes the edge layer.
 3. [x] **Tabs** (done 2026-11-13: AppTabs pill variant, so PreviewCodeTabs too; the line variant keeps its bar): PreviewCodeTabs (`PreviewCodeTabs.vue:15-16`, every docs
    component page), then AppTabs when 11.2 builds it.
-4. [ ] **AppNavbar pill** (M, 3 h): `useIndicator` over the links in place of the `layoutId`
+4. [x] **AppNavbar pill** (done 2026-11-13: AppBlob + useIndicator, quick on hover, spring on route change, dark tone opaque fill at canvas opacity .14): `useIndicator` over the links in place of the `layoutId`
    pill (`AppNavbar.vue:331-337`, transition `:259`). Dark tone: opaque fill with canvas
    opacity (`:476`). Spring and bounce only on click and route change; hover moves on `quick()`
    so the blob never trails the pointer. The active link keeps a non-colour cue (§12).

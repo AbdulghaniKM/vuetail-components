@@ -104,10 +104,13 @@
 </script>
 
 <script setup lang="ts">
-  import { ref, computed, watch, onMounted, onUnmounted, useId } from 'vue';
+  import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
   import { useRoute, RouterLink } from 'vue-router';
   import { motion } from 'motion-v';
+  import AppBlob from './AppBlob.vue';
   import AppIcon from './AppIcon.vue';
+  import { useBlob } from '@/composables/useBlob';
+  import { useIndicator } from '@/composables/useIndicator';
   import { useMotionTokens } from '@/composables/useMotionTokens';
   import { useReducedMotion } from '@/composables/useReducedMotion';
 
@@ -177,10 +180,6 @@
 
   const route = useRoute();
   const reduced = useReducedMotion();
-
-  // Unique per instance, so two navbars on a page do not animate one pill
-  // between them.
-  const pillId = `nav-pill-${useId()}`;
 
   const open = ref(false);
   const compact = ref(false);
@@ -254,9 +253,29 @@
   // under each link in turn.
   const pillAt = computed(() => (props.pill ? (hovered.value ?? activeLink.value) : null));
 
+  // The pill as a blob (useIndicator over the links). A move the pointer started (hover, focus,
+  // leaving the list) is a short tween, so the pill never trails the pointer; a route change
+  // (a click) springs with the preset's bounce.
+  const pillTrack = ref<HTMLElement | null>(null);
+  const byPointer = ref(false);
+  const onPointer = (to: string | null) => {
+    byPointer.value = true;
+    hovered.value = to;
+  };
+  watch(
+    () => route.path,
+    () => (byPointer.value = false),
+    { flush: 'sync' },
+  );
+  // Links are full pills; the cap keeps the corner (and the blur that follows it) at pill size.
+  const pillBlob = useBlob({ radius: 9999, cap: 18 });
+  const { canvas: pillCanvas, shapes: pillShapes } = useIndicator(pillTrack, pillAt, {
+    blob: pillBlob,
+    quick: byPointer,
+  });
+
   // Read per render rather than cached, so a preset switch reaches the next move.
-  const { enter, state } = useMotionTokens();
-  const pillTransition = () => (reduced.value ? { duration: 0 } : state());
+  const { enter } = useMotionTokens();
   const menuTransition = () => (reduced.value ? { duration: 0 } : enter());
 
   const measure = computed(() => NAV_WIDTH[(compact.value && props.compactWidth) || props.width]);
@@ -309,7 +328,19 @@
       <!-- Centred between the brand and the actions, so the bar has a middle
            instead of everything crowding one end. -->
       <nav :class="['hidden flex-1 justify-center', desktop.show]" :aria-label="ariaLabel">
-        <ul class="flex items-center gap-1" @mouseleave="hovered = null">
+        <div ref="pillTrack" class="relative">
+        <!-- The pill: one AppBlob behind the links. It stretches from one link to the next and
+             settles; a click or a route change springs, hover follows on a short tween. The goo
+             needs an opaque fill, so the dark tone draws the page colour and dims the canvas. -->
+        <AppBlob
+          v-if="pill"
+          class="nav-pill-canvas absolute top-0 left-0"
+          v-bind="pillCanvas"
+          :shapes="pillShapes"
+          fill="var(--nav-pill-fill)"
+          :blur="pillBlob.blur.value"
+        />
+        <ul class="flex items-center gap-1" @mouseleave="onPointer(null)">
           <li v-for="link in links" :key="link.item.to">
             <RouterLink
               :to="link.item.to"
@@ -321,24 +352,16 @@
                 pillAt === link.item.to ? 'nav-link-on' : 'nav-link-off',
                 link.item.disabled ? 'nav-disabled' : '',
               ]"
-              @mouseenter="hovered = link.item.to"
-              @focus="hovered = link.item.to"
-              @blur="hovered = null"
+              :data-indicator="link.item.to"
+              @mouseenter="onPointer(link.item.to)"
+              @focus="onPointer(link.item.to)"
+              @blur="onPointer(null)"
             >
-              <!-- `layout-id` is what makes it travel between items instead of
-                   cross-fading. Motion animates the move with transforms, so
-                   nothing here touches layout. -->
-              <motion.span
-                v-if="pillAt === link.item.to"
-                :layout-id="pillId"
-                class="nav-pill absolute inset-0 rounded-full"
-                :transition="pillTransition()"
-                aria-hidden="true"
-              />
               <span class="relative">{{ link.item.label }}</span>
             </RouterLink>
           </li>
         </ul>
+        </div>
       </nav>
 
       <div class="ms-auto flex shrink-0 items-center gap-1">
@@ -474,6 +497,8 @@
     --nav-ink: var(--color-bg);
     --nav-ink-muted: color-mix(in srgb, var(--color-bg) 72%, var(--color-text));
     --nav-pill: color-mix(in srgb, var(--color-bg) 14%, transparent);
+    --nav-pill-fill: var(--color-bg);
+    --nav-pill-opacity: 0.14;
     --nav-hover: color-mix(in srgb, var(--color-bg) 9%, transparent);
     /* Inverse, because Ink's accent is ink: an accent CTA would vanish into the capsule. */
     --nav-cta: var(--color-bg);
@@ -490,6 +515,8 @@
     --nav-ink: var(--color-text);
     --nav-ink-muted: var(--color-text-muted);
     --nav-pill: var(--color-accent-subtle);
+    --nav-pill-fill: var(--color-accent-subtle);
+    --nav-pill-opacity: 1;
     --nav-hover: var(--color-muted);
     --nav-cta: var(--color-accent);
     --nav-cta-fg: var(--color-accent-fg);
@@ -505,6 +532,8 @@
       --nav-ink: var(--color-text);
       --nav-ink-muted: var(--color-text-muted);
       --nav-pill: var(--color-accent-subtle);
+    --nav-pill-fill: var(--color-accent-subtle);
+    --nav-pill-opacity: 1;
       --nav-hover: var(--color-muted);
       --nav-cta: var(--color-accent);
       --nav-cta-fg: var(--color-accent-fg);
@@ -549,8 +578,10 @@
     color: var(--nav-ink);
   }
 
-  .nav-pill {
-    background-color: var(--nav-pill);
+  /* The goo zeroes a translucent fill, so the pill is drawn opaque and the canvas carries the
+     tone's translucency: the dark capsule's pill is the page colour at 14%, as before. */
+  .nav-pill-canvas {
+    opacity: var(--nav-pill-opacity);
   }
 
   .nav-ghost {

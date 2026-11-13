@@ -150,7 +150,7 @@
     "useConfirm": ["ConfirmDangerModal", "useMotionTokens"],
     "RibbonField": ["useReducedMotion"],
     "AppDock": ["AppIcon", "useDockPosition", "useDockDrag", "useDockFlight", "useKeyboard", "AppSwap"],
-    "AppNavbar": ["AppIcon", "useMotionTokens", "useReducedMotion"],
+    "AppNavbar": ["AppIcon", "useMotionTokens", "useReducedMotion", "AppBlob", "useBlob", "useIndicator"],
     "AppNotificationPreview": ["AppIcon", "useReducedMotion"],
     "useDockDrag": ["useDockPosition", "useDockFlight", "useKeyboard", "useReducedMotion"],
     "useDockFlight": ["useDockPosition", "useMotionTokens", "useReducedMotion"],
