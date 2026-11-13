@@ -4,6 +4,7 @@
     :title="title"
     :message="message"
     :loading="loading"
+    :hold="hold"
     @close="emit('close')"
     @confirm="handleDelete"
   />
@@ -21,12 +22,15 @@ interface Props {
   title?: string;
   message?: string;
   successMessage?: string;
+  /** Hold to confirm: the delete button fires only after a held press (ms; `true` is 1500ms). Off by default. */
+  hold?: boolean | number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   title: 'Confirm Deletion',
   message: 'Are you sure you want to delete this? This action cannot be undone.',
   successMessage: 'Success! The record has been deleted.',
+  hold: false,
 });
 
 const emit = defineEmits<{

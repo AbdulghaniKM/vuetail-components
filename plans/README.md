@@ -19,7 +19,7 @@ it reached the live site (vuetail-docs.vercel.app) when all three merged on 2026
 | 8 | Apply DESIGN-BIBLE.md to the registry (P1–P8, below) | Done 2026-11-10 (uncommitted) |
 | 9 | Composables: fix the 25, add the four that components duplicate (below) | Done 2026-11-08 |
 | 10 | Icon set choice: Heroicons (default), Lucide, Phosphor, picked per project by the CLI (below) | Done 2026-11-10; docs preview per set left as optional |
-| 11 | New components: 8 basics, 5 from Pasta UI, the Sileo toast morph, interior.dev picks (below) | In progress: 11.1 (switch, radio group, slider), 11.2 (tabs, accordion, dropdown menu) and 11.5 (AppToast morph) done; user: finish 11 before 12 |
+| 11 | New components: 8 basics, 5 from Pasta UI, the Sileo toast morph, interior.dev picks (below) | Done 2026-11-13 (11.1 to 11.6; Chrome 6-combination matrix still open); next is phase 12 |
 | 12 | Blobify: the goo morph as a shared primitive (AppBlob, AppSwap, useBlob, useIndicator), then nine places it goes; ship step syncs the template and checks the docs deploy (below) | **Planned** 2026-11-11 |
 
 ## Phase 4 plan
@@ -667,34 +667,58 @@ light, Pine dark and Console light.
   menu or listbox role). It is a single choice, so a Select or an AppDropdownMenu with radio items
   would fit; not changed here.
 
-### 11.3 Surfaces and display (about 1 day)
-- [ ] **AppDrawer.** A side sheet on `useOverlay` (shared stack, scroll lock, focus trap and
+**In flight 2026-11-12 (7 parallel agents, uncommitted, low usage budget).** If the session ended
+mid-run, files below may be half done: check each with its spec and `vue-tsc -b`, finish, then run
+docs `pnpm test` in full. Brief given to agents: scratchpad `TEAM_BRIEF.md` (owner rules: one agent
+per component; shared files `registry.json`, README, `icons.map.json`, `docsNav.ts`, tracker).
+- AppDrawer, AppProgress · AppAvatar(+Group), AppLinkPreview · Select groups, AppFileTree,
+  AdvancedAppTable rows-per-page menu · AppColorPicker (+ useThemeCustomizer demo) ·
+  AppMediaPlayer · AppButton hold + spinner timing, Tooltip group, AppSegmentedControl ·
+  OtpInput, TagInput (AppForm `otp`, `tags`), InputField password strength.
+- User OK 2026-11-12: sync the template's `src/types/form.types.ts` with the new `otp` / `tags` types.
+
+**Finished 2026-11-13, no agents:** the six review specs (OtpInput autofill/dir/describedby, TagInput IME/wrap/AppForm focus) were failing; fixed in the components. tsc clean, vitest 1254/1254, docs build ok, template `form.types.ts` synced. Not done: the Chrome 6-combination matrix.
+
+**Resumed 2026-11-13.** The run was cut off about 22:33 on 2026-11-12, during the agents' browser
+checks; their reports were lost. State found: every component, demo, doc page, spec, README
+section, registry entry, nav entry and tracker row exists; docs `vue-tsc -b` clean; vitest
+1241/1241 (72 files). Not done at the cut-off: the full Chrome matrix (most streams ran only Ink
+light 1440 and Pine dark 375; button-segmented ran none), any code review, the template
+`form.types.ts` sync, `pnpm build`. Seven agents relaunched on the same streams to review, verify
+and fix (brief: scratchpad `RESUME_BRIEF.md`, ports 5211–5217). If this run is cut off too: rerun
+vitest and `vue-tsc -b`, then check each stream's scratch folder for screenshots of all six
+preset × theme combinations.
+- vitest must run from an uppercase drive path (`F:\…`, PowerShell). From `f:\…` or Git Bash
+  `/f/…` every spec fails with "Vitest failed to find the current suite".
+
+### 11.3 Surfaces and display (done 2026-11-13)
+- [x] **AppDrawer.** A side sheet on `useOverlay` (shared stack, scroll lock, focus trap and
   return, Escape), `side: start | end | top | bottom`, `size`, header / footer slots, `v-model`.
   Slides on `transform`; under reduced motion it fades. RTL flips `start` / `end`. About 3 h.
-- [ ] **AppAvatar** (+ `AppAvatarGroup`). Image with initials fallback (AdvancedAppTable's
+- [x] **AppAvatar** (+ `AppAvatarGroup`). Image with initials fallback (AdvancedAppTable's
   initials logic, its hue from the name), `size`, `shape`, optional status dot that carries a
   word for screen readers (bible §7: status is never colour alone). Group: overlap and "+3".
   About 2 h.
-- [ ] **AppProgress.** `role="progressbar"` with `aria-valuenow / min / max`, or indeterminate;
+- [x] **AppProgress.** `role="progressbar"` with `aria-valuenow / min / max`, or indeterminate;
   bar fills on `transform: scaleX` (as AppPageLoader does), `tone`, `size`, optional label and
   value text. A circular variant on `stroke-dashoffset`. About 2 h.
 
-### 11.4 From Pasta UI (about 2.5 days)
-- [ ] **Select: groups and Category dropdown.** Extend Select instead of a new component: items
+### 11.4 From Pasta UI (done 2026-11-13)
+- [x] **Select: groups and Category dropdown.** Extend Select instead of a new component: items
   take `group`, rendered as `role=group` with a labelled header inside the listbox; search
   keeps the headers of groups with matches; optional icon per item. About 3 h.
-- [ ] **AppColorPicker.** Saturation / value area, hue slider (AppSlider), hex and RGB inputs,
+- [x] **AppColorPicker.** Saturation / value area, hue slider (AppSlider), hex and RGB inputs,
   swatches, optional eyedropper (`EyeDropper` where supported). Keyboard: the area is a 2-D
   slider (arrows, Shift for big steps) with `aria-valuetext` naming the colour. Adopted by the
   `useThemeCustomizer` demo for the accent. About 1 day.
-- [ ] **AppFileTree.** APG Tree View: `role=tree / treeitem / group`, `aria-expanded`, arrows
+- [x] **AppFileTree.** APG Tree View: `role=tree / treeitem / group`, `aria-expanded`, arrows
   (Right opens, Left closes or goes to parent), Home / End, type-ahead, one Tab stop
   (`useRovingFocus`), `items` as nested `{ id, label, icon?, children? }`, `v-model:selected`,
   optional lazy `load(node)`. Folder and file icons from Heroicons. About 5 h.
-- [ ] **AppLinkPreview.** A card from `{ url, title, description, image, siteName, favicon }`
+- [x] **AppLinkPreview.** A card from `{ url, title, description, image, siteName, favicon }`
   (the fetching is the app's job: no scraping in the component); compact and large layouts,
   the whole card one link with the title as its name, skeleton while loading. About 2 h.
-- [ ] **AppMediaPlayer** (audio and video). Native `<video>` / `<audio>` with our own controls:
+- [x] **AppMediaPlayer** (audio and video). Native `<video>` / `<audio>` with our own controls:
   play / pause, scrubber (AppSlider), time, volume, mute, playback rate (AppDropdownMenu),
   fullscreen and picture-in-picture for video, captions track toggle. Every control is a named
   button; Space / K, J / L, M, F work while the player has focus. About 1 day.
@@ -770,22 +794,22 @@ source:
 - [x] Agent survey done (Phase 12). Fixed from it: AppToast's preset MutationObserver was never
   disconnected; the pill's focus ring was `rounded-full` around an `rx` shape (now the same radius).
 
-### 11.6 From interior.dev (about 2 days)
+### 11.6 From interior.dev (done 2026-11-13)
 interior.dev (React + Motion, MIT, 54 "micro-interactions", copy-in like our registry: "the
 behaviour is finished; the style is yours"). Its Accordion, Drawer, Dropdown, Tabs, Tree View,
 Progress Bar and Popover overlap 11.1–11.4: read their source for behaviour before building ours.
 Not yet in our plan and worth taking:
-- [ ] **Hold to Confirm** on AppButton (`hold` prop): a destructive action fires only after a
+- [x] **Hold to Confirm** on AppButton (`hold` prop): a destructive action fires only after a
   held press, with the fill showing progress; keyboard holds Space / Enter; reduced motion
   shows a count instead. Fits DeleteModal and ConfirmDangerModal. About 3 h.
-- [ ] **AppSegmentedControl**: a radio group drawn as one pill track with the sliding
+- [x] **AppSegmentedControl**: a radio group drawn as one pill track with the sliding
   indicator (AppNavbar's pill, the PresetSwitcher look). Native radios underneath. About 2 h.
-- [ ] **OTP input** and **Tag input** as Fields (AppForm types `otp`, `tags`). About 3 h each.
-- [ ] **Password strength** on InputField (`strength` meter, the rules listed as text, not colour
+- [x] **OTP input** and **Tag input** as Fields (AppForm types `otp`, `tags`). About 3 h each.
+- [x] **Password strength** on InputField (`strength` meter, the rules listed as text, not colour
   alone). About 2 h.
-- [ ] **AppButton loading timing** ("the spinner outliving the request"): show the spinner only
+- [x] **AppButton loading timing** ("the spinner outliving the request"): show the spinner only
   after 150ms, keep it at least 400ms once shown, so a fast request never flashes. About 1 h.
-- [ ] **Tooltip group**: once one AppTooltip is open, neighbours open instantly instead of
+- [x] **Tooltip group**: once one AppTooltip is open, neighbours open instantly instead of
   waiting for the delay. About 1 h.
 - Later, if wanted: Context Menu, Wizard / Task Steps, Skeleton Swap, Value Flash, Reorder List,
   Streaming Text, Typing Indicator.

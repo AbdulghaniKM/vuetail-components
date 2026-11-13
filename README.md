@@ -183,6 +183,36 @@ with `items` (plain strings work) and `orientation`.
 
 ---
 
+### AppSegmentedControl
+
+One of a few options, drawn as one track with a sliding indicator; native radios in a `<fieldset>`
+underneath (the AppRadioGroup semantics). The indicator travels on a transform through motion-v's
+`layout-id`, on `--vt-duration`; under reduced motion it jumps.
+
+```bash
+pnpm add-component AppSegmentedControl
+```
+
+```vue
+<AppSegmentedControl v-model="view" label="View" hide-label :items="[
+  { label: 'Grid', value: 'grid', icon: 'icon-[heroicons--squares-2x2]' },
+  { label: 'Board', value: 'board' },
+]" />
+```
+
+Props: `modelValue`, `items: SegmentedItem[]` (`{ label, value, icon?, description?, disabled? }`),
+`label` (required, the legend), `hideLabel`, `size: 'sm' | 'md'`, `disabled`, `name`. Emits
+`update:modelValue`, `change`. Pulls in `AppIcon`, `useMotionTokens`, `useReducedMotion`; needs `motion-v`.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Use `role="radio"` buttons with a roving tabindex | Native radios give one Tab stop, arrows, "2 of 3" and form posting for free |
+| Size segments to their own labels | Equal `1fr` segments mean the indicator only translates; unequal ones would scale it and stretch its corners |
+
+---
+
 ### AppSlider
 
 A value or a range on a track (APG Slider and Multi-Thumb Slider). Each thumb is a styled native
@@ -221,6 +251,186 @@ Emits `update:modelValue` while a thumb moves and `change` when it is let go. Ex
 | Let the thumbs cross and sort the pair | A thumb that jumps past the other swaps identity under the pointer and the screen reader; each stops at the other instead, and its input is reset by hand because Vue skips an unchanged bound value |
 | Remove the `z-index` swap | Two inputs overlap; when both thumbs meet near the end only the top one is reachable, so the low one goes on top there or the pair could never move back |
 | Put the ring on the input | The input is 44px tall for the hit area; the ring goes on the thumb (`:focus-visible::-webkit-slider-thumb`) |
+
+---
+
+### Select
+
+A dropdown field (APG listbox, with a combobox search box) for one value from a list. Items can be
+grouped under headers and carry an icon, which makes it a category dropdown.
+
+```bash
+pnpm add-component Fields/Select
+```
+
+```vue
+<Select v-model="fruit" label="Fruit" :items="['Apple', 'Banana', 'Cherry']" :searchable="false" />
+
+<!-- Groups and icons -->
+<Select v-model="category" label="Category" :items="[
+  { label: 'All categories', value: 'all', icon: 'icon-[heroicons--squares-2x2]' },
+  { label: 'Laptops', value: 'laptops', group: 'Hardware', icon: 'icon-[heroicons--computer-desktop]' },
+  { label: 'Ebooks', value: 'ebooks', group: 'Media', icon: 'icon-[heroicons--book-open]' },
+]" />
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `modelValue` | `string \| number` | — | The selected value (v-model) |
+| `items` | `string[] \| SelectItem[]` | `[]` | Strings, or `{ label, value, group?, icon? }` |
+| `label` | `string` | — | Visible label; also names the listbox |
+| `placeholder` | `string` | `''` | Shown when nothing is picked (falls back to "Select...") |
+| `searchable` | `boolean` | `true` | A search box at the top of the list |
+| `readonly` | `boolean` | `false` | Disables the trigger |
+| `error` | `string` | — | Message below, linked with `aria-describedby` |
+| `customClass` | `string` | — | Added to the trigger |
+
+Exports `SelectItem`. Items sharing a `group` are listed together under a header, in the order each
+group first appears; items without a group come first. Search matches labels and keeps a header only
+while its group has a match. The arrows, Home and End move through the options in the drawn order;
+without a search box, typing jumps to the next option that starts with the typed text. In AppForm:
+`type: 'select'`.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Keep each item where it sits in `items` | The highlight index, the option ids and type-ahead follow the drawn order; items of one group scattered through `items` would otherwise make the arrows jump between headers |
+| Make the header an option, or put it outside the group | APG grouped listbox: the group is `role="group"` named by its header through `aria-labelledby`, so a screen reader says "Hardware, group" as you enter it, and the header can never be picked |
+| Drop the `role="none"` wrapper of the items with no group | Every section is one `<li>` holding a `<ul>`, so the option markup is written once; `none` leaves those options straight in the listbox, outside any group |
+| Move focus onto the options | Focus stays on the search box or the listbox, which points at the highlighted option with `aria-activedescendant`, so typing in the search box keeps working |
+
+---
+
+### AppColorPicker
+
+A colour picker: a saturation / brightness plane, a hue slider (AppSlider), hex and RGB fields,
+optional swatches and the screen eyedropper where the browser has `EyeDropper`.
+
+```bash
+pnpm add-component AppColorPicker
+```
+
+```vue
+<AppColorPicker v-model="accent" label="Accent" :swatches="['#2440D2', '#1F6E5A', '#7C3AED']" @change="save" />
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `modelValue` | `string` | — | Hex (v-model). Takes `#abc` or `#aabbcc`, emits `#AABBCC` |
+| `label` | `string` | `'Colour'` | Visible name; names the `role="group"` |
+| `swatches` | `string[]` | `[]` | Preset colours, a radio group under the fields; bad entries and duplicates are dropped |
+| `swatchesLabel` | `string` | `'Swatches'` | Legend of the swatch group |
+| `showRgb` | `boolean` | `true` | The Red / Green / Blue fields |
+| `eyedropper` | `boolean` | `true` | Offer the eyedropper; shown only where `window.EyeDropper` exists |
+| `eyedropperLabel` | `string` | `'Pick a colour from the screen'` | Name of the eyedropper button |
+| `areaLabel` | `string` | `'Saturation and brightness'` | Name of the plane's 2D slider |
+| `disabled` | `boolean` | `false` | Disables and dims every part |
+
+Emits `update:modelValue` on every change (while dragging too) and `change` when one is finished:
+a drag let go, a key pressed, a field committed, a swatch or an eyedropper pick. Exposes `focus()`
+(the plane's thumb). Exports `Rgb`, `Hsv` and the maths: `normalizeHex`, `hexToRgb`, `rgbToHex`,
+`rgbToHsv`, `hsvToRgb`, `colorName` (a rough name, "dark teal").
+
+Keyboard on the plane: Left / Right change saturation, Up / Down brightness, by 1, Shift for 10;
+Page Up / Down brightness by 10; Home / End no or full saturation. `aria-valuenow` is the
+saturation and `aria-valuetext` names the colour ("Dark teal, saturation 72%, brightness 43%"). The
+useThemeCustomizer demo picks its accent with it.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Keep the hex as the state | A grey has no hue and black no saturation, so deriving HSV back from the hex would throw the thumb and the hue slider to 0 on every grey. HSV is the state; an incoming hex only replaces the parts it defines |
+| Mirror the plane in RTL | It is a picture of a colour space, not text: white stays on the left and black at the bottom, as in every colour tool, and each arrow moves the way it points (`dir="ltr"` on the plane). The hue slider is a native range, so it runs from the end edge in RTL and its painted strip is turned to match |
+| Paint the plane or the hue strip with tokens | They are the colours being picked; the ends of the space (white, black, full hue) cannot follow the preset. They are built from the colour maths, not written as hex |
+| Handle the drag on `window` | The plane captures the pointer (`setPointerCapture`), so the drag continues outside it and ends on `pointerup`, `pointercancel` or a lost capture |
+| Apply a 3-digit hex as it is typed | `1F6` is also the first half of `1F6E5A`; six digits apply live, three wait for the commit |
+| Show the eyedropper everywhere | `EyeDropper` exists only in Chromium; elsewhere the button is not rendered, rather than offered and failing |
+| Make the swatches buttons | They are one choice from a set: native radios give one Tab stop and the arrows, and the current one carries a check, not just its colour |
+
+---
+
+### OtpInput
+
+A one-time code in boxes, in a `<fieldset>` named by its `<legend>`.
+
+```bash
+pnpm add-component Fields/OtpInput
+```
+
+```vue
+<OtpInput v-model="code" label="Verification code" :length="6" @complete="verify" />
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `modelValue` | `string` | `''` | The code (v-model) |
+| `length` | `number` | `6` | Boxes |
+| `label` / `description` | `string` | — | Legend; help linked to every box |
+| `error` | `string` | — | Message with an icon, `aria-invalid` + `aria-describedby` on every box |
+| `inputmode` | `'numeric' \| 'text'` | `'numeric'` | Digits only, or letters and digits ("Character n of N") |
+| `disabled` / `name` | `boolean` / `string` | — | Disables the fieldset; boxes post as `name-1`… |
+
+Emits `update:modelValue` and `complete(code)`. In AppForm: `type: 'otp'` with `length`, `inputmode`.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Set `maxlength="1"` | Autofill (`one-time-code`) and some keyboards put the whole code into one box; it is spread across the boxes instead |
+| Keep the value only as a string | A cleared middle box would shift every later digit left; the boxes are the source of truth |
+| Leave Backspace to the browser | With the caret before the digit nothing is deleted; it is handled so a filled box clears and an empty one steps back |
+
+---
+
+### TagInput
+
+Short values typed into one field.
+
+```bash
+pnpm add-component Fields/TagInput
+```
+
+```vue
+<TagInput v-model="topics" label="Topics" :max="5" :suggestions="['Vue', 'Vite']" />
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `modelValue` | `string[]` | `[]` | The tags (v-model) |
+| `label` / `placeholder` / `description` / `error` | `string` | — | As every field |
+| `max` | `number` | — | Limit, with a linked "2 of 5" counter |
+| `allowDuplicates` | `boolean` | `false` | Off: compared without case, refused with a reason |
+| `suggestions` | `string[]` | — | Turns the input into an APG combobox with a listbox |
+| `addOnBlur` | `boolean` | `true` | Commit typed text when focus leaves |
+| `disabled` | `boolean` | `false` | |
+
+Enter or a comma adds (a pasted `a, b, c` adds three); Backspace in the empty input removes the
+last tag; the arrow toward the tags moves onto their remove buttons ("Remove vue"). Adds, removes
+and refusals are announced with `useAnnouncer`. Emits `update:modelValue`, `add`, `remove`. In
+AppForm: `type: 'tags'`, `items` are the suggestions, `max` the limit.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Ring the frame with `focus-within` | A focused remove button draws its own ring; the frame rings only `has-[input:focus]`, so there are never two |
+| Add each comma-separated part with its own emit | The parent has not re-rendered between them, so each emit would overwrite the last; they go in one update |
+| Let Enter through | It would submit the surrounding form instead of adding the tag |
+
+---
+
+### InputField — `strength`
+
+`<InputField type="password" strength />` adds a meter and the rules. The meter is
+`role="meter"` (a level on a fixed 0–4 scale, not a task moving toward done, so not
+`progressbar`), with the level in `aria-valuetext` and in visible words; colour only backs it up.
+Each rule shows an icon and reads "Done:" or "Not yet:"; the list is the input's
+`aria-describedby`. The level is announced once typing pauses. `strength: { rules }` replaces the
+default five rules (`{ label, test }`). Scoring is the pure `scorePassword(value, rules)` exported
+from InputField (bits from length × pool, with repeats, sequences and common passwords discounted;
+capped at Fair until every rule holds). No zxcvbn. In AppForm: `{ type: 'password', strength: true }`.
 
 ---
 
@@ -1819,6 +2029,24 @@ the rim when the theme or preset changes. `lensMap(shape, params, density)` and
 
 ---
 
+### AppButton — `hold` and loading timing
+
+- **`hold`** (`boolean | number`, ms; `true` is 1500): `@click` (and a submit) fires only after a held
+  press. Pointer, Space and Enter hold; letting go early drains the fill (`transform: scaleX`) and
+  emits `hold-cancel`; Escape resets. Under reduced motion a count of seconds replaces the fill.
+  `aria-describedby` reads "Press and hold for 1.5 seconds to confirm…" (`holdHint` overrides).
+  ConfirmDangerModal and DeleteModal take `hold` too (off by default); with it, Enter on the dialog
+  no longer confirms and a line under the message explains the hold.
+- **`loading`**: `aria-busy` and `disabled` follow it at once; the spinner (and `loadingLabel`) waits
+  150ms, then stays at least 400ms, so a fast request never flashes.
+
+| Don't | Because |
+|---|---|
+| Fire `@click` on a click in hold mode | A tap, a screen reader's activation and a keyboard click are all clicks; the button dispatches one real click when the hold completes, so submit buttons submit |
+| Show the spinner the moment `loading` turns on | A 60ms request would blink the button; the delay and the minimum make it either absent or readable |
+
+---
+
 ### AppMagnifier
 
 A draggable lens that genuinely magnifies. Same engine as `AppLiquidGlass`, curved across the
@@ -2014,6 +2242,299 @@ is one.
 | Make the items buttons | Items are `tabindex="-1"` elements with menu roles, so AppPopover's Tab handling sees nothing focusable: Tab closes the menu and moves on past the trigger, as APG asks |
 | Focus the first item in the same tick as opening | AppPopover records where to return focus one tick after it opens; moving earlier makes Escape return focus to a menu item |
 | Handle Enter and Space on the trigger | They reach the button as a click; handling the keys as well would open and close it at once |
+
+---
+
+### AppAvatar
+
+A picture of a person or a team, with initials on a tinted disc when there is no picture or it
+fails to load. The tint is AdvancedAppTable's: the same hash and the same eight hues, so a person
+keeps one colour in a table and in an avatar.
+
+```bash
+pnpm add-component AppAvatar
+```
+
+```vue
+<AppAvatar name="Ada Lovelace" src="/photos/ada.jpg" status="online" />
+<!-- The name is written beside it: alt '' so it is not read twice -->
+<AppAvatar name="Grace Hopper" alt="" size="sm" /> Grace Hopper
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `name` | `string` | — | Drives the initials, the tint and the accessible name; empty shows a person glyph |
+| `src` | `string` | — | Picture URL; initials when missing or broken (a new `src` is tried again) |
+| `alt` | `string` | `name` | Accessible name; `''` drops the image role and reads only the status |
+| `size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | 24, 32, 40, 48, 64px; `xs` shows one initial |
+| `shape` | `'circle' \| 'square'` | `'circle'` | Square for teams and organisations |
+| `status` | `'online' \| 'away' \| 'busy' \| 'offline'` | — | A dot at the bottom end corner |
+| `statusLabel` | `string` | `'Online'`, `'Away'`… | The status word (screen readers and tooltip) |
+| `hue` | `AvatarHue` | from `seed` | A fixed tint |
+| `seed` | `string` | `name` | What the tint is derived from; pass a user id to keep it when the name changes |
+
+Exports `AvatarSize`, `AvatarShape`, `AvatarStatus`, `AvatarHue`, `AVATAR_HUES`,
+`AVATAR_STATUS_LABELS`, `avatarHue(seed)` and `avatarInitials(name, max?)`. The dot's ring and
+the gaps in a group are cut in `--vt-avatar-cut` (default `--color-surface`): set it to the
+colour behind the avatar.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Tint the disc with a transparent fill | The fill mixes the hue into `--color-surface`, so it is opaque: avatars that overlap in a group never show each other through |
+| Colour the status dot and stop there | Bible §7. Each status has its own shape (disc, crescent, bar, ring), its word is in the accessible name ("Ada Lovelace, Busy") and in the dot's tooltip |
+| Use the solid status tokens for the dot | `success` and `warning` drop under 3:1 on the light surfaces; the `*-text` tokens hold 3:1 in all six combinations |
+| Drop the 55% mix toward `--color-text` on the initials | It is what keeps the initials at 4.5:1 on their tint in every preset and theme; the docs spec checks all six |
+| Take `name[0]` for the initial | `Array.from` keeps a letter outside the Basic Multilingual Plane whole, and `toLocaleUpperCase` handles accented letters |
+
+---
+
+### AppMediaPlayer
+
+A native `<video>` or `<audio>` with VueTail controls: play / pause, scrubber (AppSlider), time,
+volume and mute, speed (AppDropdownMenu radio items), captions, picture-in-picture and full screen.
+
+```bash
+pnpm add-component AppMediaPlayer
+```
+
+```vue
+<AppMediaPlayer
+  :src="[{ src: '/clip.mp4', type: 'video/mp4' }]"
+  poster="/clip.jpg"
+  :tracks="[{ src: '/clip.en.vtt', srclang: 'en', label: 'English', default: true }]"
+  label="Product tour"
+/>
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `src` | `string \| MediaFile[]` | — | One URL, or `{ src, type }` files of the same media |
+| `kind` | `'video' \| 'audio'` | `'video'` | Audio is the bar alone (no captions, PiP or full screen) |
+| `label` | `string` | `'Video player'` / `'Audio player'` | Name of the player group |
+| `poster` | `string` | — | Image before the video plays |
+| `tracks` | `MediaTrack[]` | `[]` | `{ src, srclang, label, kind?, default? }`; one track is a toggle, several a menu with Off |
+| `rates` | `number[]` | `[0.5, 0.75, 1, 1.25, 1.5, 2]` | The speed menu; one value or none hides it |
+| `preload` | `'none' \| 'metadata' \| 'auto'` | `'metadata'` | Passed to the element |
+| `autoplay` | `boolean` | `false` | Starts muted; ignored under reduced motion |
+| `loop` | `boolean` | `false` | |
+| `seekStep` | `number` | `10` | Seconds J and L move |
+| `crossorigin` | `'anonymous' \| 'use-credentials'` | — | For media and captions on another origin |
+
+Emits `play`, `pause`, `ended`, `error(MediaError)`. Exposes `media`, `play()`, `pause()`, `seek(t)`,
+`toggleFullscreen()`. Exports `MediaFile`, `MediaTrack`. Keys, only while focus is inside the player:
+Space or K, J / L, M, F, C.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Put the `<video>` in full screen | The whole player goes full screen so these controls stay; the menus then teleport into it, since the page outside a full-screen element is not drawn |
+| Listen for the keys on `document` | Single-key shortcuts on the whole page break typing and screen-reader keys (WCAG 2.1.4); they live on the player's `keydown` |
+| Handle Space on a focused button | The button presses itself with Space; the player only takes Space elsewhere (the scrubber, the picture) |
+| Announce every `waiting` | Stalls under 1.5s say nothing and show nothing for 300ms; a stall that was said says "Playing" when it ends |
+| Set `default` on the `<track>` | The modes are set by hand, so the browser and the toggle never disagree |
+
+---
+
+### AppAvatarGroup
+
+AppAvatars that overlap, then a "+N" tile for the rest.
+
+```bash
+pnpm add-component AppAvatarGroup
+```
+
+```vue
+<AppAvatarGroup :items="members" :max="4" label="Project members" />
+<AppAvatarGroup :items="firstPage" :max="3" :total="128" label="Watchers" size="sm" />
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `items` | `AvatarGroupItem[]` | — | `{ name, src?, alt?, status?, statusLabel?, hue?, seed?, key? }` |
+| `max` | `number` | `4` | Avatars shown before the tile |
+| `total` | `number` | — | The real count when `items` is one page; raises the "+N" |
+| `label` | `string` | — | Names the list |
+| `size` / `shape` | as AppAvatar | `'md'` / `'circle'` | For every avatar and the tile |
+
+Slot `overflow` (`{ count, hidden }`) replaces the tile, for a button that opens the full list.
+Exports `AvatarGroupItem`.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Make the group a `div` of images | A labelled `role="list"` tells screen readers how many there are; `role` is set because Safari drops list semantics from an unstyled `ul` |
+| Write "+3" as the tile's only text | The tile is `role="img"` named "3 more: Margaret Hamilton, …", so the hidden names are not lost; the names are also its tooltip |
+| Overlap with `-ml-*` | `-ms-*` is logical, so the stack runs the other way in RTL |
+| Separate the avatars with an outline or a box-shadow | Each sits on a 2px disc of `--vt-avatar-cut`: an outline would fight the focus ring and a box-shadow is not an elevation step |
+
+---
+
+### AppLinkPreview
+
+A card for a link from data your app already has (an Open Graph or oEmbed endpoint on your
+server). The component never fetches or scrapes.
+
+```bash
+pnpm add-component AppLinkPreview
+```
+
+```vue
+<AppLinkPreview
+  url="https://github.com/vuejs/core"
+  title="vuejs/core"
+  description="Vue.js is a progressive, incrementally-adoptable JavaScript framework."
+  image="https://opengraph.githubassets.com/…"
+  site-name="GitHub"
+  favicon="https://github.com/favicon.ico"
+  :loading="pending"
+  new-tab
+/>
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `url` | `string` | — | The link; its host name stands in for a missing title or site name |
+| `title` / `description` | `string` | host / — | Title is the link's name; description clamps to 3 lines (2 compact) |
+| `image` / `imageAlt` | `string` | — / `''` | 1.91:1 in large, a thumbnail at the end in compact; dropped if it fails |
+| `siteName` / `favicon` | `string` | host / — | The bottom line; a missing or broken favicon shows a globe |
+| `layout` | `'large' \| 'compact'` | `'large'` | Image on top, or one row |
+| `loading` | `boolean` | `false` | AppSkeleton in the same layout |
+| `newTab` | `boolean` | `false` | `target="_blank"`, `rel="noopener noreferrer"`, and "(opens in a new tab)" read after the title |
+| `newTabLabel` / `loadingLabel` | `string` | English | The screen-reader words |
+
+Exports `LinkPreviewData` and `LinkPreviewLayout`. Needs AppSkeleton.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Let the link take its name from its content | That reads the title, the description and the site as one long name; `aria-labelledby` names it by the title, `aria-describedby` adds the rest after a pause |
+| Put a second link or button inside the card | The whole card is one `<a>`; a nested interactive element is invalid HTML and a second Tab stop |
+| Give the image an alt by default | The title already names the link; alt text would be read inside the link's description |
+| Fetch the Open Graph tags in the component | Browsers cannot read another site's HTML (CORS), and scraping from the client leaks every viewer's IP to the linked site; it is your server's job |
+| Render nothing while loading | The skeleton has the card's frame and layout, so the content below does not jump when the data lands |
+
+---
+
+### AppFileTree
+
+A file tree (APG Tree View) with one Tab stop.
+
+```bash
+pnpm add-component AppFileTree
+```
+
+```vue
+<AppFileTree v-model:selected="file" v-model:expanded="open" label="Project files" :items="[
+  { id: 'src', label: 'src', children: [{ id: 'src/main.ts', label: 'main.ts' }] },
+  { id: 'remote', label: 'remote', children: [] },
+]" :load="(node) => api.list(node.id)" />
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `items` | `FileTreeNode[]` | — | `{ id, label, icon?, children? }`; a node with `children` (even `[]`) is a folder |
+| `selected` | `string \| null` | `null` | The picked id (v-model:selected) |
+| `expanded` | `string[]` | `[]` | Open folder ids (v-model:expanded; works without) |
+| `label` | `string` | — | Names the tree |
+| `load` | `(node) => Promise<FileTreeNode[] \| void>` | — | First open of a folder with empty `children`; return them or fill `children` yourself |
+| `emptyLabel` | `string` | `'Empty'` | Shown in an open, empty folder |
+
+Keys: Up / Down, Right opens or steps to the first child, Left closes or steps to the parent (swapped
+in RTL), Home / End, type-ahead, `*` opens the sibling folders, Enter or click picks (and toggles a
+folder), Space picks. Emits `select(node)`, `toggle(node, open)`, `error(node, error)` when `load`
+rejects (the folder closes and retries next open). Exposes `open(...ids)`, `close(id)`, `focus()`.
+Exports `FileTreeNode`.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Draw the ring on the treeitem | The treeitem holds its open subtree; the ring moves to its row (`.vt-tree-row`, inset), or it circles every child |
+| Let the treeitem take its name from its content | Its content includes every child; `aria-labelledby` points at its own label |
+| Keep the Tab stop on an index | Folders above can open, close or load; it follows the node id and falls back to the nearest visible ancestor |
+| Open sibling folders one at a time | With a v-model binding `expanded` only catches up after the parent renders, so `*` writes them in one go |
+
+---
+
+### AppDrawer
+
+A side sheet: a modal dialog that slides in from an edge, on the shared overlay stack (`useOverlay`).
+
+```bash
+pnpm add-component AppDrawer
+```
+
+```vue
+<AppDrawer v-model="open" side="end" title="Edit profile">
+  …
+  <template #footer="{ close }"><AppButton label="Cancel" @click="close" /></template>
+</AppDrawer>
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `modelValue` | `boolean` | `false` | Open or closed (v-model) |
+| `side` | `'start' \| 'end' \| 'top' \| 'bottom'` | `'end'` | The edge it slides from; start / end follow the text direction |
+| `size` | `'sm' \| 'md' \| 'lg' \| 'full'` | `'md'` | Width (20 / 28 / 42rem) for start / end, largest height (40 / 60 / 85dvh) for top / bottom |
+| `title` / `description` | `string` | `''` | Heading (the dialog's name) and a line under it (`aria-describedby`) |
+| `label` | `string` | — | The dialog's name when there is no title |
+| `closeLabel` | `string` | `'Close'` | Name of the close button |
+| `hideClose` | `boolean` | `false` | Leave out the close button |
+| `persistent` | `boolean` | `false` | Ignore Escape and backdrop clicks |
+
+Slots `default`, `header` (replaces title and description; the close button stays), `footer`; each
+gets `{ close }`. Exports `DrawerSide`, `DrawerSize`. Exposes `close()`.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Use `translate-x-full` utilities for the off-screen state | A scoped `--vt-drawer-from` per side flips under `:dir(rtl)`, so `start` slides from the right in RTL without fighting variant order |
+| Pick the reduced-motion fade in CSS | The transition classes switch on `useReducedMotion`, so the fade drops the transform entirely instead of shortening the slide |
+| Make the body always a Tab stop | It takes `tabindex="0"` and a name only while it overflows (bible §11), so a short drawer has no empty stop |
+| Use AppButton for the close button | A control-sized button with an `after:` box gives the 44px hit area (bible §2) without pulling in AppTooltip and AppLiquidGlass |
+
+---
+
+### AppProgress
+
+How far a task has got (`role="progressbar"`), as a bar or a ring.
+
+```bash
+pnpm add-component AppProgress
+```
+
+```vue
+<AppProgress :value="3" :max="8" label="Uploading" show-value :format="(v) => `${v} of 8 files`" />
+<AppProgress label="Preparing" />  <!-- indeterminate -->
+<AppProgress variant="circular" :value="60" aria-label="Course" show-value />
+```
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `value` | `number \| null` | `null` | Clamped to min / max; `null` is indeterminate (no `aria-valuenow`) |
+| `min` / `max` | `number` | `0` / `100` | The range |
+| `label` | `string` | — | Visible name (`aria-labelledby`); without one pass `aria-label` |
+| `showValue` | `boolean` | `false` | Show the value: a percentage, or what `format` returns |
+| `format` | `(value, ratio) => string` | — | Words for the value, on screen and as `aria-valuetext` |
+| `tone` | `'accent' \| 'success' \| 'warning' \| 'danger' \| 'info'` | `'accent'` | Fill colour; the label says what it means |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Bar thickness, or ring diameter |
+| `variant` | `'bar' \| 'circular'` | `'bar'` | A filling track, or a ring |
+
+`class` and `style` go on the wrapper, other attributes on the progressbar. Exports `ProgressTone`.
+
+#### Things that look simplifiable but are not
+
+| Don't | Because |
+|---|---|
+| Animate the fill's width | Bible §10: a full-width fill scales on `transform: scaleX` from the start edge, as AppPageLoader does; `:dir(rtl)` moves the origin to the right |
+| Let the value text be read as well | It is `aria-hidden`: the progressbar already reads its value (or `aria-valuetext`) |
+| Drop the sweep and spin under reduced motion | They become a slow fade, so the work still reads as under way without movement |
 
 ---
 

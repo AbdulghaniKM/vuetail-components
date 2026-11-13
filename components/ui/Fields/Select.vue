@@ -20,8 +20,17 @@
  @click="toggle"
  @keydown="onTriggerKeydown"
  >
+ <span class="flex min-w-0 items-center gap-2">
+ <AppIcon
+ v-if="selectedItem?.icon"
+ :name="selectedItem.icon"
+ :size="1.125"
+ class="shrink-0 text-text-muted"
+ aria-hidden="true"
+ />
  <span :class="selectedLabel ? 'text-text' : 'text-text-muted'" class="truncate">
  {{ selectedLabel || placeholder || 'Select...' }}
+ </span>
  </span>
  <AppIcon
  name="icon-[heroicons--chevron-down]"
@@ -68,7 +77,9 @@
  </div>
  </div>
 
- <!-- Options list -->
+ <!-- Options list. Every section is an <li> holding its own <ul>, so an option's markup is
+ written once: a named group (APG grouped listbox: role="group" labelled by its header) or,
+ for items without a group, role="none", which leaves the options straight in the listbox. -->
  <ul
  ref="listRef"
  :id="`${inputId}-listbox`"
@@ -86,7 +97,22 @@
  No results found
  </li>
  <li
- v-for="(item, index) in filteredItems"
+ v-for="(section, s) in sections"
+ :key="section.group ?? ''"
+ :role="section.group ? 'group' : 'none'"
+ :aria-labelledby="section.group ? `${inputId}-group-${s}` : undefined"
+ :class="s > 0 ? 'mt-1 border-t border-border pt-1' : ''"
+ >
+ <div
+ v-if="section.group"
+ :id="`${inputId}-group-${s}`"
+ class="px-3 pb-1 pt-2 text-xs font-medium text-text-muted"
+ >
+ {{ section.group }}
+ </div>
+ <ul role="none">
+ <li
+ v-for="{ item, index } in section.rows"
  :id="`${inputId}-opt-${index}`"
  :key="item.value"
  role="option"
@@ -102,13 +128,25 @@
  @click="selectItem(item)"
  @mouseenter="highlightedIndex = index"
  >
+ <span class="flex min-w-0 items-center gap-2">
+ <AppIcon
+ v-if="item.icon"
+ :name="item.icon"
+ :size="1"
+ class="shrink-0"
+ :class="isSelected(item) ? '' : 'text-text-muted'"
+ aria-hidden="true"
+ />
  <span class="truncate">{{ item.label }}</span>
+ </span>
  <AppIcon
  v-if="isSelected(item)"
  name="icon-[heroicons--check]"
  :size="1"
  class="shrink-0 text-accent"
  />
+ </li>
+ </ul>
  </li>
  </ul>
  </div>
@@ -135,6 +173,10 @@ import { useRovingFocus } from '@/composables/useRovingFocus'
 export interface SelectItem {
  label: string
  value: string | number
+ /** Items sharing a group are listed together under a header with this text. */
+ group?: string
+ /** An icon class (`icon-[heroicons--*]`) before the label, in the list and in the trigger. */
+ icon?: string
 }
 
 interface Props {
@@ -207,12 +249,37 @@ const normalizedItems = computed<SelectItem[]>(() => {
  )
 })
 
+// Drawn order: items without a group first, then each group where it first appears, so a
+// group's items sit together even when they are scattered in `items`. The arrows, type-ahead
+// and the option ids all follow this order.
+const orderedItems = computed<SelectItem[]>(() => {
+ const byGroup = new Map<string, SelectItem[]>([['', []]])
+ for (const item of normalizedItems.value) {
+ const key = item.group ?? ''
+ if (!byGroup.has(key)) byGroup.set(key, [])
+ byGroup.get(key)!.push(item)
+ }
+ return [...byGroup.values()].flat()
+})
+
 const filteredItems = computed(() => {
  const q = searchQuery.value.trim().toLowerCase()
- if (!q) return normalizedItems.value
- return normalizedItems.value.filter((item) =>
+ if (!q) return orderedItems.value
+ return orderedItems.value.filter((item) =>
  item.label.toLowerCase().includes(q)
  )
+})
+
+// The filtered items cut into runs of one group. A group with no match has no run, so its
+// header goes with it; `index` is the item's place in `filteredItems`.
+const sections = computed(() => {
+ const out: { group?: string; rows: { item: SelectItem; index: number }[] }[] = []
+ filteredItems.value.forEach((item, index) => {
+ const last = out[out.length - 1]
+ if (last && (last.group ?? '') === (item.group ?? '')) last.rows.push({ item, index })
+ else out.push({ group: item.group || undefined, rows: [{ item, index }] })
+ })
+ return out
 })
 
 // Active-descendant navigation: focus stays on the list (or the search box) while the arrows,
@@ -224,11 +291,11 @@ const nav = useRovingFocus({
 })
 const highlightedIndex = nav.active
 
-const selectedLabel = computed(() => {
- if (props.modelValue === '' || props.modelValue == null) return ''
- const found = normalizedItems.value.find((i) => String(i.value) === String(props.modelValue))
- return found?.label ?? ''
+const selectedItem = computed(() => {
+ if (props.modelValue === '' || props.modelValue == null) return undefined
+ return normalizedItems.value.find((i) => String(i.value) === String(props.modelValue))
 })
+const selectedLabel = computed(() => selectedItem.value?.label ?? '')
 
 function isSelected(item: SelectItem) {
  return String(item.value) === String(props.modelValue)

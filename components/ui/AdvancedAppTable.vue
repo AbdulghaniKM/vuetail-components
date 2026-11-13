@@ -307,36 +307,27 @@
       class="at-pagination"
       :class="{ 'is-docked': stickyPagination }"
     >
-      <AppPopover
+      <!-- One choice of several: radio items in an APG menu, so the arrows, Home, End, Escape and
+           Tab work and a screen reader hears which size is checked. It closes on a pick, as
+           there is nothing else to set in it. -->
+      <AppDropdownMenu
         v-if="showLimit && pageSizes.length > 1"
+        ref="limitMenu"
+        :items="limitMenuItems"
         placement="top-start"
-        panel-class="min-w-20 rounded-xl border border-border bg-surface p-1 shadow-lg"
       >
-        <template #trigger="{ toggle, triggerAttrs }">
+        <template #trigger="{ attrs }">
           <button
-            v-bind="triggerAttrs"
+            v-bind="attrs"
             type="button"
             class="at-page-size"
             :aria-label="`${limitValue} / ${pageLabel}, rows per page`"
-            @click="toggle"
           >
             {{ limitValue }} / {{ pageLabel }}
-            <AppIcon name="icon-[heroicons--chevron-up-down]" :size="0.75" />
+            <AppIcon name="icon-[heroicons--chevron-up-down]" :size="0.75" aria-hidden="true" />
           </button>
         </template>
-        <template #default>
-          <button
-            v-for="size in pageSizes"
-            :key="size"
-            type="button"
-            class="at-menu-item justify-center"
-            :class="{ 'is-active': size === limitValue }"
-            @click="setLimit(size)"
-          >
-            {{ size }}
-          </button>
-        </template>
-      </AppPopover>
+      </AppDropdownMenu>
 
       <span class="at-range">
         {{ rangeFrom.toLocaleString() }}&ndash;{{ rangeTo.toLocaleString() }} {{ ofLabel }}
@@ -516,7 +507,6 @@ import { computed, onBeforeUnmount, ref, useSlots, watch } from 'vue';
 import AppIcon from './AppIcon.vue';
 import AppButton from './AppButton.vue';
 import AppCheckbox from './AppCheckbox.vue';
-import AppPopover from './AppPopover.vue';
 import AppDropdownMenu, { type MenuGroup } from './AppDropdownMenu.vue';
 import { useDebounce } from '@/composables/useDebounce';
 import { TABLE_DENSITIES, TABLE_VIEWS, useHiddenColumns, useTableDisplay } from '@/composables/useTableDisplay';
@@ -1070,6 +1060,21 @@ const setLimit = (size: number) => {
   emit('update:page', 1);
   emit('pageChange', { page: 1, limit: size, offset: 0 });
 };
+
+const limitMenu = ref<InstanceType<typeof AppDropdownMenu> | null>(null);
+// Radio items keep an AppDropdownMenu open; this one has a single choice, so a pick closes it
+// (focus returns to the trigger).
+const limitMenuItems = computed(() =>
+  props.pageSizes.map((size) => ({
+    label: String(size),
+    type: 'radio' as const,
+    checked: size === limitValue.value,
+    onSelect: () => {
+      setLimit(size);
+      limitMenu.value?.close();
+    },
+  })),
+);
 
 // The table scrolls inside itself — without this, paging from halfway down a list
 // would drop you halfway down the next one, looking at strangers.
@@ -1696,37 +1701,6 @@ defineExpose({ clearSelection, showAllColumns, exportCsv, selectedKeys, selected
 .at-chrome-trigger.is-open {
   color: var(--color-accent);
   border-color: var(--color-accent);
-}
-
-.at-menu-item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0.5rem;
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: var(--text-sm, 0.875rem);
-  text-align: start;
-  cursor: pointer;
-}
-
-.at-menu-item:hover:not(:disabled) {
-  background: var(--color-muted);
-  color: var(--color-text);
-}
-
-.at-menu-item.is-active {
-  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
-  color: var(--color-accent);
-}
-
-.at-menu-item:disabled {
-  opacity: 0.45;
-  cursor: default;
 }
 
 /* ── Bulk bar ───────────────────────────────────────────────────────────────── */

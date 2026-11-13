@@ -22,6 +22,7 @@
             :placeholder="field.placeholder"
             :readonly="field.readonly"
             :error="displayErrors[field.key]"
+            :strength="field.type === 'password' && field.strength"
             @update:model-value="setFieldValue(field.key, $event)"
           />
 
@@ -93,6 +94,31 @@
             @update:model-value="setFieldValue(field.key, $event)"
           />
 
+          <OtpInput
+            v-else-if="field.type === 'otp'"
+            :model-value="getTextValue(field.key) ?? ''"
+            :label="field.label"
+            :description="field.description"
+            :length="field.length"
+            :inputmode="field.inputmode"
+            :disabled="field.readonly"
+            :error="displayErrors[field.key]"
+            @update:model-value="setFieldValue(field.key, $event)"
+          />
+
+          <TagInput
+            v-else-if="field.type === 'tags'"
+            :model-value="(getFieldValue(field.key) as string[] | undefined) ?? []"
+            :label="field.label"
+            :description="field.description"
+            :placeholder="field.placeholder"
+            :max="field.max !== undefined ? Number(field.max) : undefined"
+            :suggestions="tagSuggestions(field)"
+            :disabled="field.readonly"
+            :error="displayErrors[field.key]"
+            @update:model-value="setFieldValue(field.key, $event)"
+          />
+
           <FileInput
             v-else-if="field.type === 'file'"
             :model-value="getFieldValue(field.key)"
@@ -137,6 +163,8 @@
   import FileInput from './FileInput.vue';
   import AppRadioGroup, { type RadioItem } from '../AppRadioGroup.vue';
   import AppSlider from '../AppSlider.vue';
+  import OtpInput from './OtpInput.vue';
+  import TagInput from './TagInput.vue';
   import type { FormField, FormFieldRow } from '@/types/form.types';
 
   const GRID_COLS_CLASS: Record<number, string> = {
@@ -212,6 +240,10 @@
   const radioItems = (field: FormField): RadioItem[] =>
     (field.items ?? []).map((item) => (typeof item === 'string' ? { label: item, value: item } : item));
 
+  // A tags field takes its suggestions from `items`, as labels.
+  const tagSuggestions = (field: FormField): string[] | undefined =>
+    field.items?.map((item) => (typeof item === 'string' ? item : item.label));
+
   const getDefaultRowClass = (row: FormField[]) => {
     const fieldCount = row.length;
     return GRID_COLS_CLASS[fieldCount] ?? GRID_COLS_CLASS[4];
@@ -259,7 +291,11 @@
     const host =
       formRef.value.querySelector<HTMLElement>(`[data-field="${CSS.escape(path)}"]`) ??
       formRef.value.querySelector<HTMLElement>(`[data-field="${CSS.escape(top)}"]`);
-    host?.querySelector<HTMLElement>('input:not([type="hidden"]), textarea, select, button')?.focus();
+    // A text control first: a tag field has remove buttons before its input.
+    (
+      host?.querySelector<HTMLElement>('input:not([type="hidden"]), textarea, select') ??
+      host?.querySelector<HTMLElement>('button')
+    )?.focus();
   };
 
   // With a FormModel, errors clear as the user fixes them, as the v-model path does through

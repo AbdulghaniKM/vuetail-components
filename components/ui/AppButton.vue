@@ -11,35 +11,59 @@
   >
     <component :is="glass ? AppLiquidGlass : Passthrough" v-bind="glass ? glassBinding : {}">
       <button
+        ref="buttonEl"
         :type="type"
-        class="btn-base inline-flex cursor-pointer select-none items-center justify-center whitespace-nowrap rounded-md font-medium transition-[background-color,border-color,color,box-shadow,transform] duration-(--vt-duration) ease-standard focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:translate-y-(--vt-press-y) active:scale-(--vt-press-scale) disabled:pointer-events-none disabled:opacity-45"
+        class="btn-base inline-flex cursor-pointer select-none items-center justify-center whitespace-nowrap rounded-md font-medium transition-[background-color,border-color,color,box-shadow,transform,opacity] duration-(--vt-duration) ease-standard focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:translate-y-(--vt-press-y) active:scale-(--vt-press-scale) disabled:pointer-events-none"
         :class="[
           sizeClass,
           glass ? glassVariantClass : variantClass,
           gapClass,
           fullWidth && 'w-full',
+          (disabled || busy) && 'opacity-45',
+          holdMs && 'relative isolate overflow-hidden [-webkit-touch-callout:none]',
         ]"
-        :disabled="disabled || loading"
+        :disabled="disabled || loading || busy"
         :aria-busy="loading || undefined"
         :aria-label="iconOnly ? label || tooltip || undefined : undefined"
-        v-bind="$attrs"
+        v-bind="buttonAttrs"
+        :aria-describedby="describedBy"
+        v-on="holdListeners"
       >
-        <AppSpinner v-if="loading" :size="spinnerSize" class="shrink-0" />
-        <AppIcon v-else-if="icon" :name="icon" :size="iconSize" class="shrink-0" />
-        <span v-if="!iconOnly && (label || $slots.default)" class="truncate">
-          <slot>{{ loading && loadingLabel ? loadingLabel : label }}</slot>
+        <!-- The hold fill: one layer that grows on scaleX, under the label (isolate + -z-10). -->
+        <span
+          v-if="holdMs && !reduced"
+          aria-hidden="true"
+          data-hold-fill
+          class="pointer-events-none absolute inset-0 -z-10 origin-left rtl:origin-right"
+          :class="holdFillClass"
+          :style="{ transform: `scaleX(${progress})` }"
+        />
+        <!-- Reduced motion: no sweep; the seconds left are counted in the label's place. -->
+        <span
+          v-if="counting"
+          aria-hidden="true"
+          data-hold-count
+          class="absolute inset-0 flex items-center justify-center tabular-nums"
+        >{{ count }}</span>
+        <AppSpinner v-if="busy" :size="spinnerSize" class="shrink-0" :class="counting && 'invisible'" />
+        <AppIcon v-else-if="icon" :name="icon" :size="iconSize" class="shrink-0" :class="counting && 'invisible'" />
+        <span v-if="!iconOnly && (label || $slots.default)" class="truncate" :class="counting && 'invisible'">
+          <slot>{{ busy && loadingLabel ? loadingLabel : label }}</slot>
         </span>
+        <!-- Hidden from view and from the name, still read as the description (aria-describedby). -->
+        <span v-if="holdMs" :id="hintId" hidden>{{ holdHintText }}</span>
       </button>
     </component>
   </component>
 </template>
 
 <script setup lang="ts">
-import { computed, type FunctionalComponent } from "vue";
+import { computed, onBeforeUnmount, ref, useAttrs, useId, watch, type FunctionalComponent } from "vue";
 import AppTooltip from "./AppTooltip.vue";
 import AppIcon from "./AppIcon.vue";
 import AppSpinner from "./AppSpinner.vue";
 import AppLiquidGlass from "./AppLiquidGlass.vue";
+import { useReducedMotion } from "@/composables/useReducedMotion";
 
 defineOptions({ inheritAttrs: false });
 
@@ -66,9 +90,21 @@ const props = withDefaults(
     size?: "xs" | "sm" | "md" | "lg";
     fullWidth?: boolean;
     disabled?: boolean;
+    /**
+     * The request is running. `aria-busy` and `disabled` follow it at once; the spinner (and
+     * `loadingLabel`) waits 150ms and then stays at least 400ms, so a fast request never flashes.
+     */
     loading?: boolean;
     loadingLabel?: string;
     type?: "button" | "submit" | "reset";
+    /**
+     * Hold to confirm: `@click` (and a submit) fires only after the button is held down this
+     * long, in ms; `true` is 1500ms. Pointer, Space and Enter all hold; letting go early drains
+     * the fill and nothing happens.
+     */
+    hold?: boolean | number;
+    /** The instruction read to screen readers on a hold button. Defaults to "Press and hold for 1.5 seconds to confirm. …". */
+    holdHint?: string;
     /**
      * Sits the button on a refracting glass pane. The variant still drives it — its
      * colour moves down into the glass, tinting the fill, the lit rim and the glow —
@@ -103,12 +139,213 @@ const props = withDefaults(
     loading: false,
     loadingLabel: "",
     type: "button",
+    hold: false,
+    holdHint: "",
     glass: false,
     glassTone: true,
     glassVariant: "regular",
     glassBlur: undefined,
   },
 );
+
+const emit = defineEmits<{
+  /** A hold was let go (or Escaped) before it completed. */
+  holdCancel: [];
+}>();
+
+const attrs = useAttrs();
+const buttonEl = ref<HTMLButtonElement | null>(null);
+const reduced = useReducedMotion();
+
+/* ---------------------------------------------------------------- loading timing */
+
+/** Below this a request reads as instant, so it gets no spinner at all. */
+const SPINNER_DELAY = 150;
+/** Once shown, the spinner stays this long, so it never blinks on and off. */
+const SPINNER_MIN = 400;
+
+/** What the eye sees: the spinner (and the dimmed face). `loading` is what is true. */
+const busy = ref(false);
+let shownAt = 0;
+let showTimer: ReturnType<typeof setTimeout> | undefined;
+let hideTimer: ReturnType<typeof setTimeout> | undefined;
+
+watch(
+  () => props.loading,
+  (on) => {
+    if (on) {
+      clearTimeout(hideTimer);
+      if (busy.value) return;
+      showTimer = setTimeout(() => {
+        busy.value = true;
+        shownAt = Date.now();
+      }, SPINNER_DELAY);
+      return;
+    }
+    clearTimeout(showTimer);
+    if (!busy.value) return;
+    const left = SPINNER_MIN - (Date.now() - shownAt);
+    if (left <= 0) busy.value = false;
+    else hideTimer = setTimeout(() => (busy.value = false), left);
+  },
+  { immediate: true },
+);
+
+/* ---------------------------------------------------------------- hold to confirm */
+
+/** A hold drains this many times faster than it fills, so a second try starts near zero. */
+const DRAIN = 2.5;
+const DEFAULT_HOLD = 1500;
+
+const holdMs = computed(() => {
+  if (props.hold === true) return DEFAULT_HOLD;
+  return typeof props.hold === "number" && props.hold > 0 ? props.hold : 0;
+});
+
+const progress = ref(0);
+const holding = ref(false);
+let done = false;
+/** Set for the one click the completed hold dispatches; every other click is swallowed. */
+let armed = false;
+let raf = 0;
+let last = 0;
+
+const counting = computed(() => holding.value && reduced.value);
+const count = computed(() => Math.max(1, Math.ceil(((1 - progress.value) * holdMs.value) / 1000)));
+
+const hintId = useId();
+const holdHintText = computed(() => {
+  if (props.holdHint) return props.holdHint;
+  const seconds = Number((holdMs.value / 1000).toFixed(1));
+  return `Press and hold for ${seconds} ${seconds === 1 ? "second" : "seconds"} to confirm. Letting go early cancels.`;
+});
+
+function tick(now: number) {
+  const dt = now - last;
+  last = now;
+  if (holding.value) {
+    progress.value = Math.min(1, progress.value + dt / holdMs.value);
+    if (progress.value >= 1) return complete();
+  } else {
+    progress.value = Math.max(0, progress.value - (dt * DRAIN) / holdMs.value);
+  }
+  raf = holding.value || progress.value > 0 ? requestAnimationFrame(tick) : 0;
+}
+
+function start() {
+  if (!holdMs.value || props.disabled || props.loading || busy.value || holding.value) return;
+  if (done) reset();
+  holding.value = true;
+  last = performance.now();
+  if (!raf) raf = requestAnimationFrame(tick);
+}
+
+function release() {
+  if (done) return reset();
+  if (!holding.value) return;
+  holding.value = false;
+  emit("holdCancel");
+  // Reduced motion shows no drain: the count simply goes away.
+  if (reduced.value) reset();
+}
+
+function reset() {
+  if (raf) cancelAnimationFrame(raf);
+  raf = 0;
+  holding.value = false;
+  done = false;
+  progress.value = 0;
+}
+
+function complete() {
+  raf = 0;
+  holding.value = false;
+  done = true;
+  progress.value = 1;
+  // A real click, so `type="submit"` submits and every @click listener runs as usual.
+  armed = true;
+  buttonEl.value?.click();
+  armed = false;
+}
+
+/** The parent's click listeners, which a hold button calls itself once the hold completes. */
+function forwardClick(event: MouseEvent) {
+  const handler = attrs.onClick as ((e: MouseEvent) => void) | ((e: MouseEvent) => void)[] | undefined;
+  for (const fn of Array.isArray(handler) ? handler : handler ? [handler] : []) fn(event);
+}
+
+const isHoldKey = (e: KeyboardEvent) => e.key === " " || e.key === "Enter";
+
+const holdListeners = computed(() =>
+  holdMs.value
+    ? {
+        click: (e: MouseEvent) => {
+          // A plain click, a tap, a screen reader's activation: none of them is a hold.
+          if (!armed) return e.preventDefault();
+          forwardClick(e);
+        },
+        pointerdown: (e: PointerEvent) => e.button === 0 && start(),
+        pointerup: release,
+        pointerleave: release,
+        pointercancel: release,
+        // A long press on touch would open the callout or context menu instead.
+        contextmenu: (e: Event) => e.preventDefault(),
+        keydown: (e: KeyboardEvent) => {
+          if (isHoldKey(e)) {
+            e.preventDefault();
+            if (!e.repeat) start();
+          } else if (e.key === "Escape" && (holding.value || progress.value > 0)) {
+            if (holding.value) emit("holdCancel");
+            reset();
+          }
+        },
+        keyup: (e: KeyboardEvent) => isHoldKey(e) && release(),
+        blur: release,
+      }
+    : {},
+);
+
+const buttonAttrs = computed(() => {
+  if (!holdMs.value) return attrs;
+  const { onClick: _onClick, ...rest } = attrs;
+  return rest;
+});
+
+const describedBy = computed(
+  () =>
+    [attrs["aria-describedby"] as string | undefined, holdMs.value ? hintId : ""].filter(Boolean).join(" ") ||
+    undefined,
+);
+
+// Turning busy or disabled mid-hold (often the click itself does it) ends the hold.
+watch(
+  () => props.disabled || props.loading || !holdMs.value,
+  (off) => off && reset(),
+);
+
+onBeforeUnmount(() => {
+  clearTimeout(showTimer);
+  clearTimeout(hideTimer);
+  if (raf) cancelAnimationFrame(raf);
+});
+
+/** The fill moves away from the label colour, so the label only gains contrast as it grows. */
+const holdFillClass = computed(() => {
+  if (props.glass) return "bg-[color-mix(in_srgb,currentColor_22%,transparent)]";
+  return {
+    primary: "bg-[color-mix(in_srgb,var(--color-accent-hover),var(--color-text)_50%)]",
+    accent: "bg-[color-mix(in_srgb,var(--color-accent-hover),var(--color-text)_50%)]",
+    danger: "bg-[color-mix(in_srgb,var(--color-danger-hover),black_30%)]",
+    success: "bg-[color-mix(in_srgb,var(--color-success),black_30%)]",
+    secondary: "bg-[color-mix(in_srgb,var(--color-muted),var(--color-text)_16%)]",
+    outline: "bg-[color-mix(in_srgb,var(--color-muted),var(--color-text)_16%)]",
+    ghost: "bg-[color-mix(in_srgb,var(--color-muted),var(--color-text)_16%)]",
+    surface: "bg-[color-mix(in_srgb,var(--color-muted),var(--color-text)_16%)]",
+    muted: "bg-[color-mix(in_srgb,var(--color-muted),var(--color-text)_16%)]",
+  }[props.variant];
+});
+
+/* ---------------------------------------------------------------- look */
 
 const sizeClass = computed(() => {
   if (props.iconOnly && !props.fullWidth) {
@@ -223,7 +460,7 @@ const glassBinding = computed(() => {
     fallbackBlur: Math.max(6, glassBlurValue.value),
     // The weight of the variant survives with the colour off; only the hue goes.
     tone: props.glassTone ? tone : "#ffffff",
-    toneStrength: props.disabled || props.loading ? Math.round(strength / 2) : strength,
+    toneStrength: props.disabled || busy.value ? Math.round(strength / 2) : strength,
     shadow: !props.disabled,
     class: ["btn-glass", props.fullWidth && "w-full"],
   };
