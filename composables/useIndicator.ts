@@ -100,7 +100,10 @@ export function useIndicator(
     window.removeEventListener('resize', measure);
   });
 
-  // The head leads on a faster spring; the tail waits a beat, then catches up on the full one.
+  // A selection change is a state change, not a toast opening: the full morph spring (500–600ms,
+  // plus the tail's wait) left the pill creeping for most of a second after the label had changed,
+  // which reads as a low frame rate. The head leads on 45% of the morph duration and the tail
+  // follows a beat later on the same, so the whole move lands in about 300ms.
   const transitions = computed((): [BlobSpring | Record<string, unknown>, BlobSpring | Record<string, unknown>] => {
     if (options.quick?.value) {
       const q = blob.quick();
@@ -108,9 +111,10 @@ export function useIndicator(
     }
     const s = blob.spring(true);
     if (!s.duration) return [s, s];
+    const duration = s.duration * 0.45;
     return [
-      { ...s, duration: s.duration * 0.6 },
-      { ...s, delay: s.duration * 0.15 },
+      { ...s, duration },
+      { ...s, duration, delay: s.duration * 0.08 },
     ];
   });
 
